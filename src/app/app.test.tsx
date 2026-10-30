@@ -89,11 +89,8 @@ describe('not found', () => {
 })
 
 describe('robots and sitemap', () => {
-  it('stays closed to search engines until the launch and points to the sitemap', () => {
-    expect(robots()).toEqual({
-      rules: { userAgent: '*', disallow: '/' },
-      sitemap: 'https://ostrom.run/sitemap.xml',
-    })
+  it('stays out of search engines until the launch: crawlable, noindex, no sitemap announced', () => {
+    expect(robots()).toEqual({ rules: { userAgent: '*', allow: '/' } })
   })
 
   it('lists every public page with an absolute URL', () => {

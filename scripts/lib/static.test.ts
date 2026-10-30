@@ -8,6 +8,8 @@ describe('static server', () => {
     expect(answer('/pricing', files)).toEqual({ status: 200, file: 'pricing/index.html' })
     expect(answer('/missing/', files)).toEqual({ status: 404, file: '404.html' })
     expect(answer('/../etc/passwd', files)).toEqual({ status: 404, file: '404.html' })
+    // An invalid percent-encoding is a 404, not a crash of the server.
+    expect(answer('/%E0%A4%A', files)).toEqual({ status: 404, file: '404.html' })
     expect(answer('/missing/', new Set())).toEqual({ status: 404, file: null })
     expect(answer('/../x', new Set())).toEqual({ status: 404, file: null })
   })
