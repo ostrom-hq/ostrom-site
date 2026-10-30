@@ -17,8 +17,8 @@ defaults:
     working-directory: docs-tools
 
 jobs:
-  coverage:
-    name: coverage
+  docs-coverage:
+    name: docs-coverage
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
