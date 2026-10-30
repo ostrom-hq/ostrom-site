@@ -7,3 +7,5 @@ test-results
 pnpm-lock.yaml
 content/api/openapi.yaml
 content/changelog/releases.json
+content/docs
+docs-tools

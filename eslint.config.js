@@ -16,6 +16,9 @@ export default tseslint.config(
       'playwright-report/**',
       'test-results/**',
       '.lighthouseci/**',
+      // Owned by the DOCS agent: page code blocks are tested byte for byte, docs-tools has its own CI.
+      'content/docs/**',
+      'docs-tools/**',
       '**/*.d.ts',
     ],
   },
