@@ -25,9 +25,9 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm format:check
+      - run: .github/scripts/run.sh typecheck pnpm typecheck
+      - run: .github/scripts/run.sh lint pnpm lint
+      - run: .github/scripts/run.sh format pnpm format:check
 
   coverage:
     name: coverage
@@ -40,7 +40,7 @@ jobs:
         with: { node-version-file: .nvmrc, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - name: Unit and component tests, 100 % thresholds
-        run: pnpm test:coverage
+        run: .github/scripts/run.sh coverage pnpm test:coverage
       - name: Coverage summary
         if: always()
         run: |
@@ -61,9 +61,9 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - run: .github/scripts/run.sh build pnpm build
       - name: Internal links and anchors
-        run: pnpm links
+        run: .github/scripts/run.sh links pnpm links
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Production image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
@@ -108,7 +108,7 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - name: Playwright, desktop and mobile, against the container
         env: { PLAYWRIGHT_BASE_URL: 'http://localhost:8080' }
-        run: pnpm e2e
+        run: .github/scripts/run.sh e2e pnpm e2e
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
@@ -133,10 +133,10 @@ jobs:
         with: { node-version-file: .nvmrc, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - name: Lighthouse, mobile, every page of the sitemap, 95 minimum in each category
-        run: pnpm exec lhci autorun --config=lighthouserc.cjs
+        run: .github/scripts/run.sh lighthouse pnpm exec lhci autorun --config=lighthouserc.cjs
       - name: Lighthouse, desktop
         env: { LHCI_PRESET: desktop }
-        run: pnpm exec lhci autorun --config=lighthouserc.cjs
+        run: .github/scripts/run.sh lighthouse pnpm exec lhci autorun --config=lighthouserc.cjs
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with: { name: lighthouse, path: .lighthouseci/, if-no-files-found: ignore, retention-days: 7 }

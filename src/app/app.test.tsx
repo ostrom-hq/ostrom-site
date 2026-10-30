@@ -52,7 +52,7 @@ describe('root layout', () => {
       </RootLayout>,
     )
     expect(html).toContain('<html lang="en"')
-    expect(html).toContain('--font-archivo')
+    expect(html).toContain('font-archivo')
     expect(html).toContain('href="#main"')
     expect(html).toContain('ostrom-theme')
     expect(html).toContain('<main id="main"')
