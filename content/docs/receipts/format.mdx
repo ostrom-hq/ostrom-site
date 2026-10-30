@@ -1,0 +1,193 @@
+---
+title: Receipt format v1
+description: "The exact bytes a receipt signs, its fields, and a complete verifier you can run."
+status: available
+---
+
+The receipt format is open: anyone can check a receipt without Ostrom's code. This page is the specification of version 1. The examples on this page run in Ostrom's CI against the format's test vectors, the same vectors every Ostrom component is tested with.
+
+## A receipt
+
+This receipt records a yes: `rev-b` approved a gate that `dev-a`'s agent asked for.
+
+```json file="receipt.json"
+{
+  "subject": {
+    "kind": "gate",
+    "id": "gate_6c8dba85-265",
+    "digest": "eea507ffc456edcb2ed4bfe52767ed5d635a4ab11882317b401a0f1541e3b05f"
+  },
+  "initiator": "dev-a",
+  "agent": "claude-code",
+  "rules": [
+    {
+      "id": "r-commit-style",
+      "digest": "79b6ac48e5225be9037493c1e8a8fc9e5fbc42e2893b0c15b8846bd39d310cd7"
+    }
+  ],
+  "decisions": [
+    {
+      "approvalId": "appr_62d52461-ed09-464d-86e5-d7dff4e0d0af",
+      "by": "rev-b",
+      "at": "2026-10-30T11:05:00.000Z",
+      "result": "approved"
+    }
+  ],
+  "id": "rcpt_487602be-d073-43c6-83b9-c4163084b042",
+  "createdAt": "2026-10-30T11:05:00.000Z",
+  "signature": "ed25519;kid=b918e282a924dda0;sha256=e7b0b3a844566e9c453e33291248c5deb9c9c668d0a8ecc88c333c6f6a485622;sig=7K/pt5Yn+SPziMcBYy2xckjiHdxJEqIBBcRe+dNZjZeQBVhHtyTfMBouswBcytF1sbvkkJENH9oZ3rcqnKEGBg=="
+}
+```
+
+## Fields
+
+| Field | Type | Meaning |
+|---|---|---|
+| `id` | string | the receipt's id, starting with `rcpt_` |
+| `subject` | object | what the receipt is about: `kind` (`session`, `gate`, `task`, `workflow`), `id`, and `digest`, the SHA-256 of the canonical form of the subject's record |
+| `initiator` | string | who started the work |
+| `agent` | string, optional | the coding agent, for example `claude-code` or `codex` |
+| `model` | string, optional | the model the agent used |
+| `rules` | array | the rules that applied: `id` and `digest`, the SHA-256 of the rule's exact text |
+| `decisions` | array | every yes or no: `approvalId`, `by`, `at`, `result` (`approved` or `rejected`), and `selfApproved` when the person who asked was also the only approver |
+| `costUsd` | number, optional | the cost in US dollars, when known |
+| `package` | object, optional | the harness package in use: `version` and `digest` |
+| `nodes` | array, optional | for a workflow run, what each step did: `id`, `workflowId`, `kind`, `label`, `outcome`, and optionally `detail` and `ref` |
+| `createdAt` | string | when the receipt was signed, ISO 8601 in UTC with milliseconds |
+| `signature` | string | the signature field, described below |
+
+A verifier must not drop fields it does not know: every field except `signature` is signed, known or not.
+
+## What is signed
+
+The signed bytes are the UTF-8 encoding of the canonical form of the receipt without its `signature` field.
+
+The canonical form is JSON with these rules:
+
+1. Objects: keys sorted by UTF-16 code units at every level, the default sort of JavaScript strings. No locale, no spaces, no line breaks. A key whose value is undefined is left out; an explicit `null` is written `null`.
+2. Arrays: items in their order; an undefined item is written `null`.
+3. Strings: exactly as JavaScript's `JSON.stringify` writes them. Quote, backslash and the control characters are escaped, control characters without a short escape as `\u00xx` in lowercase hexadecimal, a lone surrogate as `\udxxx`. Everything else is written as is, including `/` and non-ASCII text.
+4. Numbers: exactly as JavaScript's `Number.prototype.toString` writes them: the shortest text that reads back as the same double, `1e+21` and above in exponent form, `-0` as `0`.
+5. `true`, `false` and `null` as is.
+
+The canonical form of the receipt above:
+
+```text notest="the verifier below prints and checks this same text"
+{"agent":"claude-code","createdAt":"2026-10-30T11:05:00.000Z","decisions":[{"approvalId":"appr_62d52461-ed09-464d-86e5-d7dff4e0d0af","at":"2026-10-30T11:05:00.000Z","by":"rev-b","result":"approved"}],"id":"rcpt_487602be-d073-43c6-83b9-c4163084b042","initiator":"dev-a","rules":[{"digest":"79b6ac48e5225be9037493c1e8a8fc9e5fbc42e2893b0c15b8846bd39d310cd7","id":"r-commit-style"}],"subject":{"digest":"eea507ffc456edcb2ed4bfe52767ed5d635a4ab11882317b401a0f1541e3b05f","id":"gate_6c8dba85-265","kind":"gate"}}
+```
+
+## The signature field
+
+```text notest="shape of the field, not a value"
+ed25519;kid=KEY_ID;sha256=DIGEST;sig=SIGNATURE
+```
+
+- `ed25519`: the algorithm, pure Ed25519 as in RFC 8032, without pre-hashing.
+- `kid`: the key id, the first 16 hexadecimal characters of the SHA-256 of the public key in SPKI DER form.
+- `sha256`: the SHA-256 of the signed bytes, in lowercase hexadecimal.
+- `sig`: the 64-byte signature of the signed bytes, in standard base64 with padding.
+
+## Verify a receipt yourself
+
+A receipt is valid when all of these hold, checked in this order:
+
+1. it is a JSON object with a `signature` string;
+2. the signature field has its four parts and the algorithm is `ed25519`;
+3. the `kid` is the id of the public key you trust;
+4. the SHA-256 of the signed bytes equals `sha256`;
+5. `sig` is a valid Ed25519 signature of the signed bytes under that key.
+
+This verifier does exactly that, with Node.js 24 or later and nothing else. Save it as `verify-receipt.mjs`:
+
+```js file="verify-receipt.mjs"
+import {createHash, createPublicKey, verify} from "node:crypto"
+import {readFileSync} from "node:fs"
+
+// The canonical form of receipt format v1.
+function canonical(value) {
+    if (value === null || typeof value !== "object") return JSON.stringify(value)
+    if (Array.isArray(value)) return "[" + value.map((item) => (item === undefined ? "null" : canonical(item))).join(",") + "]"
+    const keys = Object.keys(value).filter((key) => value[key] !== undefined).sort()
+    return "{" + keys.map((key) => JSON.stringify(key) + ":" + canonical(value[key])).join(",") + "}"
+}
+
+function check(receipt, publicKeyPem) {
+    if (receipt === null || typeof receipt !== "object" || Array.isArray(receipt)) return "not a receipt"
+    const {signature, ...body} = receipt
+    if (typeof signature !== "string") return "missing signature"
+    const [algorithm, ...parts] = signature.split(";")
+    const field = Object.fromEntries(parts.map((part) => [part.slice(0, part.indexOf("=")), part.slice(part.indexOf("=") + 1)]))
+    if (!field.kid || !field.sha256 || !field.sig) return "malformed signature"
+    if (algorithm !== "ed25519") return "unknown algorithm"
+    const key = createPublicKey(publicKeyPem)
+    const kid = createHash("sha256").update(key.export({type: "spki", format: "der"})).digest("hex").slice(0, 16)
+    if (field.kid !== kid) return "unknown key"
+    const signed = Buffer.from(canonical(body), "utf8")
+    if (createHash("sha256").update(signed).digest("hex") !== field.sha256) return "digest mismatch"
+    const sig = Buffer.from(field.sig, "base64")
+    if (sig.length !== 64 || !verify(null, signed, key, sig)) return "bad signature"
+    return undefined
+}
+
+const [receiptPath, keyPath] = process.argv.slice(2)
+const receipt = JSON.parse(readFileSync(receiptPath, "utf8"))
+const problem = check(receipt, readFileSync(keyPath, "utf8"))
+if (problem === undefined) {
+    console.log("valid: " + receipt.id + ", signed by key " + receipt.signature.split(";")[1].slice(4))
+} else {
+    console.log("invalid: " + problem)
+    process.exitCode = 1
+}
+```
+
+The receipt above was signed with the public test key of the format's vectors. It derives from a published seed, so it signs test vectors and nothing else; never trust it for real receipts. Save it as `test-key.pem`:
+
+```text file="test-key.pem"
+-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAFaTHPoIFP1zbbrrHDBIDpfCW9zXjiXCkuGwP9LU8puM=
+-----END PUBLIC KEY-----
+```
+
+Check the receipt:
+
+```sh test
+node verify-receipt.mjs receipt.json test-key.pem
+```
+
+```text output
+valid: rcpt_487602be-d073-43c6-83b9-c4163084b042, signed by key b918e282a924dda0
+```
+
+Now change who said yes, and check again:
+
+```sh test exit="1"
+sed 's/"rev-b"/"rev-c"/' receipt.json > forged.json
+node verify-receipt.mjs forged.json test-key.pem
+```
+
+```text output
+invalid: digest mismatch
+```
+
+The canonical form the verifier signs is the one shown above:
+
+```js test
+import {readFileSync} from "node:fs"
+const canonical = (value) => value === null || typeof value !== "object" ? JSON.stringify(value)
+    : Array.isArray(value) ? "[" + value.map((item) => (item === undefined ? "null" : canonical(item))).join(",") + "]"
+    : "{" + Object.keys(value).filter((key) => value[key] !== undefined).sort().map((key) => JSON.stringify(key) + ":" + canonical(value[key])).join(",") + "}"
+const {signature, ...body} = JSON.parse(readFileSync("receipt.json", "utf8"))
+console.log(canonical(body))
+```
+
+```text output
+{"agent":"claude-code","createdAt":"2026-10-30T11:05:00.000Z","decisions":[{"approvalId":"appr_62d52461-ed09-464d-86e5-d7dff4e0d0af","at":"2026-10-30T11:05:00.000Z","by":"rev-b","result":"approved"}],"id":"rcpt_487602be-d073-43c6-83b9-c4163084b042","initiator":"dev-a","rules":[{"digest":"79b6ac48e5225be9037493c1e8a8fc9e5fbc42e2893b0c15b8846bd39d310cd7","id":"r-commit-style"}],"subject":{"digest":"eea507ffc456edcb2ed4bfe52767ed5d635a4ab11882317b401a0f1541e3b05f","id":"gate_6c8dba85-265","kind":"gate"}}
+```
+
+## Test vectors
+
+The vectors are the reference for any implementation: the test key, canonical-form cases (non-ASCII text, `U+2028`, control characters, astral keys, `-0`, `1e21`, `0.1 + 0.2`, `5e-324`, a lone surrogate), and signed receipts of every subject kind. An implementation is correct when it produces the same canonical bytes and accepts every vector receipt. The mobile app's verifier is tested against them in `ostrom-app`, under `src/domain/receipts/__fixtures__`.
+
+## Versioning
+
+A change to the canonical form or to the signed bytes is a new format version. Receipts signed under version 1 stay verifiable with the rules on this page.
