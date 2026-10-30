@@ -12,10 +12,11 @@ export const archivo = localFont({
   declarations: [{ prop: 'font-stretch', value: '100% 125%' }],
 })
 
+// Weights 400 to 700 and ASCII with the usual punctuation (scripts/fonts/subset-azeret.py), 11 kB instead of 27.
 export const azeret = localFont({
   src: '../fonts/azeret-mono-latin.woff2',
   variable: '--font-azeret',
-  weight: '100 900',
+  weight: '400 700',
   display: 'swap',
   preload: false,
 })
