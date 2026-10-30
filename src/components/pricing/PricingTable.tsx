@@ -40,7 +40,13 @@ export function PricingTable({ copy, config }: PricingTableProps): React.JSX.Ele
             />
             <span>
               {value === 'month' ? copy.monthly : copy.yearly}
-              {value === 'year' ? <span className="badge badge--success">{copy.yearlySave}</span> : null}
+              {/* A space, so the option is read "Yearly −20%", not "Yearly−20%". */}
+              {value === 'year' ? (
+                <>
+                  {' '}
+                  <span className="badge badge--success">{copy.yearlySave}</span>
+                </>
+              ) : null}
             </span>
           </label>
         ))}

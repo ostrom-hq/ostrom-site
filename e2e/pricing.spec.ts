@@ -19,7 +19,7 @@ test.describe('pricing', () => {
   test('switches between monthly and yearly prices', async ({ page }) => {
     await page.goto('/pricing/')
     await expect(page.getByTestId('price-team')).toContainText('$35')
-    await page.getByText('Yearly').click()
+    await page.locator('label', { hasText: 'Yearly' }).click()
     await expect(page.getByTestId('price-team')).toContainText('$28')
     await expect(page.getByTestId('price-business')).toContainText('$52')
     await expect(page.getByText('billed yearly, $336 per person')).toBeVisible()
@@ -36,7 +36,7 @@ test.describe('pricing', () => {
       }),
     )
     await page.goto('/pricing/')
-    await page.getByText('Yearly').click()
+    await page.locator('label', { hasText: 'Yearly' }).click()
     await page.getByRole('link', { name: 'Start with Team' }).click()
     await expect(page).toHaveURL('https://app.ostrom.run/signup?plan=team&interval=year')
     await expect(page.getByRole('heading', { name: 'Sign up' })).toBeVisible()

@@ -14,8 +14,8 @@ import { generateMetadata as legalMetadata } from './legal/[slug]/page'
 
 // The same pages over the fixtures: a published legal text, a published post next to a draft, and releases.
 vi.mock('@/lib/collections', async (importOriginal) => {
-  const { join } = await import('node:path')
-  const root = join(process.cwd(), 'src/test/fixtures/content')
+  const path = await import('node:path')
+  const root = path.join(process.cwd(), 'src/test/fixtures/content')
   const actual = await importOriginal<typeof Collections>()
   return {
     ...actual,
@@ -25,11 +25,11 @@ vi.mock('@/lib/collections', async (importOriginal) => {
   }
 })
 vi.mock('@/lib/changelog', async (importOriginal) => {
-  const { join } = await import('node:path')
+  const path = await import('node:path')
   const actual = await importOriginal<typeof Changelog>()
   return {
     ...actual,
-    loadReleases: () => actual.loadReleases(join(process.cwd(), 'src/test/fixtures/content')),
+    loadReleases: () => actual.loadReleases(path.join(process.cwd(), 'src/test/fixtures/content')),
   }
 })
 
@@ -39,7 +39,7 @@ describe('pages over published content', () => {
     expect(metadata.robots).toBeUndefined()
   })
 
-  it('lists published posts only, and builds drafts for review', async () => {
+  it('lists published posts only, and builds drafts for review', () => {
     render(<BlogIndex />)
     expect(screen.getByRole('link', { name: 'Old post' })).toHaveAttribute('href', '/blog/old/')
     expect(screen.queryByText('New draft')).toBeNull()
