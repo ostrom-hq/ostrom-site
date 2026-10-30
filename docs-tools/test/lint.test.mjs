@@ -21,7 +21,7 @@ test("a clean page has no problem", () => {
         `${FENCE}text notest="sample"`,
         "<anything>",
         FENCE,
-        "> a quote with `{code}`",
+        "> a quote with `{code}` and escaped \\{braces\\} \\<tag>",
     ].join("\n")
     assert.deepEqual(lintPage(page(body), new Set(["/docs", "/docs/quickstart"])), [])
 })

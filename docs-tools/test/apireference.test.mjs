@@ -3,7 +3,7 @@ import assert from "node:assert/strict"
 import {readFileSync} from "node:fs"
 import {join} from "node:path"
 import {test} from "node:test"
-import {cell, generateApiReference, typeOf} from "../src/apireference.mjs"
+import {cell, generateApiReference, markdown, slug, typeOf} from "../src/apireference.mjs"
 import {main} from "../src/cli.mjs"
 import {lintPage} from "../src/lint.mjs"
 import {tree} from "./helpers.mjs"
@@ -51,7 +51,7 @@ paths:
       description: |
         Waits up to
         30 seconds.
-      parameters: [{name: wait, in: query, schema: {type: integer}}]
+      parameters: [{name: wait, in: query, schema: {type: integer}}, {name: id, in: path, required: true, schema: {type: string}, description: "Overridden id."}]
       responses:
         '200': {description: The gate., content: {application/json: {schema: {$ref: '#/components/schemas/Gate'}}}}
         '404': {$ref: '#/components/responses/NotFound'}
@@ -65,21 +65,46 @@ paths:
       x-ostrom-server: implemented
       responses: {'200': {description: OK}}
     patch:
-      x-ostrom-server: planned
       responses: {'200': {description: Planned}}
+    head:
+      x-ostrom-server: implemented
+      responses: {'200': {description: Alive}}
     delete:
       x-ostrom-server: implemented
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Ids'}}}}
 `
 
-test("cell keeps tables and MDX intact", () => {
-    assert.equal(cell("a | b\n  c <d> {e} & f"), "a \\| b c &lt;d> &#123;e&#125; &amp; f")
+test("cell: one line, pipes escaped, MDX characters escaped outside code spans only", () => {
+    assert.equal(cell("a | b\n  c <d> {e} `GET /v1/{id}` & f"), "a \\| b c &lt;d> \\{e\\} `GET /v1/{id}` & f")
     assert.equal(cell(undefined), "")
+})
+
+test("markdown keeps paragraphs and lists, and marks fenced examples as not run", () => {
+    const text = ["Waits for {n} seconds.", "", "- one `<code>`", "", "```json", '{"a": {"b": 1}}', "```", "~~~", "<raw>", "~~~", "after {x}"].join("\n")
+    assert.equal(markdown(text), [
+        "Waits for \\{n\\} seconds.",
+        "",
+        "- one `<code>`",
+        "",
+        '```json notest="example from the API description"',
+        '{"a": {"b": 1}}',
+        "```",
+        '~~~text notest="example from the API description"',
+        "<raw>",
+        "~~~",
+        "after \\{x\\}",
+    ].join("\n"))
+    assert.equal(markdown(undefined), "")
+})
+
+test("slug follows the renderers: punctuation dropped, spaces to dashes", () => {
+    assert.equal(slug("`Gate.Request` schema"), "gaterequest-schema")
+    assert.equal(slug("My_Gate-2 schema"), "my_gate-2-schema")
 })
 
 test("typeOf names references, unions, enums, constants, arrays and formats", () => {
     assert.equal(typeOf(undefined), "")
-    assert.equal(typeOf({$ref: "#/components/schemas/My_Gate"}), "[My_Gate](#my_gate)")
+    assert.equal(typeOf({$ref: "#/components/schemas/My_Gate"}), "[My_Gate](#my_gate-schema)")
     assert.equal(typeOf({type: "array", items: {type: "string", format: "uuid"}}), "string (uuid) array")
     assert.equal(typeOf({type: "array"}), "object array")
     assert.equal(typeOf({enum: ["a", 1]}), '`"a"`, `1`')
@@ -93,7 +118,7 @@ test("the page: tags in order, parameters, bodies, responses, schemas, and it li
     const page = join(folder, "api.mdx")
     const out = []
     assert.equal(main(["api-reference", join(folder, "openapi.yaml"), page], {out: (line) => out.push(line), err: () => {}, env: {}}), 0)
-    assert.deepEqual(out, [`api-reference: wrote ${page}`])
+    assert.deepEqual(out, [`api-reference: wrote ${page} (5 of 6 operations marked implemented)`])
     const text = readFileSync(page, "utf8")
     assert.deepEqual(lintPage(text, new Set()), [])
     assert.deepEqual([...text.matchAll(/^##+ .*$/gm)].map((match) => match[0]), [
@@ -104,44 +129,52 @@ test("the page: tags in order, parameters, bodies, responses, schemas, and it li
         "## Other endpoints",
         "### `GET /health`",
         "### `DELETE /health`",
+        "### `HEAD /health`",
         "## Schemas",
-        "### Gate",
-        "### Error",
-        "### Ids",
+        "### `Gate` schema",
+        "### `Error` schema",
+        "### `Ids` schema",
     ])
     for (const expected of [
         "version `1.2.3`",
         "Base URL: `/api/v1`.",
         "Authentication `bearerAuth`: http bearer. A device token.",
         "Authentication `apiKey`: apiKey header X-Key.",
-        "Waits up to 30 seconds.",
-        "| `id` | path | string (uuid) | yes | The gate's id. |",
+        "Waits up to\n30 seconds.",
+        "| `id` | path | string | yes | Overridden id. |",
         "| `wait` | query | integer | no |  |",
-        "| 200 | The gate. | [Gate](#gate) |",
-        "| 404 | Not found. | [Error](#error) |",
+        "| 200 | The gate. | [Gate](#gate-schema) |",
+        "| 404 | Not found. | [Error](#error-schema) |",
         "Request body (optional): string",
-        "Request body: [Ids](#ids)",
+        "Request body: [Ids](#ids-schema)",
         "| 204 | Done. |  |",
-        "A gate \\| with a pipe.",
+        "A gate | with a pipe.",
         "| `id` | string (uuid) | yes |  |",
         '| `status` | `"pending"`, `"approved"` | no |  |',
-        "| `owner` | [Error](#error) or null | no |  |",
-        "| `count` | integer or null | no | Up to &#123;n&#125; &lt;items> |",
+        "| `owner` | [Error](#error-schema) or null | no |  |",
+        "| `count` | integer or null | no | Up to \\{n\\} &lt;items> |",
         "| `any` | string or number | no |  |",
         "Type: string array",
     ]) {
         assert.equal(text.includes("PATCH"), false)
+        const get = text.slice(text.indexOf("### `GET /gates/{id}`"), text.indexOf("## extra"))
+        assert.equal(get.match(/\| `id` \| path \|/g).length, 1, "the operation's id parameter overrides the path's")
         assert.equal(text.includes("### Unused"), false, "a schema no listed operation uses is left out")
         assert.ok(text.includes(expected), expected)
     }
 })
 
 test("an empty description still gives a page", () => {
-    const text = generateApiReference({})
+    const {page: text, listed, total} = generateApiReference({})
+    assert.deepEqual([listed, total], [0, 0])
     assert.deepEqual(lintPage(text, new Set()), [])
     assert.equal(text.includes("## Schemas"), false)
-    assert.equal(generateApiReference({paths: {"/x": {get: {"x-ostrom-server": "implemented"}}}}).includes("| Status | Description | Body |"), true)
-    assert.equal(generateApiReference({paths: {"/x": {get: {}}}}).includes("/x"), false, "an operation the server does not serve is left out")
+    assert.equal(generateApiReference({paths: {"/x": {get: {"x-ostrom-server": "implemented"}}}}).page.includes("| Status | Description | Body |"), true)
+    assert.equal(generateApiReference({paths: {"/x": {get: {}}}}).page.includes("/x"), false, "an operation the server does not serve is left out")
+})
+
+test("a misspelled mark is an error, not a silent omission", () => {
+    assert.throws(() => generateApiReference({paths: {"/x": {post: {"x-ostrom-server": "Implemented"}}}}), /POST \/x: x-ostrom-server must be "implemented", not "Implemented"/)
 })
 
 test("api-reference: unreadable file", () => {

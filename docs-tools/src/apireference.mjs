@@ -1,22 +1,49 @@
 // SPDX-License-Identifier: Apache-2.0
 // Writes the API reference page from the OpenAPI description, so the page cannot describe an endpoint that does not exist.
 
-const METHODS = ["get", "put", "post", "patch", "delete"]
+const METHODS = ["get", "put", "post", "patch", "delete", "head", "options", "trace"]
 
-/** Text that MDX and a table cell read as text. */
-export function cell(text) {
+/** One line of Markdown made safe for MDX: `<`, `{` and `}` escaped outside code spans, code spans kept as written. */
+function mdxLine(line) {
+    return line
+        .split(/(`+[^`]*?`+)/)
+        .map((part, index) => (index % 2 === 1 ? part : part.replaceAll("<", "&lt;").replaceAll("{", "\\{").replaceAll("}", "\\}")))
+        .join("")
+}
+
+/** Markdown from the description (paragraphs, lists, fenced examples) made safe for MDX and for docs-lint. */
+export function markdown(text) {
+    let fence
     return String(text ?? "")
-        .replace(/\s*\n\s*/g, " ")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll("{", "&#123;")
-        .replaceAll("}", "&#125;")
-        .replaceAll("|", "\\|")
         .trim()
+        .split("\n")
+        .map((line) => {
+            const match = /^(\s*)(`{3,}|~{3,})(.*)$/.exec(line)
+            if (fence === undefined && match !== null) {
+                fence = match[2]
+                const lang = match[3].trim().split(/\s+/)[0] || "text"
+                return `${match[1]}${match[2]}${lang} notest="example from the API description"`
+            }
+            if (fence !== undefined) {
+                if (match !== null && match[3].trim() === "" && match[2].startsWith(fence[0])) fence = undefined
+                return line
+            }
+            return mdxLine(line)
+        })
+        .join("\n")
+}
+
+/** Markdown for one table cell: one line, pipes escaped. */
+export function cell(text) {
+    return mdxLine(String(text ?? "").replace(/\s*\n\s*/g, " ").trim()).replaceAll("|", "\\|")
 }
 
 const refName = (ref) => ref.split("/").at(-1)
-const anchor = (name) => name.toLowerCase().replace(/[^a-z0-9_-]+/g, "-")
+/** The id a renderer gives a heading (github-slugger): lower case, punctuation dropped, spaces to dashes. */
+export const slug = (heading) => heading.toLowerCase().replace(/[^\p{L}\p{N}\s_-]/gu, "").trim().replace(/\s/g, "-")
+/** Schema headings read "`Name` schema", so they never collide with a tag's heading. */
+const schemaHeading = (name) => `\`${name}\` schema`
+const anchor = (name) => slug(schemaHeading(name))
 
 /** A schema's type in a few words; component schemas link to their section. */
 export function typeOf(schema) {
@@ -45,8 +72,11 @@ function jsonSchema(content) {
 function operationSection(spec, path, method, operation, shared) {
     const lines = [`### \`${method.toUpperCase()} ${path}\``, ""]
     if (operation.summary) lines.push(cell(operation.summary), "")
-    if (operation.description) lines.push(cell(operation.description), "")
-    const parameters = [...shared, ...(operation.parameters ?? [])].map((parameter) => resolve(spec, parameter))
+    if (operation.description) lines.push(markdown(operation.description), "")
+    // An operation's parameter overrides the path's parameter of the same name and location.
+    const byKey = new Map()
+    for (const parameter of [...shared, ...(operation.parameters ?? [])].map((item) => resolve(spec, item))) byKey.set(`${parameter.in}:${parameter.name}`, parameter)
+    const parameters = [...byKey.values()]
     if (parameters.length > 0) {
         lines.push("| Parameter | In | Type | Required | Description |", "|---|---|---|---|---|")
         for (const p of parameters) lines.push(`| \`${p.name}\` | ${p.in} | ${typeOf(p.schema)} | ${p.required ? "yes" : "no"} | ${cell(p.description)} |`)
@@ -64,8 +94,8 @@ function operationSection(spec, path, method, operation, shared) {
 }
 
 function schemaSection(name, schema) {
-    const lines = [`### ${name}`, ""]
-    if (schema.description) lines.push(cell(schema.description), "")
+    const lines = [`### ${schemaHeading(name)}`, ""]
+    if (schema.description) lines.push(markdown(schema.description), "")
     const properties = Object.entries(schema.properties ?? {})
     if (properties.length === 0) {
         lines.push(`Type: ${typeOf({...schema, description: undefined})}`, "")
@@ -97,16 +127,21 @@ export function referencedSchemas(spec, value, found = new Set()) {
     return found
 }
 
-/** True for an operation the server serves: the contract marks it `x-ostrom-server: implemented`. */
-export function isImplemented(operation) {
-    return operation["x-ostrom-server"] === "implemented"
+/** True for an operation the server serves: the contract marks it `x-ostrom-server: implemented`. Any other value is a typo. */
+export function isImplemented(operation, where) {
+    const mark = operation["x-ostrom-server"]
+    if (mark !== undefined && mark !== "implemented") throw new Error(`${where}: x-ostrom-server must be "implemented", not ${JSON.stringify(mark)}`)
+    return mark === "implemented"
 }
 
 /**
  * The whole reference page, endpoints grouped by tag in the description's order, then the schemas they use.
  * Only operations the server implements are listed; the contract also describes planned ones.
+ * Returns the page and how many operations it lists out of all those the contract describes.
  */
 export function generateApiReference(spec) {
+    let total = 0
+    let listed = 0
     const tagNames = (spec.tags ?? []).map((tag) => tag.name)
     const groups = new Map(tagNames.map((name) => [name, []]))
     const untagged = []
@@ -114,7 +149,10 @@ export function generateApiReference(spec) {
     for (const [path, item] of Object.entries(spec.paths ?? {})) {
         for (const method of METHODS) {
             const operation = item[method]
-            if (operation === undefined || !isImplemented(operation)) continue
+            if (operation === undefined) continue
+            total += 1
+            if (!isImplemented(operation, `${method.toUpperCase()} ${path}`)) continue
+            listed += 1
             referencedSchemas(spec, [item.parameters ?? [], operation], used)
             const section = operationSection(spec, path, method, operation, item.parameters ?? [])
             const tag = operation.tags?.[0]
@@ -141,7 +179,7 @@ export function generateApiReference(spec) {
     for (const [tag, section] of groups) {
         if (section.length === 0) continue
         lines.push(`## ${cell(tag)}`, "")
-        if (described.get(tag)) lines.push(cell(described.get(tag)), "")
+        if (described.get(tag)) lines.push(markdown(described.get(tag)), "")
         lines.push(...section)
     }
     if (untagged.length > 0) lines.push("## Other endpoints", "", ...untagged)
@@ -150,5 +188,5 @@ export function generateApiReference(spec) {
         lines.push("## Schemas", "")
         for (const [name, schema] of schemas) lines.push(...schemaSection(name, schema))
     }
-    return lines.join("\n").trimEnd() + "\n"
+    return {page: lines.join("\n").trimEnd() + "\n", listed, total}
 }

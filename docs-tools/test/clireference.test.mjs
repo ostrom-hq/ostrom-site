@@ -34,12 +34,16 @@ const HELP = {
     "harness list": "Usage: ostrom harness list\n",
     doctor: "Usage: ostrom doctor\n",
 }
-const help = (path) => HELP[path.join(" ")]
+const help = (path) => {
+    const text = HELP[path.join(" ")]
+    if (text === undefined) throw new Error(`no help for ${path.join(" ")}`)
+    return text
+}
 
 test("parseCommands reads the Commands section only", () => {
     assert.deepEqual(parseCommands(HELP[""]), [
         {name: "claude", summary: "Start Claude Code under your team's harness"},
-        {name: "harness", summary: "Harnesses: list, show, add {admin}"},
+        {name: "harness", summary: "Harnesses: list, show, add {admin} a second line of the summary"},
         {name: "doctor", summary: ""},
     ])
     assert.deepEqual(parseCommands("Usage: ostrom doctor\n"), [])
@@ -48,17 +52,16 @@ test("parseCommands reads the Commands section only", () => {
 test("the page lists every command depth first, MDX-safe, and lints clean", () => {
     const page = generateCliReference(help)
     assert.deepEqual([...page.matchAll(/^## `(.+)`$/gm)].map((match) => match[1]), ["ostrom", "ostrom claude", "ostrom harness", "ostrom harness list", "ostrom doctor"])
-    assert.match(page, /^`Harnesses: list, show, add \{admin\}`$/m)
+    assert.match(page, /^`Harnesses: list, show, add \{admin\} a second line of the summary`$/m)
     assert.deepEqual(lintPage(page, new Set()), [])
 })
 
-test("depth is bounded", () => {
-    const page = generateCliReference(help, {maxDepth: 1})
-    assert.equal(page.includes("ostrom harness list"), false)
+test("a tree deeper than the limit is an error, never a silent cut", () => {
+    assert.throws(() => generateCliReference(help, {maxDepth: 1}), /ostrom harness list: command tree deeper than 1/)
 })
 
 test("a command whose help fails stops the generation", () => {
-    assert.throws(() => generateCliReference((path) => (path.length === 0 ? HELP[""] : undefined)), /ostrom claude --help failed/)
+    assert.throws(() => generateCliReference((path) => help(path.length === 0 ? [] : ["nope"])), /no help for nope/)
 })
 
 test("cli-reference writes a page that docs-test then passes against the same binary", () => {
@@ -78,8 +81,10 @@ test("cli-reference: usage and failures", () => {
     const err = []
     const io = {out: () => {}, err: (line) => err.push(line), env: process.env}
     assert.equal(main(["cli-reference", "only-one"], io), 2)
-    const folder = tree({ostrom: "#!/bin/sh\nexit 3\n"})
+    const folder = tree({ostrom: "#!/bin/sh\necho oops >&2\nexit 3\n"})
     chmodSync(join(folder, "ostrom"), 0o755)
     assert.equal(main(["cli-reference", join(folder, "ostrom"), join(folder, "cli.mdx")], io), 1)
-    assert.equal(err.at(-1), "cli-reference: ostrom --help failed")
+    assert.equal(err.at(-1), "cli-reference: ostrom --help failed (exit 3: oops)")
+    assert.equal(main(["cli-reference", join(folder, "missing"), join(folder, "cli.mdx")], io), 1)
+    assert.match(err.at(-1), /^cli-reference: ostrom --help failed \(spawnSync .* ENOENT\)$/)
 })

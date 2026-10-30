@@ -14,6 +14,8 @@ export function parseCommands(help) {
         if (line.trim() === "") break
         const match = /^ {2}([a-z][\w-]*)(?: {2,}(.*))?$/.exec(line)
         if (match !== null) commands.push({name: match[1], summary: (match[2] ?? "").trim()})
+        // A summary Clikt wrapped: the continuation is indented under the summary column.
+        else if (commands.length > 0 && /^ {3,}\S/.test(line)) commands.at(-1).summary = `${commands.at(-1).summary} ${line.trim()}`.trim()
     }
     return commands
 }
@@ -24,19 +26,18 @@ function mdxSafe(text) {
 }
 
 /**
- * The whole reference page. `help(path)` returns the help text of `ostrom <path...> --help`, or undefined when the
- * binary refused it. Depth-first, in the binary's own order.
+ * The whole reference page. `help(path)` returns the help text of `ostrom <path...> --help`, or throws.
+ * Depth-first, in the binary's own order; a tree deeper than `maxDepth` is an error, never a silent cut.
  */
-export function generateCliReference(help, {maxDepth = 4} = {}) {
+export function generateCliReference(help, {maxDepth = 8} = {}) {
     const sections = []
     const visit = (path, summary) => {
+        if (path.length > maxDepth) throw new Error(`ostrom ${path.join(" ")}: command tree deeper than ${maxDepth}`)
         const text = help(path)
-        if (text === undefined) throw new Error(`ostrom ${[...path, "--help"].join(" ")} failed`)
         const command = ["ostrom", ...path].join(" ")
         sections.push(`## \`${command}\``, "")
         if (summary) sections.push(mdxSafe(summary), "")
         sections.push(`${FENCE}sh test requires="ostrom"`, `${command} --help`, FENCE, "", `${FENCE}text output`, text.trimEnd(), FENCE, "")
-        if (path.length >= maxDepth) return
         for (const child of parseCommands(text)) visit([...path, child.name], child.summary)
     }
     visit([], "")

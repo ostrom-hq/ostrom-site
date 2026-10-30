@@ -9,11 +9,13 @@ import {lintTree} from "./lint.mjs"
 
 export const USAGE = "usage: docs-tools lint <docs-dir> | docs-tools run <docs-dir> [--strict] | docs-tools cli-reference <ostrom-binary> <page.mdx> | docs-tools api-reference <openapi.yaml> <page.mdx>"
 
-/** `ostrom <path> --help` through the real binary; undefined when it fails. */
+/** `ostrom <path> --help` through the real binary; throws with the cause when it fails. */
 function helpOf(binary, env) {
     return (path) => {
-        const run = spawnSync(binary, [...path, "--help"], {encoding: "utf8", env, timeout: 10_000})
-        return run.status === 0 ? run.stdout : undefined
+        const run = spawnSync(binary, [...path, "--help"], {encoding: "utf8", env, timeout: 60_000})
+        if (run.status === 0) return run.stdout
+        const cause = run.error?.message ?? `exit ${run.status}: ${run.stderr.trim()}`
+        throw new Error(`ostrom ${[...path, "--help"].join(" ")} failed (${cause})`)
     }
 }
 
@@ -27,13 +29,18 @@ export function main(argv, {out, err, env}) {
         }
         const [source, page] = rest
         try {
-            const text = command === "cli-reference" ? generateCliReference(helpOf(source, env)) : generateApiReference(parse(readFileSync(source, "utf8")))
-            writeFileSync(page, text)
+            if (command === "cli-reference") {
+                writeFileSync(page, generateCliReference(helpOf(source, env)))
+                out(`${command}: wrote ${page}`)
+            } else {
+                const {page: text, listed, total} = generateApiReference(parse(readFileSync(source, "utf8")))
+                writeFileSync(page, text)
+                out(`${command}: wrote ${page} (${listed} of ${total} operations marked implemented)`)
+            }
         } catch (error) {
             err(`${command}: ${error.message}`)
             return 1
         }
-        out(`${command}: wrote ${page}`)
         return 0
     }
     const flags = rest.filter((arg) => arg.startsWith("-"))
