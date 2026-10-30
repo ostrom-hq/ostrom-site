@@ -186,7 +186,7 @@ function reachableSchemas(
 }
 
 const isJson = (media: Media | null): media is Media & { readonly schema: JsonSchema } =>
-  media !== null && media.schema !== null && media.type.endsWith('json')
+  media?.type.endsWith('json') === true && media.schema !== null
 
 interface Builder {
   readonly document: OpenApiDocument

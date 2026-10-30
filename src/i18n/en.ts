@@ -270,7 +270,7 @@ export const en = {
       dialog: 'Search the docs',
       placeholder: 'Search the guides and the API',
       close: 'Esc',
-      closeLabel: 'Close the search',
+      closeLabel: 'Esc, close the search',
       results: 'Results',
       loading: 'Loading the index…',
       failed: 'The search index could not be loaded. Try again in a moment.',

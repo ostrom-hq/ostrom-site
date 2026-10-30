@@ -55,8 +55,11 @@ test('a code block copies its text and says so', async ({ page, context, browser
   await page.goto('/docs/receipts/format/')
   const block = page.locator('.docs-code').first()
   const button = block.getByRole('button', { name: 'Copy' })
-  await button.click()
-  await expect(button).toHaveText('Copied')
+  // The click works once the page is hydrated (the copy listener is a client effect): retry until it is.
+  await expect(async () => {
+    await button.click()
+    await expect(button).toHaveText('Copied', { timeout: 1000 })
+  }).toPass()
   await expect(page.getByRole('status').filter({ hasText: 'Copied' })).toHaveCount(1)
   const copied = await page.evaluate(() => navigator.clipboard.readText())
   expect(copied).toBe(await block.locator('pre').innerText())
@@ -65,9 +68,12 @@ test('a code block copies its text and says so', async ({ page, context, browser
 
 test('the search opens with the keyboard and goes to a result', async ({ page }) => {
   await page.goto('/docs/')
-  await page.keyboard.press('ControlOrMeta+k')
   const dialog = page.getByRole('dialog', { name: 'Search the docs' })
-  await expect(dialog).toBeVisible()
+  // The shortcut works once the page is hydrated: retry until the dialog opens.
+  await expect(async () => {
+    await page.keyboard.press('ControlOrMeta+k')
+    await expect(dialog).toBeVisible({ timeout: 1000 })
+  }).toPass()
   const input = dialog.getByRole('combobox')
   await expect(input).toBeFocused()
   await input.fill('receipt format')
@@ -87,7 +93,7 @@ test('the search button opens the same dialog, Escape closes it and focus stays 
   await expect(dialog.getByRole('combobox')).toBeFocused()
   // A modal <dialog> makes the page behind it inert: Tab stays among the dialog's controls.
   await page.keyboard.press('Tab')
-  await expect(dialog.getByRole('button', { name: 'Close the search' })).toBeFocused()
+  await expect(dialog.getByRole('button', { name: 'close the search' })).toBeFocused()
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
 })

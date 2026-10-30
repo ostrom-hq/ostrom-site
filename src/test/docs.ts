@@ -1,12 +1,12 @@
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
 import { vi } from 'vitest'
 import { readDocsSite, type DocsSite } from '@/lib/docs/site'
 
 /** The fixture content: two versions, nested folders, an OpenAPI description that touches every case. */
-export const FIXTURE_CONTENT = fileURLToPath(new URL('./fixtures/content', import.meta.url))
+export const FIXTURE_CONTENT = join(process.cwd(), 'src', 'test', 'fixtures', 'content')
 
 /** A content folder that does not exist: a checkout before the DOCS content is merged. */
-export const MISSING_CONTENT = fileURLToPath(new URL('./fixtures/missing', import.meta.url))
+export const MISSING_CONTENT = join(process.cwd(), 'src', 'test', 'fixtures', 'missing')
 
 export const TEST_API_URL = 'https://api.example.test'
 
