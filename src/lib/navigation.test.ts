@@ -9,10 +9,10 @@ describe('navigation', () => {
   it('opens the console sign-up, with the plan and interval when given', () => {
     expect(signupUrl(config)).toBe('https://app.example.test/signup')
     expect(signupUrl(config, { plan: 'team', interval: 'yearly' })).toBe(
-      'https://app.example.test/signup?plan=team&interval=yearly',
+      'https://app.example.test/signup?plan=team&interval=year',
     )
     expect(signupUrl(config, { plan: 'business', interval: 'monthly' })).toBe(
-      'https://app.example.test/signup?plan=business&interval=monthly',
+      'https://app.example.test/signup?plan=business&interval=month',
     )
     expect(signupUrl(config, { plan: 'free' })).toBe('https://app.example.test/signup?plan=free')
   })
