@@ -6,7 +6,7 @@
 export const planIds = ['free', 'team', 'business', 'enterprise'] as const
 export type PlanId = (typeof planIds)[number]
 
-/** The billing intervals, yearly first (the default the page shows), named as the console's sign-up reads them. */
+/** The billing intervals, yearly first (the default the page shows); the sign-up link names them month and year. */
 export const intervals = ['yearly', 'monthly'] as const
 export type Interval = (typeof intervals)[number]
 
