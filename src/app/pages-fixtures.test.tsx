@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { en } from '@/i18n/en'
 import type * as Changelog from '@/lib/changelog'
 import type * as Collections from '@/lib/collections'
+import type * as Site from '@/lib/site'
 import { sitemapEntries } from '@/lib/sitemap'
 import PostPage, {
   generateMetadata as postMetadata,
@@ -23,6 +24,20 @@ vi.mock('@/lib/collections', async (importOriginal) => {
     legalPages: () => actual.legalPages(root),
     allPosts: () => actual.allPosts(root),
     publishedPosts: () => actual.publishedPosts(root),
+  }
+})
+// The launch switch, flipped per test.
+const launch = vi.hoisted(() => ({ launched: false }))
+vi.mock('@/lib/site', async (importOriginal) => {
+  const actual = await importOriginal<typeof Site>()
+  return {
+    ...actual,
+    site: {
+      ...actual.site,
+      get launched() {
+        return launch.launched
+      },
+    },
   }
 })
 vi.mock('@/lib/changelog', async (importOriginal) => {
@@ -52,8 +67,13 @@ describe('pages over published content', () => {
     expect(screen.getByText(en.blog.draft)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: `← ${en.blog.back}` })).toHaveAttribute('href', '/blog/')
     expect(await postMetadata({ params: Promise.resolve({ slug: 'new' }) })).toMatchObject({
-      robots: { index: false },
+      robots: { index: false, follow: false },
     })
+    launch.launched = true
+    expect(await postMetadata({ params: Promise.resolve({ slug: 'new' }) })).toMatchObject({
+      robots: { index: false, follow: true },
+    })
+    launch.launched = false
     const published = await postMetadata({ params: Promise.resolve({ slug: 'old' }) })
     expect(published.robots).toBeUndefined()
     expect(published.openGraph).toMatchObject({
@@ -76,8 +96,15 @@ describe('pages over published content', () => {
     expect(xml).toContain('Ostrom Blog')
   })
 
-  it('shows releases by month, with their notes and a link to GitHub', () => {
+  it('links releases to GitHub only once the repositories are public', () => {
     render(<ChangelogPage />)
+    expect(screen.queryByRole('link', { name: en.changelog.view })).toBeNull()
+  })
+
+  it('shows releases by month, with their notes and a link to GitHub', () => {
+    launch.launched = true
+    render(<ChangelogPage />)
+    launch.launched = false
     expect(screen.getByRole('heading', { level: 2, name: 'November 2026' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 3, name: 'Server 0.2' })).toBeInTheDocument()
     expect(screen.getByText('CLI')).toBeInTheDocument()
