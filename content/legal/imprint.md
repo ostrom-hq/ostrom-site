@@ -21,4 +21,4 @@ The website, the console and the API are hosted by Infomaniak Network SA, Rue Eu
 
 ## Intellectual property
 
-Ostrom's source code is published under the licenses listed on the [open source page](/open-source/). The Ostrom name, logo and the texts of this site belong to Guimauve Digital; using them to suggest an endorsement needs our written agreement.
+Ostrom's source code is published under the licenses listed on the [open source page](/open-source/). The documentation, blog, changelog and page texts are published under CC BY 4.0 (LICENSE-CONTENT in the site's repository). The Ostrom name, logo and the legal texts belong to Guimauve Digital; using them to suggest an endorsement needs our written agreement.

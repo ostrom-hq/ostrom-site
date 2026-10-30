@@ -64,6 +64,7 @@ export const en = {
       cookieSettings: 'Cookie settings',
     },
     copyright: '© 2026 Guimauve Digital SAS. Ostrom is a product of Guimauve Digital.',
+    contentLicense: 'Code under Apache-2.0; texts and documentation under CC BY 4.0.',
   },
   notFound: {
     title: 'This page is not here',
@@ -240,7 +241,6 @@ export const en = {
           '5 cloud agents at a time',
           '300 agent hours a month',
           'Rules, approvals and signed receipts',
-          'Receipts kept 30 days',
         ],
       },
       team: {
@@ -252,7 +252,6 @@ export const en = {
           'As many people as you need',
           '5 cloud agents per paid person',
           '100 agent hours per paid person, pooled',
-          'Receipts kept 90 days',
         ],
       },
       business: {
@@ -261,10 +260,9 @@ export const en = {
         cta: 'Start with Business',
         features: [
           'Everything in Team, plus…',
-          'Single sign-on: OIDC and SAML',
-          'Organization policies',
           '150 agent hours per paid person, pooled',
-          'Receipts kept 1 year',
+          'Coming soon: single sign-on (OIDC, SAML)',
+          'Coming soon: organization policies',
         ],
       },
       enterprise: {
@@ -275,7 +273,6 @@ export const en = {
           'Everything in Business, plus…',
           'Self-hosted, unlocked by an enterprise key',
           'No limit on agents or hours',
-          'Receipts kept as long as you need',
           'Contract, invoicing and support on your terms',
         ],
       },
@@ -283,8 +280,9 @@ export const en = {
     // Word for word from the locked value proposition (PB-PR2).
     noAiCharge: 'We never charge for the AI itself.',
     byok: 'Bring your own models. We never resell model access.',
+    // Stripe stays in test mode until the launch: no price may suggest a real payment before it.
     allowanceNote:
-      'Cloud agent and hour allowances of the paid plans can still change before general availability; we will say so here first.',
+      'Paid plans open at launch: no payment is taken before. The limits above are not enforced yet, and the allowances of the paid plans can still change before general availability; we will say so here first.',
     compare: {
       title: 'Compare plans',
       feature: 'Feature',
@@ -324,7 +322,7 @@ export const en = {
             {
               label: 'Organization policies',
               detail: 'Rules set once for every team of the organization.',
-              values: ['no', 'no', 'yes', 'yes'],
+              values: ['no', 'no', 'Coming soon', 'Coming soon'],
             },
           ],
         },
@@ -337,9 +335,9 @@ export const en = {
               values: ['yes', 'yes', 'yes', 'yes'],
             },
             {
-              label: 'Receipt retention',
-              detail: 'How long receipts stay in Ostrom Cloud.',
-              values: ['30 days', '90 days', '1 year', 'Your choice'],
+              label: 'Receipt retention by plan',
+              detail: 'How long receipts stay in Ostrom Cloud, set by plan.',
+              values: ['Coming soon', 'Coming soon', 'Coming soon', 'Coming soon'],
             },
           ],
         },
@@ -354,7 +352,7 @@ export const en = {
             {
               label: 'Single sign-on (OIDC, SAML)',
               detail: 'Sign in through your identity provider.',
-              values: ['no', 'no', 'yes', 'yes'],
+              values: ['no', 'no', 'Coming soon', 'Coming soon'],
             },
             {
               label: 'Self-hosting with an enterprise key',
@@ -499,7 +497,7 @@ export const en = {
     platformTitle: 'How we run it',
     platform: [
       'Hosted in Switzerland, TLS everywhere, HSTS on every domain.',
-      'Single sign-on with OIDC or SAML on Business and Enterprise; sign-in without passwords on every plan.',
+      'Sign-in without passwords on every plan; single sign-on with OIDC or SAML on Business and Enterprise is coming soon.',
       'Open source: every line of the product can be read and audited, and self-hosted.',
       'Tests on every change, end to end, before anything merges.',
     ],
