@@ -55,7 +55,9 @@ test('a code block copies its text and says so', async ({ page, context, browser
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.goto('/docs/receipts/format/')
   const block = page.locator('.docs-code').first()
-  const button = block.getByRole('button', { name: 'Copy' })
+  // Located by its role in the block, not its name: the name changes to Copied.
+  const button = block.locator('button[data-copy]')
+  await expect(button).toHaveAccessibleName('Copy')
   // The click works once the page is hydrated (the copy listener is a client effect): retry until it is.
   await expect(async () => {
     await button.click()
