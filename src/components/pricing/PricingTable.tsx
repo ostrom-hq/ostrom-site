@@ -3,7 +3,16 @@
 import { useState } from 'react'
 import { format, type Messages } from '@/i18n'
 import { signupUrl } from '@/lib/navigation'
-import { formatUsd, intervals, isSelfServe, monthlyPriceCents, planIds, yearlyPriceCents, type Interval, type PlanId } from '@/lib/pricing'
+import {
+  formatUsd,
+  intervals,
+  isSelfServe,
+  monthlyPriceCents,
+  planIds,
+  yearlyPriceCents,
+  type Interval,
+  type PlanId,
+} from '@/lib/pricing'
 import type { SiteConfig } from '@/lib/site'
 
 interface PricingTableProps {

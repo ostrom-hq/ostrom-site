@@ -284,8 +284,14 @@ export const en = {
       no: 'Not included',
       rows: [
         { label: 'People', values: ['Up to 5', 'Unlimited', 'Unlimited', 'Unlimited'] },
-        { label: 'Cloud agents at a time', values: ['5', '5 per paid person', '5 per paid person, 10 minimum', 'Unlimited'] },
-        { label: 'Agent hours a month', values: ['300', '100 per paid person', '150 per paid person, 600 minimum', 'Unlimited'] },
+        {
+          label: 'Cloud agents at a time',
+          values: ['5', '5 per paid person', '5 per paid person, 10 minimum', 'Unlimited'],
+        },
+        {
+          label: 'Agent hours a month',
+          values: ['300', '100 per paid person', '150 per paid person, 600 minimum', 'Unlimited'],
+        },
         { label: 'Bring your own models', values: ['yes', 'yes', 'yes', 'yes'] },
         { label: 'Rules, approvals, signed receipts', values: ['yes', 'yes', 'yes', 'yes'] },
         { label: 'Receipt retention', values: ['30 days', '90 days', '1 year', 'Your choice'] },

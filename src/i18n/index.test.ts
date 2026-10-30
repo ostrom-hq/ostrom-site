@@ -39,7 +39,9 @@ describe('i18n', () => {
 
 describe('format', () => {
   it('fills placeholders and leaves unknown ones visible', () => {
-    expect(format('billed yearly, {amount} per person', { amount: '$336' })).toBe('billed yearly, $336 per person')
+    expect(format('billed yearly, {amount} per person', { amount: '$336' })).toBe(
+      'billed yearly, $336 per person',
+    )
     expect(format('{missing}', {})).toBe('{missing}')
   })
 })
