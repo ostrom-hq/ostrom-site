@@ -7,6 +7,11 @@ export interface BrokenLink {
   readonly reason: 'missing-page' | 'missing-anchor'
 }
 
+/** A value that strict indexing types as possibly missing (a capture group, a map entry), or ''. */
+export function orEmpty(value: string | undefined): string {
+  return value ?? ''
+}
+
 const ATTRIBUTE = /\s(?:href|src)="([^"]*)"/g
 const ID = /\sid="([^"]*)"/g
 
@@ -29,11 +34,11 @@ export function resolvePath(path: string, files: ReadonlySet<string>): string | 
 }
 
 export function extractLinks(html: string): string[] {
-  return [...html.matchAll(ATTRIBUTE)].map((match) => (match[1] ?? '').replace(/&amp;/g, '&'))
+  return [...html.matchAll(ATTRIBUTE)].map((match) => orEmpty(match[1]).replace(/&amp;/g, '&'))
 }
 
 export function extractIds(html: string): Set<string> {
-  return new Set([...html.matchAll(ID)].map((match) => match[1] ?? ''))
+  return new Set([...html.matchAll(ID)].map((match) => orEmpty(match[1])))
 }
 
 /** Checks every HTML page of `files` (path relative to the export root → content; non-HTML content may be empty). */
@@ -53,7 +58,7 @@ export function checkLinks(files: ReadonlyMap<string, string>, siteOrigin: strin
         continue
       }
       const anchor = decodeURIComponent(url.hash.slice(1))
-      if (anchor !== '' && target.endsWith('.html') && !extractIds(files.get(target) ?? '').has(anchor)) {
+      if (anchor !== '' && target.endsWith('.html') && !extractIds(orEmpty(files.get(target))).has(anchor)) {
         broken.push({ page: pagePath, href: raw, reason: 'missing-anchor' })
       }
     }
