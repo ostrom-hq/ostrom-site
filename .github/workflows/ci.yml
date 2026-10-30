@@ -158,8 +158,13 @@ jobs:
           DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           for arch in amd64 arm64; do
+            # Each architecture by its own manifest digest: the Docker image store cannot hold two platforms of one
+            # index digest ("cannot overwrite digest").
+            manifest=$(docker buildx imagetools inspect "${IMAGE}@${DIGEST}" --format '{{json .Manifest}}' \
+              | jq -r --arg arch "$arch" '.manifests[] | select(.platform.os == "linux" and .platform.architecture == $arch) | .digest')
+            [ -n "$manifest" ] || { echo "::error::no linux/$arch manifest in ${IMAGE}@${DIGEST}"; exit 1; }
             docker run -d --name "site-$arch" --platform "linux/$arch" -p 18080:8080 --read-only --cap-drop ALL \
-              --security-opt no-new-privileges --tmpfs /tmp:uid=101,gid=101 "${IMAGE}@${DIGEST}"
+              --security-opt no-new-privileges --tmpfs /tmp:uid=101,gid=101 "${IMAGE}@${manifest}"
             curl -fsS --retry 30 --retry-all-errors --retry-delay 1 -o /dev/null http://127.0.0.1:18080/healthz \
               || { docker logs "site-$arch"; exit 1; }
             headers=$(curl -fsSI http://127.0.0.1:18080/)
@@ -170,7 +175,7 @@ jobs:
               echo "::error::$arch: robots.txt announces the sitemap before the launch"; exit 1
             fi
             docker rm -f "site-$arch" >/dev/null
-            echo "$arch: healthz, X-Robots-Tag noindex, robots meta noindex, no sitemap: ok"
+            echo "$arch ($manifest): healthz, X-Robots-Tag noindex, robots meta noindex, no sitemap: ok"
           done
       - name: Sign the index by digest (key, no public transparency log while private)
         env:
