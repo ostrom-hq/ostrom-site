@@ -1,0 +1,9 @@
+.next
+out
+coverage
+playwright-report
+test-results
+.lighthouseci
+pnpm-lock.yaml
+content/api/openapi.yaml
+content/changelog/releases.json

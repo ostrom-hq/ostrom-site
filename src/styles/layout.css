@@ -1,0 +1,197 @@
+/* Header and footer. */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  min-height: 64px;
+}
+.site-header__logo {
+  display: inline-flex;
+  color: var(--text);
+}
+.site-header__lockup {
+  height: 26px;
+  width: auto;
+}
+.site-header__nav {
+  display: none;
+  flex: 1;
+}
+.site-header__nav ul,
+.site-header__menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: var(--space-5);
+}
+.site-header__nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 550;
+  font-size: var(--fs-14);
+}
+.site-header__nav a:hover {
+  color: var(--text);
+}
+.site-header__actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.site-header__signin {
+  display: none;
+}
+.site-header__menu {
+  position: relative;
+}
+.site-header__menu summary {
+  list-style: none;
+}
+.site-header__menu summary::-webkit-details-marker {
+  display: none;
+}
+.site-header__menu nav {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--space-2));
+  min-width: 220px;
+  padding: var(--space-3);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+.site-header__menu ul {
+  flex-direction: column;
+  gap: 0;
+}
+.site-header__menu a {
+  display: block;
+  padding: var(--space-3);
+  color: var(--text);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+}
+.site-header__menu a:hover {
+  background: var(--bg-subtle);
+}
+@media (min-width: 900px) {
+  .site-header__nav {
+    display: block;
+  }
+  .site-header__signin {
+    display: inline-flex;
+  }
+  .site-header__menu {
+    display: none;
+  }
+}
+
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding-block: var(--space-8) var(--space-6);
+  background: var(--surface-sunken);
+}
+.site-footer__top {
+  display: grid;
+  gap: var(--space-7);
+}
+@media (min-width: 900px) {
+  .site-footer__top {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  }
+}
+.site-footer__brand a {
+  color: var(--text);
+}
+.site-footer__lockup {
+  height: 28px;
+  width: auto;
+}
+.site-footer__motif {
+  margin-top: var(--space-4);
+  font-weight: 700;
+  font-stretch: 112%;
+}
+.site-footer__nav {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 720px) {
+  .site-footer__nav {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.site-footer__title {
+  font: 600 var(--fs-12) / 1.4 var(--font-mono);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+}
+.site-footer__nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.site-footer__nav li + li {
+  margin-top: var(--space-2);
+}
+.site-footer__nav a,
+.link-button {
+  color: var(--text);
+  text-decoration: none;
+  font-size: var(--fs-14);
+}
+.site-footer__nav a:hover,
+.link-button:hover {
+  text-decoration: underline;
+}
+.link-button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: var(--fs-14);
+  cursor: pointer;
+}
+.site-footer__bottom {
+  margin-top: var(--space-7);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: space-between;
+  align-items: center;
+}
+.site-footer__bottom p {
+  margin: 0;
+}
+.theme-select {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-14);
+  color: var(--text-muted);
+}
+.theme-select select {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
