@@ -10,6 +10,12 @@ test.describe('pricing', () => {
     await expect(page).toHaveTitle('Pricing · Ostrom')
   })
 
+  test('says under the plans that the AI is never charged, word for word', async ({ page }) => {
+    await page.goto('/pricing/')
+    await expect(page.getByText('We never charge for the AI itself.')).toBeVisible()
+    await expect(page.getByText('Bring your own models. We never resell model access.')).toBeVisible()
+  })
+
   test('switches between monthly and yearly prices', async ({ page }) => {
     await page.goto('/pricing/')
     await expect(page.getByTestId('price-team')).toContainText('$35')

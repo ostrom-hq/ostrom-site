@@ -215,7 +215,7 @@ export const en = {
       'Free for small teams. Team at $35 and Business at $65 per active person per month. We never charge for the AI itself.',
     eyebrow: 'Pricing',
     title: 'Pay for the people who decide, not for the agents.',
-    lead: 'Priced per active person. Bring your own models: we never resell model access, and never charge for the AI itself.',
+    lead: 'Free for up to 5 people. Paid plans are priced per active person, billed monthly or yearly.',
     intervalLabel: 'Billing',
     monthly: 'Monthly',
     yearly: 'Yearly',
@@ -275,7 +275,9 @@ export const en = {
         ],
       },
     },
-    byok: 'Every plan: bring your own model keys or your developers’ subscriptions. Inference is billed by your provider, never by us.',
+    // Word for word from the locked value proposition (PB-PR2).
+    noAiCharge: 'We never charge for the AI itself.',
+    byok: 'Bring your own models. We never resell model access.',
     allowanceNote:
       'Cloud agent and hour allowances of the paid plans can still change before general availability; we will say so here first.',
     compare: {

@@ -22,7 +22,9 @@ export default function PricingPage(): React.JSX.Element {
           <h1>{pricing.title}</h1>
           <p className="lead">{pricing.lead}</p>
           <PricingTable copy={pricing} config={site} />
-          <p className="small muted pricing-note">{pricing.byok}</p>
+          <p className="pricing-note">
+            <strong>{pricing.noAiCharge}</strong> {pricing.byok}
+          </p>
           <p className="small muted">{pricing.allowanceNote}</p>
         </div>
       </section>
