@@ -69,6 +69,10 @@ function lintBlock(block, previous, add) {
     if (!block.lang) add(block.line, "code block without a language")
     if (block.leftover) add(block.line, `code block info not understood: ${block.leftover}`)
     for (const name of Object.keys(block.meta)) if (!ATTRIBUTES.includes(name)) add(block.line, `unknown code block attribute: ${name}`)
+    for (const name of block.duplicates) add(block.line, `code block attribute repeated: ${name}`)
+    if (("requires" in block.meta || "exit" in block.meta) && !("test" in block.meta)) add(block.line, "requires and exit go on a test block")
+    if ("exit" in block.meta && !/^\d{1,3}$/.test(String(block.meta.exit))) add(block.line, "exit needs a number: exit=\"1\"")
+    if ("requires" in block.meta && typeof block.meta.requires !== "string") add(block.line, "requires needs a value: requires=\"ostrom\"")
     const roles = ROLES.filter((role) => role in block.meta)
     if (roles.length !== 1) {
         add(block.line, "code block needs exactly one of: test, notest=\"why\", file=\"name\", output")
@@ -96,7 +100,7 @@ export function lintMeta(text, entries) {
     return problems
 }
 
-/** Lints a whole documentation tree; returns `{file, line, message}` sorted by file. */
+/** Lints a whole documentation tree; returns `{file, line, message}`: page problems, then navigation problems. */
 export function lintTree(given) {
     const root = resolve(given)
     const {folders, pages, metas} = walk(root)
@@ -105,14 +109,16 @@ export function lintTree(given) {
     for (const page of pages) {
         for (const problem of lintPage(readFileSync(page, "utf8"), slugs)) problems.push({file: relative(root, page), ...problem})
     }
-    for (const folder of folders) {
+    // A section is a folder with a page in it or below it; other folders (images, fixtures) are not navigation.
+    const sections = folders.filter((folder) => folder === root || pages.some((page) => page.startsWith(`${folder}/`)))
+    for (const folder of sections) {
         const metaPath = join(folder, "meta.json")
         if (!metas.includes(metaPath)) {
             problems.push({file: relative(root, metaPath), line: 1, message: "folder without meta.json"})
             continue
         }
         const entries = readdirSync(folder)
-            .filter((name) => name.endsWith(".mdx") || statSync(join(folder, name)).isDirectory())
+            .filter((name) => name.endsWith(".mdx") || sections.includes(join(folder, name)))
             .map((name) => name.replace(/\.mdx$/, ""))
         for (const problem of lintMeta(readFileSync(metaPath, "utf8"), entries)) problems.push({file: relative(root, metaPath), ...problem})
     }

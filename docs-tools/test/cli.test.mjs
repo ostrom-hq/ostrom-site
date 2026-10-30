@@ -20,6 +20,14 @@ test("usage on a bad command", () => {
     assert.deepEqual(capture(["build", "x"]).err, ["usage: docs-tools lint <docs-dir> | docs-tools run <docs-dir> [--strict]"])
 })
 
+test("unknown flags and missing folders are refused", () => {
+    assert.equal(capture(["run", clean(), "--strcit"]).code, 2)
+    assert.equal(capture(["lint", clean(), "--strict"]).code, 2)
+    assert.deepEqual(capture(["lint", "/nonexistent/docs"]), {code: 2, out: [], err: ["not a folder: /nonexistent/docs"]})
+    const file = tree({"a.mdx": ""})
+    assert.deepEqual(capture(["run", `${file}/a.mdx`]).err, [`not a folder: ${file}/a.mdx`])
+})
+
 test("lint: clean, then with problems", () => {
     assert.deepEqual(capture(["lint", clean()]), {code: 0, out: ["docs-lint: every page is clean"], err: []})
     const dirty = tree({"meta.json": '{"title": "Docs", "pages": ["index"]}', "index.mdx": "no frontmatter"})

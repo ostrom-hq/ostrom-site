@@ -30,19 +30,21 @@ function unquote(value) {
     }
 }
 
-/** Parses an info string's attributes: `test`, `notest="why"`, `file="a.json"`. */
+/** Parses an info string's attributes: `test`, `notest="why"`, `file="a.json"`. Repeated names are listed. */
 export function parseMeta(text) {
     const meta = {}
+    const duplicates = []
     const leftover = []
     const pattern = /(?<=^|\s)([a-zA-Z][\w-]*)(?:="((?:[^"\\]|\\.)*)")?(?=\s|$)/g
     let end = 0
     for (const match of text.matchAll(pattern)) {
         leftover.push(text.slice(end, match.index))
+        if (match[1] in meta) duplicates.push(match[1])
         meta[match[1]] = match[2] === undefined ? true : match[2].replace(/\\(.)/g, "$1")
         end = match.index + match[0].length
     }
     leftover.push(text.slice(end))
-    return {meta, leftover: leftover.join(" ").trim().replace(/\s+/g, " ")}
+    return {meta, duplicates, leftover: leftover.join(" ").trim().replace(/\s+/g, " ")}
 }
 
 /**
@@ -62,8 +64,8 @@ function scan(body, firstLine) {
             }
             const info = fence[2].trim()
             const space = info.indexOf(" ")
-            const {meta, leftover} = parseMeta(space === -1 ? "" : info.slice(space + 1))
-            open = {fence: fence[1], lang: space === -1 ? info : info.slice(0, space), meta, leftover, line: firstLine + index, code: []}
+            const {meta, duplicates, leftover} = parseMeta(space === -1 ? "" : info.slice(space + 1))
+            open = {fence: fence[1], lang: space === -1 ? info : info.slice(0, space), meta, duplicates, leftover, line: firstLine + index, code: []}
             return
         }
         if (fence !== null && fence[1].startsWith(open.fence[0]) && fence[1].length >= open.fence.length && fence[2].trim() === "") {

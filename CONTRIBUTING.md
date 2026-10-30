@@ -40,8 +40,12 @@ Each fenced block carries exactly one of these:
 
 Blocks run in order, in one fresh empty folder per page (a temporary folder, not the page's own folder), so a page reads
 like a script: a file block, a command, its output. A block sees only the files the blocks before it wrote.
-A block that needs the real CLI or a real server says so with `requires="ostrom"` or `requires="server"`; CI provides
-`OSTROM_BIN` and `OSTROM_URL` and fails such a block when they are missing.
+A block that needs the real CLI or a real server says so with `requires="ostrom"` or `requires="server"`. CI provides
+`OSTROM_BIN` (the binary, reachable as `ostrom` inside blocks) and `OSTROM_URL`, and fails such a block when they are
+missing. `exit` and `requires` go on `test` blocks only.
+
+The verifier of `receipts/format.mdx` is also run on every receipt and canonical-form case of the format's test vectors
+(`docs-tools/vectors/`, frozen), by `docs-tools/test/receipt-format.test.mjs`.
 
 ### Check locally
 

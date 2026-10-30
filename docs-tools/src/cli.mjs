@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import {existsSync, statSync} from "node:fs"
 import {runTree} from "./doctest.mjs"
 import {lintTree} from "./lint.mjs"
 
@@ -7,8 +8,13 @@ const USAGE = "usage: docs-tools lint <docs-dir> | docs-tools run <docs-dir> [--
 /** Runs a command; returns the exit code. `out` and `err` receive whole lines. */
 export function main(argv, {out, err, env}) {
     const [command, root, ...flags] = argv
-    if (root === undefined || !["lint", "run"].includes(command)) {
+    const allowed = command === "run" ? ["--strict"] : []
+    if (root === undefined || !["lint", "run"].includes(command) || flags.some((flag) => !allowed.includes(flag))) {
         err(USAGE)
+        return 2
+    }
+    if (!existsSync(root) || !statSync(root).isDirectory()) {
+        err(`not a folder: ${root}`)
         return 2
     }
     if (command === "lint") {

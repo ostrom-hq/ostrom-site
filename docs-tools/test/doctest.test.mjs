@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import assert from "node:assert/strict"
 import {chmodSync} from "node:fs"
-import {join} from "node:path"
+import {join, relative} from "node:path"
 import {test} from "node:test"
 import {missingRequirement, runPage, runTree} from "../src/doctest.mjs"
 import {FENCE, page, tree} from "./helpers.mjs"
@@ -52,13 +52,14 @@ test("a file name with a folder is refused", () => {
 })
 
 test("requirements: skipped locally, failed in strict mode, met when the variables are set", () => {
-    const body = `${FENCE}sh test requires="ostrom, server"\nostrom-fake\n${FENCE}`
+    const body = `${FENCE}sh test requires="ostrom, server"\nostrom\n${FENCE}`
     assert.deepEqual(statuses(runPage(page(body), {env: {PATH: process.env.PATH}})), [[6, "skip"]])
     assert.deepEqual(statuses(runPage(page(body), {env: {PATH: process.env.PATH}, strict: true})), [[6, "fail"]])
     const bin = tree({"ostrom-fake": "#!/bin/sh\necho fake\n"})
     chmodSync(join(bin, "ostrom-fake"), 0o755)
-    const env = {PATH: process.env.PATH, OSTROM_BIN: join(bin, "ostrom-fake"), OSTROM_URL: "http://127.0.0.1:1"}
-    assert.deepEqual(statuses(runPage(page(body), {env})), [[6, "pass"]])
+    const env = {PATH: process.env.PATH, OSTROM_BIN: relative(process.cwd(), join(bin, "ostrom-fake")), OSTROM_URL: "http://127.0.0.1:1"}
+    const [result] = runPage(page(body), {env})
+    assert.deepEqual([result.status, result.stdout], ["pass", "fake\n"])
 })
 
 test("missingRequirement names what is missing", () => {

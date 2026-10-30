@@ -4,7 +4,7 @@ description: "The exact bytes a receipt signs, its fields, and a complete verifi
 status: available
 ---
 
-The receipt format is open: anyone can check a receipt without Ostrom's code. This page is the specification of version 1. The examples on this page run in Ostrom's CI against the format's test vectors, the same vectors every Ostrom component is tested with.
+The receipt format is open: anyone can check a receipt without Ostrom's code. This page is the specification of version 1. Its examples run in CI, and its verifier is also run against every receipt of the format's [test vectors](#test-vectors).
 
 ## A receipt
 
@@ -130,17 +130,20 @@ function check(receipt, publicKeyPem) {
     if (field.kid !== kid) return "unknown key"
     const signed = Buffer.from(canonical(body), "utf8")
     if (createHash("sha256").update(signed).digest("hex") !== field.sha256) return "digest mismatch"
+    // Standard base64 with padding, nothing else: Node's decoder alone would skip stray characters.
     const sig = Buffer.from(field.sig, "base64")
-    if (sig.length !== 64) return "malformed signature"
+    if (sig.length !== 64 || sig.toString("base64") !== field.sig) return "malformed signature"
     if (!verify(null, signed, key, sig)) return "bad signature"
     return undefined
 }
 
 const [receiptPath, keyPath] = process.argv.slice(2)
 const receipt = JSON.parse(readFileSync(receiptPath, "utf8"))
-const problem = check(receipt, readFileSync(keyPath, "utf8"))
+const publicKeyPem = readFileSync(keyPath, "utf8")
+const problem = check(receipt, publicKeyPem)
 if (problem === undefined) {
-    console.log("valid: " + receipt.id + ", signed by key " + receipt.signature.split(";")[1].slice(4))
+    const kid = createHash("sha256").update(createPublicKey(publicKeyPem).export({type: "spki", format: "der"})).digest("hex").slice(0, 16)
+    console.log("valid: " + receipt.id + ", signed by key " + kid)
 } else {
     console.log("invalid: " + problem)
     process.exitCode = 1
@@ -204,7 +207,7 @@ console.log(canonical(body))
 
 ## Test vectors
 
-The vectors are the reference for any implementation: the test key, canonical-form cases (non-ASCII text, `U+2028`, control characters, astral keys, `-0`, `1e21`, `0.1 + 0.2`, `5e-324`, a lone surrogate), and signed receipts of every subject kind. An implementation is correct when it produces the same canonical bytes and accepts every vector receipt. The mobile app's verifier is tested against them in `ostrom-app`, under `src/domain/receipts/__fixtures__`.
+The vectors are the reference for any implementation: the test key, canonical-form cases (non-ASCII text, `U+2028`, control characters, astral keys, `-0`, `1e21`, `0.1 + 0.2`, `5e-324`, a lone surrogate), and signed receipts of every subject kind. An implementation is correct when it produces the same canonical bytes and accepts every vector receipt. The verifier on this page is tested against them, and so is the mobile app's.
 
 ## Versioning
 

@@ -57,6 +57,14 @@ test("code block problems", () => {
         `${FENCE}sh test`,
     ].join("\n")
     assert.deepEqual(messages(lintPage(page(`${FENCE}sh test timeout="9"\n${FENCE}`), new Set())), ["unknown code block attribute: timeout"])
+    assert.deepEqual(messages(lintPage(page(`${FENCE}sh test exit="1" exit="2"\n${FENCE}`), new Set())), ["code block attribute repeated: exit"])
+    assert.deepEqual(messages(lintPage(page(`${FENCE}sh test exit="one"\n${FENCE}`), new Set())), ['exit needs a number: exit="1"'])
+    assert.deepEqual(messages(lintPage(page(`${FENCE}sh test exit requires\n${FENCE}`), new Set())), [
+        'exit needs a number: exit="1"',
+        'requires needs a value: requires="ostrom"',
+    ])
+    assert.deepEqual(messages(lintPage(page(`${FENCE}text notest="x" exit="1" requires="server"\n${FENCE}`), new Set())), ["requires and exit go on a test block"])
+    assert.deepEqual(lintPage(page(`${FENCE}sh test exit="2" requires="server"\n${FENCE}`), new Set()), [])
     assert.deepEqual(lintPage(page(body), new Set()), [
         {line: 6, message: "code block without a language"},
         {line: 6, message: 'code block needs exactly one of: test, notest="why", file="name", output'},
@@ -113,6 +121,8 @@ test("a whole tree: pages, folders, navigation", () => {
         {file: "a/meta.json", line: 1, message: "folder without meta.json"},
         {file: "a/b/meta.json", line: 1, message: "folder without meta.json"},
     ])
+    const images = tree({"meta.json": '{"title": "Docs", "pages": ["index"]}', "index.mdx": page("Hi"), "img/a.png": "png", "empty/x.txt": ""})
+    assert.deepEqual(lintTree(images), [])
     const unlisted = tree({"meta.json": '{"title": "Docs", "pages": []}', "index.mdx": page("Hi")})
     assert.deepEqual(messages(lintTree(unlisted)), ["meta.json does not list: index"])
 })

@@ -28,9 +28,10 @@ test("frontmatter: missing, unterminated, or malformed", () => {
 })
 
 test("meta: flags, values with escapes, leftover text", () => {
-    assert.deepEqual(parseMeta('test requires="ostrom" note="a \\"q\\""'), {meta: {test: true, requires: "ostrom", note: 'a "q"'}, leftover: ""})
-    assert.deepEqual(parseMeta('notest="x" !!'), {meta: {notest: "x"}, leftover: "!!"})
-    assert.deepEqual(parseMeta("?? test !! xtest"), {meta: {test: true, xtest: true}, leftover: "?? !!"})
+    assert.deepEqual(parseMeta('test requires="ostrom" note="a \\"q\\""'), {meta: {test: true, requires: "ostrom", note: 'a "q"'}, duplicates: [], leftover: ""})
+    assert.deepEqual(parseMeta('notest="x" !!'), {meta: {notest: "x"}, duplicates: [], leftover: "!!"})
+    assert.deepEqual(parseMeta("?? test !! xtest"), {meta: {test: true, xtest: true}, duplicates: [], leftover: "?? !!"})
+    assert.deepEqual(parseMeta('exit="1" test exit="2"').duplicates, ["exit"])
 })
 
 test("code blocks: language, meta, line, nested longer fences, tildes, unterminated", () => {

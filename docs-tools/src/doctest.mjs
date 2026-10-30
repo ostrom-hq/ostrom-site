@@ -6,9 +6,9 @@
 //   ```text output                 must equal what the previous test block printed
 //   requires="ostrom,server"       needs the real binary (OSTROM_BIN) or a real server (OSTROM_URL)
 import {spawnSync} from "node:child_process"
-import {mkdtempSync, readFileSync, rmSync, writeFileSync} from "node:fs"
+import {mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync} from "node:fs"
 import {tmpdir} from "node:os"
-import {basename, delimiter, dirname, join, relative, resolve} from "node:path"
+import {basename, delimiter, join, relative, resolve} from "node:path"
 import {extractCodeBlocks, parseFrontmatter} from "./markdown.mjs"
 import {walk} from "./lint.mjs"
 
@@ -30,8 +30,8 @@ export function missingRequirement(meta, env) {
     return undefined
 }
 
-function execute(block, cwd, env) {
-    const path = env.OSTROM_BIN ? [dirname(env.OSTROM_BIN), env.PATH].join(delimiter) : env.PATH
+function execute(block, cwd, env, bin) {
+    const path = bin === undefined ? env.PATH : [bin, env.PATH].join(delimiter)
     const options = {cwd, env: {...env, PATH: path}, encoding: "utf8", timeout: TIMEOUT_MS}
     return block.lang === "sh"
         ? spawnSync("bash", ["-euo", "pipefail", "-c", block.code], options)
@@ -43,21 +43,25 @@ export function runPage(text, {env = process.env, strict = false} = {}) {
     const {body, bodyLine} = parseFrontmatter(text)
     const results = []
     const cwd = mkdtempSync(join(tmpdir(), "ostrom-doctest-"))
+    // The binary under test answers to `ostrom`, whatever its file is called and wherever it is.
+    const bin = env.OSTROM_BIN ? mkdtempSync(join(tmpdir(), "ostrom-doctest-bin-")) : undefined
+    if (bin !== undefined) symlinkSync(resolve(env.OSTROM_BIN), join(bin, "ostrom"))
     let last
     try {
         for (const block of extractCodeBlocks(body, bodyLine)) {
-            const result = runBlock(block, cwd, env, strict, last)
+            const result = runBlock(block, cwd, env, strict, last, bin)
             if (result === undefined) continue
             results.push(result)
             if ("test" in block.meta) last = result
         }
     } finally {
         rmSync(cwd, {recursive: true, force: true})
+        if (bin !== undefined) rmSync(bin, {recursive: true, force: true})
     }
     return results
 }
 
-function runBlock(block, cwd, env, strict, last) {
+function runBlock(block, cwd, env, strict, last, bin) {
     const {meta, line} = block
     if (typeof meta.file === "string") {
         if (basename(meta.file) !== meta.file) return {line, status: "fail", message: `file must be a plain name: ${meta.file}`}
@@ -74,7 +78,7 @@ function runBlock(block, cwd, env, strict, last) {
     if (!("test" in meta)) return undefined
     const missing = missingRequirement(meta, env)
     if (missing !== undefined) return {line, status: strict ? "fail" : "skip", message: `requires ${missing}`}
-    const run = execute(block, cwd, env)
+    const run = execute(block, cwd, env, bin)
     const expected = typeof meta.exit === "string" ? Number(meta.exit) : 0
     if (run.status === expected) return {line, status: "pass", message: `${block.lang} exited ${expected}`, stdout: run.stdout}
     const why = run.error ? run.error.message : `exited ${run.status}, expected ${expected}`
