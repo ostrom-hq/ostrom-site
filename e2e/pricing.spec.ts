@@ -42,7 +42,7 @@ test.describe('pricing', () => {
     await expect(page.getByText('billed yearly, $336 per person')).toBeVisible()
     await expect(page.getByText('billed yearly, $624 per person')).toBeVisible()
     await expect(page.getByTestId('plan-team').getByText('USD, excl. tax')).toBeVisible()
-    await expect(page.getByTestId('plan-team').getByText('per active person / month')).toBeVisible()
+    await expect(page.getByTestId('price-team-yearly').getByText('per active person / month')).toBeVisible()
   })
 
   test('switches to monthly prices and links without moving the card', async ({ page }) => {
