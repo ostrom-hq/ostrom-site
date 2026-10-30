@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 import { expectAccessible } from './a11y'
 
 // The docs as they ship: the guides of content/docs and the generated API reference.
