@@ -93,9 +93,9 @@ A receipt is valid when all of these hold, checked in this order:
 
 1. it is a JSON object with a `signature` string;
 2. the signature field has its four parts and the algorithm is `ed25519`;
-3. the `kid` is the id of the public key you trust;
+3. the public key you trust is an Ed25519 key, and the `kid` is its id;
 4. the SHA-256 of the signed bytes equals `sha256`;
-5. `sig` is a valid Ed25519 signature of the signed bytes under that key.
+5. `sig` decodes to 64 bytes and is a valid Ed25519 signature of the signed bytes under that key.
 
 This verifier does exactly that, with Node.js 24 or later and nothing else. Save it as `verify-receipt.mjs`:
 
@@ -119,13 +119,20 @@ function check(receipt, publicKeyPem) {
     const field = Object.fromEntries(parts.map((part) => [part.slice(0, part.indexOf("=")), part.slice(part.indexOf("=") + 1)]))
     if (!field.kid || !field.sha256 || !field.sig) return "malformed signature"
     if (algorithm !== "ed25519") return "unknown algorithm"
-    const key = createPublicKey(publicKeyPem)
+    let key
+    try {
+        key = createPublicKey(publicKeyPem)
+    } catch {
+        return "unreadable key"
+    }
+    if (key.asymmetricKeyType !== "ed25519") return "unreadable key"
     const kid = createHash("sha256").update(key.export({type: "spki", format: "der"})).digest("hex").slice(0, 16)
     if (field.kid !== kid) return "unknown key"
     const signed = Buffer.from(canonical(body), "utf8")
     if (createHash("sha256").update(signed).digest("hex") !== field.sha256) return "digest mismatch"
     const sig = Buffer.from(field.sig, "base64")
-    if (sig.length !== 64 || !verify(null, signed, key, sig)) return "bad signature"
+    if (sig.length !== 64) return "malformed signature"
+    if (!verify(null, signed, key, sig)) return "bad signature"
     return undefined
 }
 
@@ -167,6 +174,17 @@ node verify-receipt.mjs forged.json test-key.pem
 
 ```text output
 invalid: digest mismatch
+```
+
+A key other than the one that signed the receipt is refused before any signature check:
+
+```sh test exit="1"
+node -e 'const {generateKeyPairSync} = require("node:crypto"); process.stdout.write(generateKeyPairSync("ed25519").publicKey.export({type: "spki", format: "pem"}))' > other-key.pem
+node verify-receipt.mjs receipt.json other-key.pem
+```
+
+```text output
+invalid: unknown key
 ```
 
 The canonical form the verifier signs is the one shown above:

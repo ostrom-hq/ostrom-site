@@ -2,18 +2,21 @@
 // Checks every documentation page before it is published: frontmatter, code blocks that are tested or say why not,
 // prose that MDX can read, links to pages that exist, and navigation files that list every page.
 import {readdirSync, readFileSync, statSync} from "node:fs"
-import {join, relative} from "node:path"
+import {join, relative, resolve} from "node:path"
 import {extractCodeBlocks, parseFrontmatter, proseLines} from "./markdown.mjs"
 
 export const STATUSES = ["available", "partial", "coming-soon"]
 export const RUNNERS = ["sh", "js"]
 const ROLES = ["test", "notest", "file", "output"]
+const ATTRIBUTES = [...ROLES, "requires", "exit"]
 
-/** Lists the pages (`.mdx`) and navigation files (`meta.json`) under a root, sorted. */
+/** Lists the folders, pages (`.mdx`) and navigation files (`meta.json`) under a root, sorted. */
 export function walk(root) {
+    const folders = []
     const pages = []
     const metas = []
     const visit = (dir) => {
+        folders.push(dir)
         for (const name of readdirSync(dir).sort()) {
             const path = join(dir, name)
             if (statSync(path).isDirectory()) visit(path)
@@ -21,8 +24,8 @@ export function walk(root) {
             else if (name === "meta.json") metas.push(path)
         }
     }
-    visit(root)
-    return {pages, metas}
+    visit(resolve(root))
+    return {folders, pages, metas}
 }
 
 /** The URL path of a page: `index.mdx` stands for its folder. */
@@ -65,6 +68,7 @@ function lintBlock(block, previous, add) {
     if (block.unterminated) add(block.line, "code block is never closed")
     if (!block.lang) add(block.line, "code block without a language")
     if (block.leftover) add(block.line, `code block info not understood: ${block.leftover}`)
+    for (const name of Object.keys(block.meta)) if (!ATTRIBUTES.includes(name)) add(block.line, `unknown code block attribute: ${name}`)
     const roles = ROLES.filter((role) => role in block.meta)
     if (roles.length !== 1) {
         add(block.line, "code block needs exactly one of: test, notest=\"why\", file=\"name\", output")
@@ -93,18 +97,18 @@ export function lintMeta(text, entries) {
 }
 
 /** Lints a whole documentation tree; returns `{file, line, message}` sorted by file. */
-export function lintTree(root) {
-    const {pages, metas} = walk(root)
+export function lintTree(given) {
+    const root = resolve(given)
+    const {folders, pages, metas} = walk(root)
     const slugs = new Set(pages.map((page) => slugOf(root, page)))
     const problems = []
     for (const page of pages) {
         for (const problem of lintPage(readFileSync(page, "utf8"), slugs)) problems.push({file: relative(root, page), ...problem})
     }
-    const folders = new Set([root, ...pages.map((page) => join(page, ".."))])
-    for (const folder of [...folders].sort()) {
+    for (const folder of folders) {
         const metaPath = join(folder, "meta.json")
         if (!metas.includes(metaPath)) {
-            problems.push({file: relative(root, metaPath) || "meta.json", line: 1, message: "folder without meta.json"})
+            problems.push({file: relative(root, metaPath), line: 1, message: "folder without meta.json"})
             continue
         }
         const entries = readdirSync(folder)

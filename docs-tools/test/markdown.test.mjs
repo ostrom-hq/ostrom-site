@@ -13,6 +13,14 @@ test("frontmatter: a lone quote is kept as text", () => {
     assert.equal(parseFrontmatter('---\nx: "\n---\n').data.x, '"')
 })
 
+test("frontmatter: CRLF line endings read like LF", () => {
+    assert.deepEqual(parseFrontmatter("---\r\ntitle: Hi\r\n---\r\nbody\r\n"), {data: {title: "Hi"}, body: "body\n", bodyLine: 4})
+})
+
+test("frontmatter: a quoted value that is not valid JSON is reported, not thrown", () => {
+    assert.equal(parseFrontmatter("---\ndescription: \"it\\'s\"\n---\n").error, "bad quoted value: description: \"it\\'s\"")
+})
+
 test("frontmatter: missing, unterminated, or malformed", () => {
     assert.equal(parseFrontmatter("no").error, "missing frontmatter")
     assert.equal(parseFrontmatter("---\ntitle: a").error, "unterminated frontmatter")
@@ -22,6 +30,7 @@ test("frontmatter: missing, unterminated, or malformed", () => {
 test("meta: flags, values with escapes, leftover text", () => {
     assert.deepEqual(parseMeta('test requires="ostrom" note="a \\"q\\""'), {meta: {test: true, requires: "ostrom", note: 'a "q"'}, leftover: ""})
     assert.deepEqual(parseMeta('notest="x" !!'), {meta: {notest: "x"}, leftover: "!!"})
+    assert.deepEqual(parseMeta("?? test !! xtest"), {meta: {test: true, xtest: true}, leftover: "?? !!"})
 })
 
 test("code blocks: language, meta, line, nested longer fences, tildes, unterminated", () => {
@@ -55,6 +64,12 @@ test("code blocks: language, meta, line, nested longer fences, tildes, untermina
 test("a fence with text after it does not close a block", () => {
     const blocks = extractCodeBlocks(`${FENCE}sh test\n${FENCE}js\n${FENCE}`)
     assert.equal(blocks[0].code, `${FENCE}js`)
+})
+
+test("prose and blocks agree: a fence with an info string inside a block is code", () => {
+    const body = [`${FENCE}${FENCE[0]}md notest="x"`, "a <b>", `${FENCE}js`, "c <d>", FENCE, `${FENCE}${FENCE[0]}`, "after"].join("\n")
+    assert.deepEqual(proseLines(body), [{line: 7, text: "after"}])
+    assert.equal(extractCodeBlocks(body).length, 1)
 })
 
 test("prose: code removed, lines kept", () => {

@@ -32,13 +32,14 @@ Each fenced block carries exactly one of these:
 
 | Info string | What CI does |
 |---|---|
-| `sh test` | runs it with `bash -euo pipefail` in the page's folder; `exit="1"` expects another exit code |
+| `sh test` | runs it with `bash -euo pipefail`; `exit="1"` expects another exit code |
 | `js test` | runs it as an ES module with Node.js |
 | `text output` | compares it with what the previous `test` block printed |
 | `json file="receipt.json"` | writes it to that file, for the blocks after it |
 | `text notest="why"` | nothing: the reason is required |
 
-Blocks run in order, in one fresh folder per page, so a page reads like a script: a file block, a command, its output.
+Blocks run in order, in one fresh empty folder per page (a temporary folder, not the page's own folder), so a page reads
+like a script: a file block, a command, its output. A block sees only the files the blocks before it wrote.
 A block that needs the real CLI or a real server says so with `requires="ostrom"` or `requires="server"`; CI provides
 `OSTROM_BIN` and `OSTROM_URL` and fails such a block when they are missing.
 

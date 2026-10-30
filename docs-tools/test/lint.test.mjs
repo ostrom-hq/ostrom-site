@@ -56,6 +56,7 @@ test("code block problems", () => {
         FENCE,
         `${FENCE}sh test`,
     ].join("\n")
+    assert.deepEqual(messages(lintPage(page(`${FENCE}sh test timeout="9"\n${FENCE}`), new Set())), ["unknown code block attribute: timeout"])
     assert.deepEqual(lintPage(page(body), new Set()), [
         {line: 6, message: "code block without a language"},
         {line: 6, message: 'code block needs exactly one of: test, notest="why", file="name", output'},
@@ -107,6 +108,11 @@ test("a whole tree: pages, folders, navigation", () => {
     ])
     const clean = tree({"meta.json": '{"title": "Docs", "pages": ["index"]}', "index.mdx": page("Hi")})
     assert.deepEqual(lintTree(clean), [])
+    const nested = tree({"meta.json": '{"title": "Docs", "pages": ["index", "a"]}', "index.mdx": page("Hi"), "a/b/c.mdx": page("Hi")})
+    assert.deepEqual(lintTree(`${nested}/`), [
+        {file: "a/meta.json", line: 1, message: "folder without meta.json"},
+        {file: "a/b/meta.json", line: 1, message: "folder without meta.json"},
+    ])
     const unlisted = tree({"meta.json": '{"title": "Docs", "pages": []}', "index.mdx": page("Hi")})
     assert.deepEqual(messages(lintTree(unlisted)), ["meta.json does not list: index"])
 })

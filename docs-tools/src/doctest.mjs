@@ -8,7 +8,7 @@
 import {spawnSync} from "node:child_process"
 import {mkdtempSync, readFileSync, rmSync, writeFileSync} from "node:fs"
 import {tmpdir} from "node:os"
-import {basename, delimiter, dirname, join, relative} from "node:path"
+import {basename, delimiter, dirname, join, relative, resolve} from "node:path"
 import {extractCodeBlocks, parseFrontmatter} from "./markdown.mjs"
 import {walk} from "./lint.mjs"
 
@@ -82,7 +82,8 @@ function runBlock(block, cwd, env, strict, last) {
 }
 
 /** Runs every page of a tree; returns results with their file. */
-export function runTree(root, options = {}) {
+export function runTree(given, options = {}) {
+    const root = resolve(given)
     const results = []
     for (const page of walk(root).pages) {
         for (const result of runPage(readFileSync(page, "utf8"), options)) results.push({file: relative(root, page), ...result})
