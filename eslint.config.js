@@ -57,6 +57,8 @@ export default tseslint.config(
       '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+      // A region that scrolls must take the focus so a keyboard can scroll it (axe scrollable-region-focusable).
+      'jsx-a11y/no-noninteractive-tabindex': ['error', { tags: [], roles: ['tabpanel', 'region'] }],
       '@typescript-eslint/explicit-function-return-type': ['error', { allowExpressions: true }],
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
