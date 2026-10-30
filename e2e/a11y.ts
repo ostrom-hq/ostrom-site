@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import AxeBuilder from '@axe-core/playwright'
 import { expect, type Page } from '@playwright/test'
 

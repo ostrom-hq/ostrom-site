@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { SYMBOL_PATH, WORDMARK_PATHS } from './geometry'
 
 interface LogoProps {

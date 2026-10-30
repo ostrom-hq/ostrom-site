@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /** Every public page, for the sitemap. A page enters here in the pull request that creates it. */
 export interface SitemapEntry {
   readonly path: string

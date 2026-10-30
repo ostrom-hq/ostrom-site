@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // The price grid decided by Lyes on 30/10/2026, mirrored from ostrom-server's billing catalog
 // (modules/billing/.../Plans.kt and ops/stripe/catalog.json): Free, Team 35 USD and Business 65 USD per active person
 // per month, Enterprise on quote, yearly at -20 %. A change here goes with the same change on the server.

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { z } from 'zod'
 import { baseSlug, loadFolder, type Document } from './content'
 

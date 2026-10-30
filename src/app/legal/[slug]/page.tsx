@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { Metadata } from 'next'
 import { Article } from '@/components/content/Article'
 import { PageHead } from '@/components/content/PageHead'

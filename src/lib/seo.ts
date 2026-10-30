@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { Metadata, MetadataRoute } from 'next'
 import type { Messages } from '@/i18n'
 import { absoluteUrl, type SiteConfig } from './site'

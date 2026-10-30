@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { MetadataRoute } from 'next'
 import { robotsFor } from '@/lib/seo'
 import { site } from '@/lib/site'
