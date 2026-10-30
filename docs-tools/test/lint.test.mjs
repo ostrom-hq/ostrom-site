@@ -101,6 +101,48 @@ test("meta.json: invalid JSON, wrong shape, missing and unlisted pages", () => {
     ])
 })
 
+test("meta.json: Fumadocs separators group the sidebar and are not pages", () => {
+    assert.deepEqual(messages(lintMeta('{"title": "x", "pages": ["---Get started---", "a", "---Help---", "b"]}', ["a", "b"])), [])
+    assert.deepEqual(messages(lintMeta('{"title": "x", "pages": ["----", "a"]}', ["a"])), ["meta.json lists a missing page: ----"])
+})
+
+test("callouts: only NOTE, WARNING and CAUTION", () => {
+    const body = ["> [!NOTE]", "> fine", "", "> [!WARNING]", "", "> [!CAUTION]", "", "> [!TIP]", "> no", "", "  >  [!IMPORTANT]"].join("\n")
+    assert.deepEqual(messages(lintPage(page(body), new Set())), [
+        "callouts are [!NOTE], [!WARNING], [!CAUTION], not [!TIP]",
+        "callouts are [!NOTE], [!WARNING], [!CAUTION], not [!IMPORTANT]",
+    ])
+})
+
+test("shell blocks have no $ prompt", () => {
+    const body = [`${FENCE}sh notest="x"`, "echo ok", "  $ ostrom claude", FENCE, `${FENCE}text notest="x"`, "$ shown as text", FENCE].join("\n")
+    assert.deepEqual(messages(lintPage(page(body), new Set())), ["write shell commands without a $ prompt: the copy button gives exactly the block"])
+})
+
+test("tabs: consecutive blocks of one group, each with its own tab", () => {
+    const block = (meta) => [`${FENCE}sh ${meta}`, "echo", FENCE]
+    const good = [...block('notest="x" tab="macOS" group="os"'), "", ...block('notest="x" tab="Linux" group="os"'), "", ...block('notest="x" tab="Windows" group="os"')]
+    assert.deepEqual(messages(lintPage(page(good.join("\n")), new Set())), [])
+    const bad = [
+        ...block('notest="x" tab="macOS" group="os"'),
+        "Some text ends the set.",
+        ...block('notest="x" tab="Linux" group="os"'),
+        ...block('notest="x" tab="Linux" group="os"'),
+        ...block('notest="x" tab="A" group="agent"'),
+        ...block('notest="x" tab="macOS"'),
+        ...block('notest="x" group="os"'),
+        ...block('notest="x" tab="" group="os"'),
+    ]
+    assert.deepEqual(messages(lintPage(page(bad.join("\n")), new Set())), [
+        'a tab set needs at least two blocks: group "os"',
+        'tab repeated in group "os": Linux',
+        'a tab set needs at least two blocks: group "agent"',
+        'tabs need both tab="name" and group="name"',
+        'tabs need both tab="name" and group="name"',
+        'tabs need both tab="name" and group="name"',
+    ])
+})
+
 test("slugs: index stands for its folder", () => {
     assert.equal(slugOf("/r", "/r/index.mdx"), "/docs")
     assert.equal(slugOf("/r", "/r/reference/index.mdx"), "/docs/reference")
