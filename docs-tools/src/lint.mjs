@@ -58,14 +58,18 @@ export function lintPage(text, slugs) {
         lintBlock(block, previous, add)
         previous = block
     }
-    // Text between two blocks ends a tab set; blank lines do not.
-    const written = proseLines(body, bodyLine).filter((prose) => prose.text.trim() !== "").map((prose) => prose.line)
-    lintTabs(extractCodeBlocks(body, bodyLine), (from, to) => written.some((line) => line > from && line < to), add)
+    // Anything but blank lines between two blocks ends a tab set (read raw: a line of inline code is text).
+    const raw = body.split("\n")
+    const blocks = extractCodeBlocks(body, bodyLine)
+    const inside = new Set(blocks.flatMap((block) => Array.from({length: (block.end ?? block.line) - block.line + 1}, (_, index) => block.line + index)))
+    const written = raw.map((text, index) => ({text, line: bodyLine + index})).filter((item) => item.text.trim() !== "" && !inside.has(item.line)).map((item) => item.line)
+    lintTabs(blocks, (from, to) => written.some((line) => line > from && line < to), add)
     for (const {line, text: prose} of proseLines(body, bodyLine)) {
         // Backslash-escaped characters are text for MDX.
         if (/[<{}]/.test(prose.replace(/\\\\/g, "").replace(/\\[<{}]/g, ""))) add(line, "prose holds < { or }: put it in `code` (MDX would read it as JSX)")
-        const alert = /^\s*>\s*\[!(\w+)\]/.exec(prose)
+        const alert = /^\s*>\s*\[!(\w+)\](.*)$/.exec(prose)
         if (alert !== null && !ALERTS.includes(alert[1])) add(line, `callouts are ${ALERTS.map((kind) => `[!${kind}]`).join(", ")}, not [!${alert[1]}]`)
+        if (alert !== null && alert[2].trim() !== "") add(line, `[!${alert[1]}] stands alone on its line, the text goes on the next "> " line`)
         if (/^(import|export)\s/.test(prose)) add(line, "no import or export: pages are plain Markdown")
         for (const link of prose.matchAll(/\]\((\/docs[^)\s#]*)(#[^)]*)?\)/g)) {
             const target = link[1].replace(/\/$/, "")
@@ -75,7 +79,10 @@ export function lintPage(text, slugs) {
     return problems
 }
 
+const SHELLS = ["sh", "bash", "shell", "zsh", "console"]
+
 function lintBlock(block, previous, add) {
+    if (SHELLS.includes(block.lang) && block.code.split("\n").some((line) => /^\s*\$\s/.test(line))) add(block.line, "write shell commands without a $ prompt: the copy button gives exactly the block")
     if (block.unterminated) add(block.line, "code block is never closed")
     if (!block.lang) add(block.line, "code block without a language")
     if (block.leftover) add(block.line, `code block info not understood: ${block.leftover}`)
@@ -94,7 +101,6 @@ function lintBlock(block, previous, add) {
     }
     const [role] = roles
     const value = block.meta[role]
-    if (block.lang === "sh" && block.code.split("\n").some((line) => /^\s*\$\s/.test(line))) add(block.line, "write shell commands without a $ prompt: the copy button gives exactly the block")
     if (role === "test" && !RUNNERS.includes(block.lang)) add(block.line, `test blocks run ${RUNNERS.join(" or ")}, not ${block.lang}`)
     if ((role === "notest" || role === "file") && (typeof value !== "string" || value.trim() === "")) add(block.line, `${role} needs a value`)
     if (role === "output" && (previous === undefined || !("test" in previous.meta))) add(block.line, "an output block follows a test block")
@@ -108,6 +114,9 @@ function lintTabs(blocks, textBetween, add) {
     let set = []
     const close = () => {
         if (set.length === 1) add(set[0].line, `a tab set needs at least two blocks: group "${set[0].meta.group}"`)
+        // The tabs are alternatives; CI runs one machine, so one tab at most is a test, the others say notest.
+        const tests = set.filter((block) => "test" in block.meta)
+        if (tests.length > 1) add(tests[1].line, `a tab set runs one test block at most, the others are notest: group "${set[0].meta.group}"`)
         const seen = new Set()
         for (const block of set) {
             if (seen.has(block.meta.tab)) add(block.line, `tab repeated in group "${block.meta.group}": ${block.meta.tab}`)

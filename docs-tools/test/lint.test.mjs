@@ -107,16 +107,21 @@ test("meta.json: Fumadocs separators group the sidebar and are not pages", () =>
 })
 
 test("callouts: only NOTE, WARNING and CAUTION", () => {
-    const body = ["> [!NOTE]", "> fine", "", "> [!WARNING]", "", "> [!CAUTION]", "", "> [!TIP]", "> no", "", "  >  [!IMPORTANT]"].join("\n")
+    const body = ["> [!NOTE]", "> fine", "", "> [!WARNING]", "", "> [!CAUTION]", "", "> [!TIP]", "> no", "", "  >  [!IMPORTANT]", "", "> [!NOTE] same line"].join("\n")
     assert.deepEqual(messages(lintPage(page(body), new Set())), [
         "callouts are [!NOTE], [!WARNING], [!CAUTION], not [!TIP]",
         "callouts are [!NOTE], [!WARNING], [!CAUTION], not [!IMPORTANT]",
+        '[!NOTE] stands alone on its line, the text goes on the next "> " line',
     ])
 })
 
 test("shell blocks have no $ prompt", () => {
-    const body = [`${FENCE}sh notest="x"`, "echo ok", "  $ ostrom claude", FENCE, `${FENCE}text notest="x"`, "$ shown as text", FENCE].join("\n")
-    assert.deepEqual(messages(lintPage(page(body), new Set())), ["write shell commands without a $ prompt: the copy button gives exactly the block"])
+    const body = [`${FENCE}sh notest="x"`, "echo ok", "  $ ostrom claude", FENCE, `${FENCE}text notest="x"`, "$ shown as text", FENCE, `${FENCE}console`, "$ ostrom", FENCE].join("\n")
+    assert.deepEqual(messages(lintPage(page(body), new Set())), [
+        "write shell commands without a $ prompt: the copy button gives exactly the block",
+        "write shell commands without a $ prompt: the copy button gives exactly the block",
+        'code block needs exactly one of: test, notest="why", file="name", output',
+    ])
 })
 
 test("tabs: consecutive blocks of one group, each with its own tab", () => {
@@ -125,7 +130,7 @@ test("tabs: consecutive blocks of one group, each with its own tab", () => {
     assert.deepEqual(messages(lintPage(page(good.join("\n")), new Set())), [])
     const bad = [
         ...block('notest="x" tab="macOS" group="os"'),
-        "Some text ends the set.",
+        "`a line of inline code ends the set`",
         ...block('notest="x" tab="Linux" group="os"'),
         ...block('notest="x" tab="Linux" group="os"'),
         ...block('notest="x" tab="A" group="agent"'),
@@ -140,6 +145,12 @@ test("tabs: consecutive blocks of one group, each with its own tab", () => {
         'tabs need both tab="name" and group="name"',
         'tabs need both tab="name" and group="name"',
         'tabs need both tab="name" and group="name"',
+    ])
+    const twoTests = [...block('test tab="macOS" group="os"'), ...block('test tab="Linux" group="os"'), ...block('notest="x" tab="Windows" group="os"'), `${FENCE}sh test tab="x" group="y"`, "never closed"]
+    assert.deepEqual(messages(lintPage(page(twoTests.join("\n")), new Set())), [
+        "code block is never closed",
+        'a tab set runs one test block at most, the others are notest: group "os"',
+        'a tab set needs at least two blocks: group "y"',
     ])
 })
 
