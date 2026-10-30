@@ -7,7 +7,8 @@ const METHODS = ["get", "put", "post", "patch", "delete", "head", "options", "tr
 function mdxLine(line) {
     return line
         .split(/(`+[^`]*?`+)/)
-        .map((part, index) => (index % 2 === 1 ? part : part.replaceAll("<", "&lt;").replaceAll("{", "\\{").replaceAll("}", "\\}")))
+        // Backslashes first, so a `\{` written in the description stays text instead of becoming `\\{`.
+        .map((part, index) => (index % 2 === 1 ? part : part.replaceAll("\\", "\\\\").replaceAll("<", "&lt;").replaceAll("{", "\\{").replaceAll("}", "\\}")))
         .join("")
 }
 
@@ -25,13 +26,19 @@ export function markdown(text) {
                 return `${match[1]}${match[2]}${lang} notest="example from the API description"`
             }
             if (fence !== undefined) {
-                if (match !== null && match[3].trim() === "" && match[2].startsWith(fence[0])) fence = undefined
+                // The same closing rule as docs-lint: same character, at least as long, nothing after it.
+                if (match !== null && match[3].trim() === "" && match[2].startsWith(fence[0]) && match[2].length >= fence.length) fence = undefined
                 return line
             }
-            return mdxLine(line)
+            // A heading of the description would break the page's own outline: it becomes a bold line.
+            const heading = /^\s{0,3}#{1,6}\s+(.*?)\s*#*\s*$/.exec(line)
+            return heading === null ? mdxLine(line) : `**${mdxLine(heading[1])}**`
         })
         .join("\n")
 }
+
+/** A type for a table cell: pipes in enum or const values escaped. */
+const typeCell = (schema) => typeOf(schema).replaceAll("|", "\\|")
 
 /** Markdown for one table cell: one line, pipes escaped. */
 export function cell(text) {
@@ -75,11 +82,15 @@ function operationSection(spec, path, method, operation, shared) {
     if (operation.description) lines.push(markdown(operation.description), "")
     // An operation's parameter overrides the path's parameter of the same name and location.
     const byKey = new Map()
-    for (const parameter of [...shared, ...(operation.parameters ?? [])].map((item) => resolve(spec, item))) byKey.set(`${parameter.in}:${parameter.name}`, parameter)
+    for (const item of [...shared, ...(operation.parameters ?? [])]) {
+        const parameter = resolve(spec, item)
+        if (parameter == null) throw new Error(`${method.toUpperCase()} ${path}: parameter ${JSON.stringify(item?.$ref ?? item)} does not resolve`)
+        byKey.set(`${parameter.in}:${parameter.name}`, parameter)
+    }
     const parameters = [...byKey.values()]
     if (parameters.length > 0) {
         lines.push("| Parameter | In | Type | Required | Description |", "|---|---|---|---|---|")
-        for (const p of parameters) lines.push(`| \`${p.name}\` | ${p.in} | ${typeOf(p.schema)} | ${p.required ? "yes" : "no"} | ${cell(p.description)} |`)
+        for (const p of parameters) lines.push(`| \`${p.name}\` | ${p.in} | ${typeCell(p.schema)} | ${p.required ? "yes" : "no"} | ${cell(p.description)} |`)
         lines.push("")
     }
     const body = resolve(spec, operation.requestBody)
@@ -87,7 +98,7 @@ function operationSection(spec, path, method, operation, shared) {
     lines.push("| Status | Description | Body |", "|---|---|---|")
     for (const [status, raw] of Object.entries(operation.responses ?? {})) {
         const response = resolve(spec, raw)
-        lines.push(`| ${status} | ${cell(response?.description)} | ${typeOf(jsonSchema(response?.content))} |`)
+        lines.push(`| ${status} | ${cell(response?.description)} | ${typeCell(jsonSchema(response?.content))} |`)
     }
     lines.push("")
     return lines
@@ -103,7 +114,7 @@ function schemaSection(name, schema) {
     }
     const required = new Set(schema.required ?? [])
     lines.push("| Field | Type | Required | Description |", "|---|---|---|---|")
-    for (const [field, property] of properties) lines.push(`| \`${field}\` | ${typeOf(property)} | ${required.has(field) ? "yes" : "no"} | ${cell(property.description)} |`)
+    for (const [field, property] of properties) lines.push(`| \`${field}\` | ${typeCell(property)} | ${required.has(field) ? "yes" : "no"} | ${cell(property.description)} |`)
     lines.push("")
     return lines
 }
@@ -146,10 +157,13 @@ export function generateApiReference(spec) {
     const groups = new Map(tagNames.map((name) => [name, []]))
     const untagged = []
     const used = new Set()
+    const reserved = ["schemas", "other endpoints"]
+    for (const name of tagNames) if (reserved.includes(String(name).toLowerCase())) throw new Error(`tag "${name}" is a heading of the page itself`)
     for (const [path, item] of Object.entries(spec.paths ?? {})) {
+        if (item == null) continue
         for (const method of METHODS) {
             const operation = item[method]
-            if (operation === undefined) continue
+            if (operation == null) continue
             total += 1
             if (!isImplemented(operation, `${method.toUpperCase()} ${path}`)) continue
             listed += 1
@@ -178,7 +192,7 @@ export function generateApiReference(spec) {
     const described = new Map((spec.tags ?? []).map((tag) => [tag.name, tag.description]))
     for (const [tag, section] of groups) {
         if (section.length === 0) continue
-        lines.push(`## ${cell(tag)}`, "")
+        lines.push(`## ${mdxLine(String(tag))}`, "")
         if (described.get(tag)) lines.push(markdown(described.get(tag)), "")
         lines.push(...section)
     }

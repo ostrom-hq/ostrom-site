@@ -97,6 +97,13 @@ test("markdown keeps paragraphs and lists, and marks fenced examples as not run"
     assert.equal(markdown(undefined), "")
 })
 
+test("markdown: backslashes kept as text, longer fences close only on their length, headings become bold", () => {
+    assert.equal(markdown("use a \\{ literal"), "use a \\\\\\{ literal")
+    const fenced = ["````md", "```", "{inside}", "```", "````", "{after}"].join("\n")
+    assert.equal(markdown(fenced), ['````md notest="example from the API description"', "```", "{inside}", "```", "````", "\\{after\\}"].join("\n"))
+    assert.equal(markdown("## Errors {x} ##\ntext"), "**Errors \\{x\\}**\ntext")
+})
+
 test("slug follows the renderers: punctuation dropped, spaces to dashes", () => {
     assert.equal(slug("`Gate.Request` schema"), "gaterequest-schema")
     assert.equal(slug("My_Gate-2 schema"), "my_gate-2-schema")
@@ -171,6 +178,18 @@ test("an empty description still gives a page", () => {
     assert.equal(text.includes("## Schemas"), false)
     assert.equal(generateApiReference({paths: {"/x": {get: {"x-ostrom-server": "implemented"}}}}).page.includes("| Status | Description | Body |"), true)
     assert.equal(generateApiReference({paths: {"/x": {get: {}}}}).page.includes("/x"), false, "an operation the server does not serve is left out")
+})
+
+test("broken descriptions fail with the place, never a bare TypeError", () => {
+    assert.throws(() => generateApiReference({paths: {"/x": {get: {"x-ostrom-server": "implemented", parameters: [{$ref: "#/components/parameters/Nope"}]}}}}), /GET \/x: parameter "#\/components\/parameters\/Nope" does not resolve/)
+    assert.throws(() => generateApiReference({paths: {"/x": {get: {"x-ostrom-server": "implemented", parameters: [null]}}}}), /GET \/x: parameter null does not resolve/)
+    assert.throws(() => generateApiReference({tags: [{name: "Schemas"}]}), /tag "Schemas" is a heading of the page itself/)
+    assert.deepEqual(generateApiReference({paths: {"/x": null, "/y": {get: null}}}).total, 0)
+})
+
+test("a pipe in an enum value does not split the table row", () => {
+    const {page} = generateApiReference({paths: {"/x": {get: {"x-ostrom-server": "implemented", parameters: [{name: "q", in: "query", schema: {enum: ["a|b"]}}]}}}})
+    assert.ok(page.includes('| `q` | query | `"a\\|b"` | no |  |'))
 })
 
 test("a misspelled mark is an error, not a silent omission", () => {

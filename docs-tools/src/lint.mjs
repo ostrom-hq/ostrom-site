@@ -56,7 +56,7 @@ export function lintPage(text, slugs) {
     }
     for (const {line, text: prose} of proseLines(body, bodyLine)) {
         // Backslash-escaped characters are text for MDX.
-        if (/[<{}]/.test(prose.replace(/\\[<{}]/g, ""))) add(line, "prose holds < { or }: put it in `code` (MDX would read it as JSX)")
+        if (/[<{}]/.test(prose.replace(/\\\\/g, "").replace(/\\[<{}]/g, ""))) add(line, "prose holds < { or }: put it in `code` (MDX would read it as JSX)")
         if (/^(import|export)\s/.test(prose)) add(line, "no import or export: pages are plain Markdown")
         for (const link of prose.matchAll(/\]\((\/docs[^)\s#]*)(#[^)]*)?\)/g)) {
             const target = link[1].replace(/\/$/, "")
