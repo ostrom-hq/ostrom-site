@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { expect, test, type Page } from '@playwright/test'
 import { expectAccessible } from './a11y'
 

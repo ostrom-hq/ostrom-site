@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { getMessages } from '@/i18n'
 import { baseSlug } from '@/lib/content'
 import { publishedPosts } from '@/lib/collections'

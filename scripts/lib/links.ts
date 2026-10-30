@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Internal link checker for the static export: every href/src that stays on the site must lead to a file, and every
 // #fragment to an element id of the target page. External links are listed, not fetched (CI has no network promise).
 

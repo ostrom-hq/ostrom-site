@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { Block, Inline } from '@/lib/markdown'
 
 function Inlines({ items }: { readonly items: readonly Inline[] }): React.JSX.Element {

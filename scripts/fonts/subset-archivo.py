@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 # Usage: python3 scripts/fonts/subset-archivo.py <full Archivo variable woff2> src/fonts/archivo-latin.woff2
 # Rebuilds the display and text font of the site (fontTools 4.57). It keeps only what the pages use, because the font
 # is on the path of the largest paint: weights 400 to 800, widths 100 % to 125 % (tokens.css), and the Latin

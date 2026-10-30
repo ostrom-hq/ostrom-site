@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Usage: node scripts/csp.ts <export dir>. Writes the Content-Security-Policy of every exported page (see lib/csp.ts).
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'

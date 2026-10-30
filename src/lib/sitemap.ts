@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { legalPages, publishedPosts } from './collections'
 import { baseSlug } from './content'
 import { staticRoutes, type SitemapEntry } from './routes'

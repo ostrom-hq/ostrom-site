@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
 # Usage: .github/scripts/run.sh <title> <command...>
 # Runs a CI command; when it fails, its last output lines also become error annotations of the check run, so the cause
 # can be read without downloading logs (agents read checks through the GraphQL API).

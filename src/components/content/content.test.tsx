@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { render, screen } from '@testing-library/react'
 import { en } from '@/i18n/en'
 import { parseMarkdown } from '@/lib/markdown'

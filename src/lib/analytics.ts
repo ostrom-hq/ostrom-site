@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Website analytics with PostHog, by the rules of ostrom-core/docs/telemetry.md: nothing is loaded, sent or stored before an
 // explicit "accept"; no key configured (self-hosted, CI) means no banner and no network call at all. The key comes
 // from the container at run time (/site-config.json, written by nginx from OSTROM_POSTHOG_API_KEY and

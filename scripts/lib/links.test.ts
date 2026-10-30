@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { checkLinks, extractIds, extractLinks, orEmpty, pathOfFile, resolvePath } from './links'
 
 const origin = 'https://ostrom.run'

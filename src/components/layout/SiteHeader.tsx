@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import Link from 'next/link'
 import { Logo } from '@/components/brand/Logo'
 import type { Messages } from '@/i18n'

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 export const themes = ['system', 'light', 'dark'] as const
 export type Theme = (typeof themes)[number]
 

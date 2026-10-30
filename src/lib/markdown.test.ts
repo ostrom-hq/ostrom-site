@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { at, group, outline, parseInline, parseMarkdown, plainText, slugify } from './markdown'
 
 describe('helpers', () => {

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // A Content-Security-Policy per page of the static export: scripts only from the site itself, plus the inline scripts
 // Next.js writes into each page (the theme boot script, the React payload), allowed by their exact SHA-256. The policy
 // goes in a <meta> right after the charset, before any script; nginx adds the header-only directives (frame-ancestors).

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 interface PageHeadProps {
   readonly eyebrow: string
   readonly title: string

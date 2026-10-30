@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Brand geometry from research/brand (logo v2, 04·02 « Cordage à lames courbes », and motion/iris.html).
 // Generated once from the brand files; the shapes are data, not logic.
 

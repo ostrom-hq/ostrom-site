@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Lighthouse CI: every page of the sitemap, against the container on localhost:8080. 95 is the floor in each
 // category; LHCI_PRESET=desktop audits the desktop profile, mobile otherwise. The audited image is built with
 // NEXT_PUBLIC_LAUNCHED=1: Lighthouse checks the site as it will be once launched (indexable).

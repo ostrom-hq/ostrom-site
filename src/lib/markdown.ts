@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // A small Markdown subset for the site's own long-form texts (legal pages, blog posts, release notes): headings,
 // paragraphs, lists, quotes, rules, fenced code, and inline links, bold, emphasis and code. No raw HTML is ever
 // passed through, so a release note cannot inject markup. The docs have their own, fuller pipeline.
