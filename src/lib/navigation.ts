@@ -34,7 +34,7 @@ export function signinUrl(config: SiteConfig): string {
 }
 
 export function headerLinks(messages: Messages): readonly NavLink[] {
-  return [internal(messages.nav.product, '/#how-it-works')]
+  return [internal(messages.nav.product, '/#how-it-works'), internal(messages.nav.docs, '/docs/')]
 }
 
 export function footerColumns(messages: Messages, config: SiteConfig): readonly NavColumn[] {
@@ -46,7 +46,11 @@ export function footerColumns(messages: Messages, config: SiteConfig): readonly 
     },
     {
       title: messages.footer.columns.developers,
-      links: config.launched ? [external(links.github, config.githubUrl)] : [],
+      links: [
+        internal(links.docs, '/docs/'),
+        internal(links.api, '/docs/api/'),
+        ...(config.launched ? [external(links.github, config.githubUrl)] : []),
+      ],
     },
     {
       title: messages.footer.columns.company,

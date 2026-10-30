@@ -1,0 +1,223 @@
+openapi: 3.1.0
+info:
+  title: Fixture API
+  version: 9.9.9
+  description: The `fixture` contract.
+servers:
+  - url: https://{host}/base
+    description: Self-hosted
+    variables:
+      host:
+        default: localhost:4317
+  - url: https://{unknown}.example
+security:
+  - bearer: []
+tags:
+  - name: gates
+    description: Ask for a yes.
+  - name: empty
+paths:
+  /api/v1/gates:
+    parameters:
+      - name: org
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: wait
+        in: query
+        schema:
+          type: string
+    post:
+      x-ostrom-server: implemented
+      operationId: requestGate
+      tags: [gates]
+      summary: Request a gate. The agent waits for the `yes`.
+      description: The gate stays open until someone answers.
+      parameters:
+        - name: wait
+          in: query
+          required: true
+          description: Seconds to wait
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/Trace'
+      requestBody:
+        $ref: '#/components/requestBodies/GateBody'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+        '400':
+          $ref: '#/components/responses/Error'
+    get:
+      x-ostrom-server: implemented
+      tags: [gates]
+      security: []
+      deprecated: true
+      responses:
+        '200':
+          description: The file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                contentEncoding: binary
+        '302':
+          description: Redirect
+  /api/v1/gates/{id}:
+    delete:
+      x-ostrom-server: implemented
+      operationId: deleteGate
+      tags: [gates]
+      summary: Delete a gate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: X-Raw
+          in: header
+          required: true
+      requestBody:
+        content:
+          application/octet-stream: {}
+      responses:
+        '204':
+          description: Deleted
+          content:
+            text/plain: {}
+  /api/v1/health:
+    put:
+      x-ostrom-status: served
+      operationId: health
+      requestBody:
+        required: true
+        description: Nothing
+        content: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+  /api/v1/secrets:
+    get:
+      operationId: listSecrets
+      tags: [secrets]
+      x-ostrom-server: pending
+      responses:
+        '200':
+          description: Not served yet, so not documented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Secret'
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      description: An Ostrom token
+    key:
+      type: apiKey
+      name: X-Key
+      in: header
+  parameters:
+    Trace:
+      name: trace
+      in: header
+      schema:
+        type: boolean
+  requestBodies:
+    GateBody:
+      required: true
+      description: What to ask for
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GateRequest'
+  responses:
+    Error:
+      description: A refusal
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+  schemas:
+    ApiError:
+      type: object
+      description: The body of every refusal
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+          required: [code]
+      required: [error]
+    Gate:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/GateStatus'
+        node:
+          $ref: '#/components/schemas/Node'
+        parent:
+          oneOf:
+            - $ref: '#/components/schemas/Gate'
+            - type: 'null'
+        tags:
+          type: array
+          items:
+            type: string
+        meta:
+          type: object
+          additionalProperties: true
+      required: [id, status]
+    GateStatus:
+      type: string
+      description: Where the gate stands
+      enum: [pending, approved]
+    GateRequest:
+      type: object
+      properties:
+        repo:
+          type: [string, 'null']
+        at:
+          type: string
+          format: date-time
+        mode:
+          $ref: '#/components/schemas/GateStatus'
+          description: The mode, described where it is used
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+        old:
+          type: boolean
+          deprecated: true
+          default: false
+      required: [repo]
+    Secret:
+      type: object
+      description: Only an operation the server does not serve uses it
+    Node:
+      type: object
+      properties:
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/Node'

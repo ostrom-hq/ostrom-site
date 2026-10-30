@@ -233,6 +233,91 @@ export const en = {
     undo: 'Undo',
     caption: 'Your yes goes on the receipt, with the rules the agent followed.',
   },
+  docs: {
+    title: 'Docs',
+    description:
+      'Guides and reference for Ostrom: run AI coding agents under your rules, approve what ships, check every receipt.',
+    home: {
+      title: 'Ostrom documentation',
+      lead: 'The guides are on their way, written from the code that ships. The API reference fills in as the server answers each endpoint.',
+      api: 'API reference',
+    },
+    nav: {
+      label: 'Docs',
+      menu: 'Docs menu',
+      breadcrumb: 'Breadcrumb',
+      pager: 'More pages',
+      previous: 'Previous',
+      next: 'Next',
+      toc: 'On this page',
+    },
+    status: {
+      partial: 'Partial',
+      comingSoon: 'Coming soon',
+    },
+    code: {
+      copy: 'Copy',
+      copied: 'Copied',
+      failed: 'Copy failed',
+    },
+    versions: {
+      label: 'Version',
+      archived: 'You are reading the docs of {label}.',
+      latest: 'Read the latest docs',
+    },
+    search: {
+      button: 'Search docs',
+      dialog: 'Search the docs',
+      placeholder: 'Search the guides and the API',
+      close: 'Esc',
+      closeLabel: 'Close the search',
+      results: 'Results',
+      loading: 'Loading the index…',
+      failed: 'The search index could not be loaded. Try again in a moment.',
+      empty: 'Type to search every page and every endpoint.',
+      noResults: 'No results for “{query}”.',
+      count: '{count} results',
+      hint: '↑ ↓ to move · Enter to open · Esc to close',
+    },
+    api: {
+      title: 'API reference',
+      description:
+        'Every endpoint of the Ostrom API, generated from its OpenAPI description, with a curl example to copy.',
+      missing:
+        'The OpenAPI description of the API is not in this build yet. This reference fills in as soon as it is.',
+      notServed:
+        'This reference lists only the endpoints the Ostrom server already answers. None is live yet: each one appears here the day it ships.',
+      overview: 'Overview',
+      schemas: 'Schemas',
+      schemasDescription: 'Every object the Ostrom API sends or receives, with its fields.',
+      tagDescription: 'The {tag} endpoints of the Ostrom API.',
+      version: 'Version {version}',
+      baseUrl: 'Base URL',
+      baseUrlBody:
+        'Ostrom Cloud answers on the URL below. A self-hosted server serves the same API on its own host.',
+      servers: 'Servers in the contract',
+      authentication: 'Authentication',
+      authenticationBody:
+        'Send an Ostrom token (from the CLI, a browser session or a service key) in the Authorization header of every request. The examples read it from $OSTROM_TOKEN.',
+      errors: 'Errors',
+      errorsBody: 'Every refusal has the same JSON body. These status codes appear in the API:',
+      resources: 'Resources',
+      endpoints: '{count} endpoints',
+      parameters: 'Parameters',
+      body: 'Request body',
+      responses: 'Responses',
+      required: 'required',
+      nullable: 'nullable',
+      deprecated: 'deprecated',
+      public: 'No token needed',
+      defaultValue: 'Default:',
+      values: 'One of:',
+      additional: 'Any other key:',
+      children: 'Show {count} fields',
+      request: 'curl',
+      response: 'Response {status}',
+    },
+  },
 } as const satisfies MessageTree
 
 interface MessageTree {
