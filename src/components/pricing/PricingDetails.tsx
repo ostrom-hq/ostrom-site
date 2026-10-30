@@ -31,12 +31,13 @@ function Cell({
   return <>{value}</>
 }
 
+/** PB-PR3: the plans side by side, grouped by theme, under a header of plan names that stays in view. */
 export function ComparePlans({ copy }: CompareProps): React.JSX.Element {
   return (
     <section className="section" aria-labelledby="compare-title">
       <div className="container">
         <h2 id="compare-title">{copy.compare.title}</h2>
-        <div className="table-wrap">
+        <div className="table-wrap compare-wrap">
           <table className="compare">
             <thead>
               <tr>
@@ -48,18 +49,28 @@ export function ComparePlans({ copy }: CompareProps): React.JSX.Element {
                 ))}
               </tr>
             </thead>
-            <tbody>
-              {copy.compare.rows.map((row) => (
-                <tr key={row.label}>
-                  <th scope="row">{row.label}</th>
-                  {row.values.map((value, index) => (
-                    <td key={PLAN_COLUMNS[index]}>
-                      <Cell value={value} copy={copy} />
-                    </td>
-                  ))}
+            {copy.compare.groups.map((group) => (
+              <tbody key={group.name}>
+                <tr className="compare__group">
+                  <th scope="rowgroup" colSpan={PLAN_COLUMNS.length + 1}>
+                    {group.name}
+                  </th>
                 </tr>
-              ))}
-            </tbody>
+                {group.rows.map((row) => (
+                  <tr key={row.label}>
+                    <th scope="row">
+                      <span className="compare__label">{row.label}</span>
+                      <span className="compare__detail">{row.detail}</span>
+                    </th>
+                    {row.values.map((value, index) => (
+                      <td key={PLAN_COLUMNS[index]}>
+                        <Cell value={value} copy={copy} />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            ))}
           </table>
         </div>
       </div>
