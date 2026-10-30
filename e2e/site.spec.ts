@@ -83,8 +83,9 @@ test('every script runs under the Content-Security-Policy, without a violation',
     )
     expect(await violations()).toEqual([])
   }
-  // The scene of the yes is interactive: the React scripts the policy allows did run.
+  // The scene of the yes is interactive: the loader and the React scripts the policy allows did run.
   await page.goto('/')
+  await expect(page.locator('html')).toHaveAttribute('data-runtime', 'ready')
   await page.getByRole('button', { name: 'Approve and ship' }).click()
   expect(await violations()).toEqual([])
 })
