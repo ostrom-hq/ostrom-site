@@ -20,7 +20,9 @@ module.exports = {
   ci: {
     collect: {
       url: sitemapUrls(),
-      numberOfRuns: 1,
+      // Mobile: the median of three runs, a single run on a shared CI runner swings by several points. Desktop has
+      // the margin for one.
+      numberOfRuns: desktop ? 1 : 3,
       settings: desktop ? { preset: 'desktop' } : {},
     },
     assert: {
@@ -36,6 +38,6 @@ module.exports = {
         'total-byte-weight': ['error', { maxNumericValue: 600000 }],
       },
     },
-    upload: { target: 'filesystem', outputDir: `.lighthouseci/${desktop ? 'desktop' : 'mobile'}` },
+    upload: { target: 'filesystem', outputDir: `lighthouse-reports/${desktop ? 'desktop' : 'mobile'}` },
   },
 }

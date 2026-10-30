@@ -6,3 +6,4 @@ playwright-report
 test-results
 .lighthouseci
 .git
+lighthouse-reports

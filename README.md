@@ -6,16 +6,17 @@ by nginx from a container image. Nothing renders at request time.
 
 ## Build and test
 
-The CI commands, in order (`.github/workflows/ci.yml`):
+The steps of the single CI job `ci`, in order (`.github/workflows/ci.yml`; a draft pull request runs no CI):
 
 ```sh
 pnpm install --frozen-lockfile
-pnpm typecheck && pnpm lint && pnpm format:check   # lint
-pnpm test:coverage                                 # coverage: Vitest, 100 % lines, branches, functions, statements
-pnpm build && pnpm links                           # build: static export in out/, internal links and anchors
-docker build -t ostrom-site .                      # the image the e2e and Lighthouse jobs run
-PLAYWRIGHT_BASE_URL=http://localhost:8080 pnpm e2e # e2e: Playwright, desktop and mobile, axe WCAG 2.2 AA
-pnpm exec lhci autorun --config=lighthouserc.cjs   # lighthouse: every page of the sitemap, 95 minimum per category
+pnpm typecheck && pnpm lint && pnpm format:check   # types, lint, formatting
+pnpm test:coverage                                 # Vitest, 100 % lines, branches, functions, statements
+(cd docs-tools && npm ci && npm test && npm run lint:docs)  # the docs tooling and content
+pnpm build && pnpm links                           # static export in out/, internal links and anchors
+docker build -t ostrom-site .                      # the image Playwright and Lighthouse run against
+PLAYWRIGHT_BASE_URL=http://localhost:8080 pnpm e2e # Playwright, desktop and mobile, axe WCAG 2.2 AA
+pnpm exec lhci autorun --config=lighthouserc.cjs   # every page of the sitemap, 95 minimum per category
 ```
 
 ## Run locally
@@ -34,7 +35,7 @@ not to index it (`robots.txt`, a `noindex` meta tag, an `X-Robots-Tag` header fr
 
 ## Image
 
-`main` publishes `ghcr.io/ostrom-hq/ostrom-site:<sha>` and `:main`: the exact image the e2e and Lighthouse jobs tested.
+`main` publishes `ghcr.io/ostrom-hq/ostrom-site:<sha>` and `:main`: the exact image Playwright and Lighthouse tested.
 It listens on port 8080 as an unprivileged user and answers `GET /healthz`. The same build with
 `NEXT_PUBLIC_LAUNCHED=1` is published as `:launched-<sha>` and `:launched`, for the day of the launch.
 
