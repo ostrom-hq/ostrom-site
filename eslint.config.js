@@ -57,6 +57,15 @@ export default tseslint.config(
       '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+      // Zod only through src/lib/zod.ts, configured without eval for the Content-Security-Policy.
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            { name: 'zod', message: "Import z from '@/lib/zod' (configured without eval for the CSP)." },
+          ],
+        },
+      ],
       // A region that scrolls must take the focus so a keyboard can scroll it (axe scrollable-region-focusable).
       'jsx-a11y/no-noninteractive-tabindex': ['error', { tags: [], roles: ['tabpanel', 'region'] }],
       '@typescript-eslint/explicit-function-return-type': ['error', { allowExpressions: true }],
@@ -92,5 +101,9 @@ export default tseslint.config(
     files: ['lighthouserc.cjs'],
     languageOptions: { sourceType: 'commonjs' },
     rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
+  {
+    files: ['src/lib/zod.ts', 'scripts/**/*.ts', '**/*.test.ts'],
+    rules: { 'no-restricted-imports': 'off' },
   },
 )
