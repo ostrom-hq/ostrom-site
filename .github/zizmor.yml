@@ -1,0 +1,8 @@
+# zizmor configuration (https://docs.zizmor.sh/configuration/).
+rules:
+  # Temporary: docs.yml, and ci.yml that replaces it (the single `ci` job of the QA template), cache dependencies in a workflow that also runs on
+  # release tags. Drop the cache on tag runs, or split the release job, then remove this exception.
+  cache-poisoning:
+    ignore:
+      - ci.yml
+      - docs.yml
