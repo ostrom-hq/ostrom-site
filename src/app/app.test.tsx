@@ -42,6 +42,14 @@ describe('home page', () => {
     )
     expect(document.getElementById('how-it-works')).not.toBeNull()
   })
+
+  it('declares its canonical URL and its structured data', async () => {
+    const { metadata: homeMetadata } = await import('./page')
+    expect(homeMetadata.alternates).toEqual({ canonical: '/' })
+    const { container } = render(<HomePage />)
+    const script = container.querySelector('script[type="application/ld+json"]')
+    expect(script?.textContent).toContain('"SoftwareApplication"')
+  })
 })
 
 describe('root layout', () => {
@@ -64,6 +72,11 @@ describe('root layout', () => {
     expect(metadata.description).toBe(en.meta.description)
     expect(metadata.metadataBase?.toString()).toBe('https://ostrom.run/')
     expect(viewport.colorScheme).toBe('light dark')
+    expect(metadata.robots).toEqual({ index: false, follow: false })
+    expect(metadata.alternates).toBeUndefined()
+    expect(metadata.openGraph?.images).toEqual([
+      { url: '/og.png', width: 1200, height: 630, alt: en.meta.title },
+    ])
   })
 })
 
@@ -76,9 +89,9 @@ describe('not found', () => {
 })
 
 describe('robots and sitemap', () => {
-  it('allows everything and points to the sitemap', () => {
+  it('stays closed to search engines until the launch and points to the sitemap', () => {
     expect(robots()).toEqual({
-      rules: { userAgent: '*', allow: '/' },
+      rules: { userAgent: '*', disallow: '/' },
       sitemap: 'https://ostrom.run/sitemap.xml',
     })
   })

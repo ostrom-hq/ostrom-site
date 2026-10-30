@@ -39,18 +39,19 @@ export function headerLinks(messages: Messages): readonly NavLink[] {
 
 export function footerColumns(messages: Messages, config: SiteConfig): readonly NavColumn[] {
   const links = messages.footer.links
-  return [
+  const columns: readonly NavColumn[] = [
     {
       title: messages.footer.columns.product,
       links: [internal(links.howItWorks, '/#how-it-works')],
     },
     {
       title: messages.footer.columns.developers,
-      links: [external(links.github, config.githubUrl)],
+      links: config.launched ? [external(links.github, config.githubUrl)] : [],
     },
     {
       title: messages.footer.columns.company,
       links: [external(links.contact, `mailto:${config.contactEmail}`)],
     },
   ]
+  return columns.filter((column) => column.links.length > 0)
 }

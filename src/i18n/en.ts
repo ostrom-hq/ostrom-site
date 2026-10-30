@@ -6,8 +6,9 @@ export const en = {
   meta: {
     siteName: 'Ostrom',
     title: 'Ostrom · Agents propose. Your team decides.',
+    // At most 160 characters (search snippets): the first sentence of the lead.
     description:
-      "Ostrom runs a company's AI coding agents in the cloud and makes them follow the team's rules. Every change they make leaves a receipt, and the few that matter wait for a person's yes.",
+      "Ostrom runs a company's AI coding agents in the cloud and makes them follow the team's rules.",
   },
   a11y: {
     skipToContent: 'Skip to content',
