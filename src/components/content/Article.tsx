@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { format, type Messages } from '@/i18n'
 import { outline, type Block } from '@/lib/markdown'
 import { Markdown } from './Markdown'

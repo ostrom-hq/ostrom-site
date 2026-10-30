@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Turns the GitHub API's releases of each Ostrom repository into content/changelog/releases.json.
 import { z } from 'zod'
 

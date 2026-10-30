@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import localFont from 'next/font/local'
 
 // Self-hosted, preloaded, Latin subset (the site is English). Archivo is variable on weight and width, cut to what the

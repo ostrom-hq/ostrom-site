@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { NextConfig } from 'next'
 
 // Fully static: every page is rendered at build time and served by nginx (Dockerfile). No server runtime, so

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { check, probes, type Fetcher } from './status'
 
 const config = {

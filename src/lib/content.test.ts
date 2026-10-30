@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { join } from 'node:path'
 import { z } from 'zod'
 import { baseSlug, CONTENT_ROOT, loadFolder, parseDocument } from './content'

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // English texts of the site. The marketing sentences come word for word from the locked value proposition
 // (research/proposition-de-valeur.md, Lyes, 24 and 27/10/2026): change them only with his agreement.
 // French arrives later as `fr.ts`, typed by `Messages`.
