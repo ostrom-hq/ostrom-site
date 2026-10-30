@@ -59,7 +59,8 @@ Ostrom's job is to match the first four and beat everyone on the fifth.
   the slogans, the money and open source sentences. A change of wording needs Lyes's agreement.
 - **PB-W2.** Outside the docs and the "For engineers" section, none of these words appear: harness, control
   plane, MCP, hooks, git blame, skills, platform, guardrails, meta-harness, software factory. (Docs and API pages
-  may use them, defined on first use.)
+  may use them, defined on first use.) The "For engineers" section is the element marked
+  `data-audience="engineers"`; the jargon scan skips it and `/docs/`, and nothing else.
 - **PB-W3.** No number without a source. Allowed on public pages: our own verified numbers (4 people, up to 20
   agents in parallel, 142 projects run by agents) and the research sentences listed as public in the value
   proposition, each with its short source in small type. Never an "X× better". A missing number is left out, not
@@ -80,11 +81,13 @@ The Signal brand sets the faces; the best sites set the discipline.
 | Landing H1, desktop (measured) | Inter 64 px / 510 / −1.4 px | Geist 64 px / 400 / −3.84 px | Söhne 40 px / 300 | Inter 96 px / 600 / −4.6 px | Archivo 125 % width, 800, −0.03 em, 64–96 px |
 | Body | 16 / 24 | 16 / 24 | 16–18 | 16 | 16 / 26 (docs 16 / 28) |
 | Mono | Berkeley Mono | Geist Mono | Söhne Mono | — | Azeret Mono |
-| Font files on the landing (measured) | 1 (variable) | 2 | 2 | 2 | ≤ 3 |
+| Font files on the landing (measured) | 1 (variable) | 2 | 2 | 2 | ≤ 2 on an English page |
 
 - **PB-T1.** Two families only: Archivo (display and text) and Azeret Mono (code, figures in tables, receipts). Self
-  hosted, `woff2`, subset to latin and latin-ext, loaded with `next/font` so the fallback has matching metrics
-  (no shift when the font arrives). Never a request to Google Fonts.
+  hosted, `woff2`, one variable file per family and subset (latin, and latin-ext declared with its `unicode-range`
+  so it downloads only when a page needs it: an English page loads two files, at most four exist), loaded with
+  `next/font` so the fallback has matching metrics (no shift when the font arrives). Never a request to Google
+  Fonts.
 - **PB-T2.** One display style: Archivo at 125 % width, weight 800, tracking −0.03 em, `text-wrap: balance`. H1
   64 px desktop / 40 px mobile on the landing (96 px only for a single-line hero), 40 px on inner pages.
   Measured: Bun's landing, blog and docs set their headings in Archivo 800 too (68 px, −0.02 em). The 125 % width
@@ -99,13 +102,16 @@ The Signal brand sets the faces; the best sites set the discipline.
 
 - **PB-C1.** Every colour comes from `tokens.css`. No hex value in a component.
 - **PB-C2.** Garnet (`--signal`) means "a person is awaited": the gate, the approve button, the one primary action
-  of a screen. At most one garnet button per viewport. Amber is warning, red is error; garnet is never either.
+  of a screen (`tokens.css`). At most one garnet button per viewport, everywhere, site included. Every other action
+  uses the neutral button (ink on paper, paper on ink). In practice: on a page whose first screen has its own
+  primary action (the landing hero), the header's action is neutral; on pricing, only the recommended plan's action
+  is garnet; in the console, only the approve button. Amber is warning, red is error; garnet is never either.
 - **PB-C3.** Light and dark are both first class. The default follows the system; a three-way switch (System,
   Light, Dark) sits in the footer (Vercel does this) and is remembered; the stored choice is applied before the
   first paint (inline script in `<head>`, no flash). Linear ships dark only and Stripe light only: Ostrom ships
   both because the console and the docs are read for hours.
 - **PB-C4.** Contrast: 4.5:1 for text, 3:1 for large text, icons and borders that carry meaning, in both themes.
-  Measured: Linear's landing has 16 contrast failures, Vercel's docs 2. Ostrom has 0.
+  Measured: Linear's landing has 16 contrast failures, Vercel's docs 2. Ostrom ships with none.
 
 ### 2.4 Layout and grid
 
@@ -138,10 +144,11 @@ Budgets, checked by Lighthouse CI on the static build (mobile profile) and by th
 | Pricing, changelog, blog | ≥ 95 | ≤ 1.8 s | ≤ 0.01 | ≤ 150 KB | ≤ 600 KB |
 
 Why these numbers: the React and Next.js runtime alone is about 100 KB gzip, so 150 KB leaves room for the page's
-own islands and nothing else. Measured on the references (mobile, cold cache, bytes on the wire): most landings
-ship 0.8 to 3.9 MB of JavaScript and weigh 1.6 to 7.4 MB in total; the two exceptions are Biome (built with Astro:
-almost no JavaScript, 0.3 MB in total) and Bun (0.7 MB). They are the model: a static site has no reason to come
-near the others, and being several times lighter is an easy, visible lead (appendix).
+own islands and nothing else. Measured on the 17 reference landings (mobile, cold cache, bytes on the wire,
+appendix): JavaScript from almost none to 3.9 MB, total weight from 0.3 to 7.4 MB. Linear, Stripe and Vercel ship
+1.2 to 1.4 MB of JavaScript each. The lightest are Biome (built with Astro: almost no JavaScript, 0.3 MB in total),
+Bun (0.4 MB of JavaScript, 0.7 MB in total) and Fumadocs (0.6 MB, 1.3 MB). Those are the models: a static site has
+no reason to come near the others, and being several times lighter is an easy, visible lead.
 
 - **PB-P1.** The pages above meet their budget, and a pull request that crosses one fails CI (`lhci` assertions).
 - **PB-P2.** Images: AVIF or WebP with a PNG/JPEG fallback only where needed, explicit `width` and `height`,
@@ -194,7 +201,10 @@ and Fumadocs out of the box). For a product that runs AI agents, this is not opt
 
 - **PB-AI1.** `/llms.txt` (index of the docs with one line per page) and `/llms-full.txt` (all docs as Markdown) are
   generated at build time.
-- **PB-AI2.** Every docs page is also served as Markdown at the same path with `.md` appended, and the page has a
+- **PB-AI2.** Every docs page is also served as Markdown at its path without the trailing slash plus `.md`
+  (`/docs/receipts/format/` → `/docs/receipts/format.md`; the docs home → `/docs.md`), written by the postbuild step
+  next to the HTML and served by nginx as `text/markdown; charset=utf-8` with `X-Robots-Tag: noindex` and a
+  `Link: <…/docs/receipts/format/>; rel="canonical"` header, so the HTML page stays the one indexed. The page has a
   "Copy page" button (Markdown to clipboard) with "Open in ChatGPT" and "Open in Claude" next to it.
 - **PB-AI3.** Code blocks in the Markdown output keep their language and their `test` meta stripped.
 
@@ -222,8 +232,8 @@ Capture names refer to the private capture set (`<site>-<page>-<variant>.jpg`).
 
 **Ostrom rules**
 
-- **PB-H1.** Header: logo (home), at most five links (Product, Docs, Pricing, Changelog, Blog — Open source
-  once the repositories are public), then "Sign in" (quiet) and one primary action. The primary action is "Start free"
+- **PB-H1.** Header: logo (home), at most six links (Product, Docs, Pricing, Changelog, Blog, and Open source
+  once the repositories are public; a link appears only when its page exists), then "Sign in" (quiet) and one primary action. The primary action is "Start free"
   once the console takes sign-ups, "Become a design partner" before.
 - **PB-H2.** The GitHub link with the star count appears only once the repositories are public (Lyes's go). Until
   then no link to a private repository appears anywhere on the site.
@@ -231,7 +241,8 @@ Capture names refer to the private capture set (`<site>-<page>-<variant>.jpg`).
   closes on Escape and on navigation.
 - **PB-H4.** Footer: four columns (Product, Developers, Company, Legal), each at most seven links; theme switch;
   status dot linking to the status page once it exists; copyright line with the legal entity.
-- **PB-H5.** Developers column: Docs, Quickstart, CLI reference, API reference, Changelog, Status, GitHub.
+- **PB-H5.** Developers column: Docs, Quickstart, CLI reference, API reference, Changelog, then Status once the
+  status page exists (PB-ST1) and GitHub once the repositories are public (PB-H2).
 
 ### 3.2 Landing
 
@@ -303,8 +314,12 @@ request, annual −20 %)
 - **PB-PR5.** FAQ: what an active person is, what happens over a limit, BYOK, annual billing and refunds, taxes
   (Stripe Tax), self-hosting versus cloud, open source licences. Each answer short and true today.
 - **PB-PR6.** Prices are rendered in the static HTML (not after a script), with currency and tax wording ("USD,
-  excl. tax").
-- **PB-PR7.** Every action carries the plan and interval to the console sign-up (`/signup?plan=…&interval=…`).
+  excl. tax"). Both intervals are in the HTML: each card holds its yearly and its monthly price and action, and the
+  switch is a pair of radio inputs that shows one set with CSS. Yearly is the checked input in the HTML, so the first
+  paint, a crawler and a visitor without JavaScript all see yearly, and switching shifts nothing (both prices take
+  the same box).
+- **PB-PR7.** Every action carries the plan and interval to the console sign-up (`/signup?plan=…&interval=…`): the
+  yearly and the monthly action are two real links, so the right interval is sent without JavaScript.
 
 ### 3.4 Docs home and navigation
 
@@ -515,7 +530,9 @@ show per-component status, 90-day uptime bars and incident history with full wri
 
 - **PB-ST1.** A status page exists before the footer links to it. Components: Site, Console, API, Cloud agents,
   Notifications. Incident history with a write-up for every incident.
-- **PB-ST2.** The site's footer dot reads the status page's public API, and degrades to a plain link if the call fails.
+- **PB-ST2.** The site's footer dot reads the status page's public API after the `load` event (never on the
+  critical path, PB-P4), in a slot whose size is reserved in the HTML (no shift), and stays a plain "Status" link if
+  the call fails or is blocked.
 
 ### 3.12 404 and errors
 
@@ -557,41 +574,65 @@ Sign-in, sign-up, invitation, magic-link, password-less error pages of `app.ostr
 
 ## 4. Checklist
 
-Each item is checked in review; most are also enforced in CI. "CI" names the check that fails when the rule is broken.
+Every rule of this file has a row. "CI" names the check that fails when the rule is broken; "e2e" is a Playwright
+test in the site's suite; "Review" means the reviewer checks it by hand, with the captures below.
 
 | ID | Check | How it is verified |
 |---|---|---|
 | PB-W1 | Marketing wording matches the locked proposition | Review against `proposition-de-valeur.md`; strings live in `src/i18n/en.ts` |
-| PB-W2 | No banned jargon outside docs and "For engineers" | CI: text scan of built HTML outside `/docs/` |
+| PB-W2 | No banned jargon outside `/docs/` and `[data-audience="engineers"]` | CI: text scan of built HTML, skipping only those two |
 | PB-W3 | Every number has a source or is ours and dated | Review |
 | PB-W4 | Nothing presented as available before it ships | Review; docs `status` front matter |
-| PB-T1 | Two families, self-hosted woff2, no Google Fonts request | CI: e2e asserts no request to `fonts.googleapis.com`; ≤ 3 font files |
-| PB-T3 | Prose ≤ 75 ch | e2e: measured width of `main p` ≤ 75 ch at 1 440 px |
-| PB-C1 | No colour literal in components | CI: lint rule / grep on `src/components` |
-| PB-C2 | ≤ 1 garnet button per viewport | e2e: count elements with `--signal` background in the first viewport |
+| PB-W5, PB-W6 | Sentence-case titles, no "simply/just/easily", no mixed languages | CI: text scan of built HTML for the banned words; review |
+| PB-T1 | Two families, self-hosted woff2, no Google Fonts request | e2e: no request to `fonts.googleapis.com` or `fonts.gstatic.com`; ≤ 2 font files loaded on an English page |
+| PB-T2 | Display face at 125 % width, 800, −0.03 em | e2e: computed `font-stretch` of `h1` is 125 % and its weight 800; unit test: the Archivo file has a `wdth` axis reaching 125 |
+| PB-T3 | Prose between 60 and 75 ch | e2e: width of `main p` between 60 ch and 75 ch at 1 440 px |
+| PB-T4, PB-T5 | Tabular figures; uppercase only for eyebrows and table headers | e2e: computed `font-variant-numeric` on prices and table cells; review |
+| PB-C1 | No colour literal in components | CI: lint rule / grep for hex, `rgb(`, `hsl(` outside `tokens.css` |
+| PB-C2 | ≤ 1 garnet button per viewport | e2e: count visible elements with the `--signal` background in each viewport-high slice of every route |
 | PB-C3 | System default, three-way switch, no flash | e2e: load with stored "dark" and assert the first paint background |
 | PB-C4, PB-A1 | axe: 0 violations, light and dark, desktop and mobile | CI `e2e` (axe on every route in the sitemap) |
+| PB-L1, PB-L3, PB-L4 | Grid, docs columns, sticky header 56–64 px | e2e: header height and stickiness; docs column count at 1 280, 1 024 and 390 px |
 | PB-L2 | No horizontal scroll at 320 px | e2e: `scrollWidth ≤ innerWidth` at 320 px on every route |
+| PB-M1, PB-M4 | Motion only to explain; no scroll-jacking or parallax | Review with a screen recording |
+| PB-M2 | Only `transform` and `opacity` animate | CI: grep of `transition`/`@keyframes` properties in the CSS; CLS budget |
 | PB-M3 | Reduced motion shows the final frame | e2e with `reducedMotion: 'reduce'` |
-| PB-P1 | Lighthouse budgets | CI `lighthouse` (lhci assertions: perf ≥ 0.95, a11y = 1, best practices = 1, SEO = 1, LCP, CLS, total byte weight) |
+| PB-P1 | Lighthouse budgets | CI `lighthouse` (lhci assertions: perf ≥ 0.95, a11y = 1, best practices = 1, SEO = 1, LCP, CLS, total byte weight, script size) |
+| PB-P2, PB-P3 | Images optimised at build, sized, lazy below the fold; video rules | CI: postbuild check of image formats, sizes and `width`/`height`; review |
 | PB-P4 | No third-party request before `load`, no cookie banner | e2e: request log until `load` contains only `ostrom.run` |
+| PB-P5 | Long cache on fingerprinted assets, revalidated HTML, compression | e2e against the nginx container: response headers |
+| PB-A2 | Skip link first | e2e: first Tab focuses "Skip to content" |
+| PB-A3 | Keyboard reachable, visible focus, Escape closes menus | e2e: tab through header and menu, Escape returns focus |
+| PB-A4 | Touch targets ≥ 24 px, primary ≥ 44 px on mobile | e2e at 390 px: bounding boxes of links and buttons |
 | PB-A5 | Zoom allowed | e2e: viewport meta has no `maximum-scale` / `user-scalable=no` |
-| PB-S1–S6 | Title, description length, canonical, OG, JSON-LD, sitemap, RSS, security.txt | CI: metadata test over every built page |
+| PB-A6, PB-A7 | SVG hidden or titled; one `h1`, no skipped level | e2e: heading outline and SVG attributes on every route |
+| PB-S1–S6 | Title, description length, canonical per page, OG, JSON-LD, sitemap, RSS, security.txt | CI: metadata test over every built page |
 | PB-S7 | `noindex` until the go | CI: test both values of the indexable setting |
-| PB-AI1–AI2 | `llms.txt`, `llms-full.txt`, `.md` per docs page, Copy page | CI: postbuild check that each docs route has its `.md` |
+| PB-AI1–AI3 | `llms.txt`, `llms-full.txt`, `.md` per docs page with its headers, Copy page | CI: postbuild check that each docs route has its `.md`; e2e on the headers |
+| PB-H1, PB-H4, PB-H5 | Header and footer contents, links only to pages that exist | e2e: header link count; CI `links` |
+| PB-H2, PB-OS4 | No link to a private repository before the go | CI: built HTML scan for `github.com/ostrom-hq` while the indexable setting is off |
+| PB-H3 | Mobile menu: button with `aria-expanded`, focus kept, Escape and navigation close it | e2e at 390 px |
+| PB-LD1–LD8 | Landing order, proof, sections, mobile scene position | Review with captures; e2e: the scene's top is within 1.5 viewports at 390 px |
+| PB-PR1–PR7 | Pricing structure, wording, static prices for both intervals, plan in sign-up link | e2e on `/pricing`, with JavaScript on and off |
 | PB-D1 | Grouped sidebar | Review of `meta.json` |
 | PB-D2 | ⌘K search, static index, lazy | e2e: press ⌘K, type a heading, see it |
+| PB-D3, PB-D4 | Docs home layout, status badges | e2e: a `coming-soon` page shows its badge |
 | PB-DP1 | Feedback, edit link (once public), last updated, prev/next | e2e on one docs page |
 | PB-DP2 | Copy on every block, `test` blocks run | CI `docs-test` |
 | PB-DP3 | Persisted tabs | e2e: choose Windows, open another page, Windows is selected |
-| PB-DP4 | Quickstart ≤ 6 steps, timed on a clean machine | Review; timing recorded in the PR |
+| PB-DP4, PB-DP4b | Quickstart ≤ 6 steps, timed on a clean machine, agent prompt block | Review; timing recorded in the PR |
+| PB-DP5–DP7 | Install page contents, callout kinds, concept links | Review; CI: lint of callout types in `content/docs` |
 | PB-R1–R3 | References generated, not hand-written | CI: regenerate and diff |
-| PB-PR1–PR7 | Pricing structure, wording, static prices, plan in sign-up link | e2e on `/pricing` |
+| PB-R4, PB-R5 | Receipt vectors and snippet tested, version stated | CI `docs-test` |
 | PB-CL1–CL4 | Changelog entries, feed, anchors | CI: feed validates; review |
+| PB-B1–B3 | Blog post metadata, width, sources | CI: metadata test; review |
+| PB-OS1–OS3 | Open source page contents | Review |
+| PB-SE1–SE3 | Security page true today, disclosure consistent with `SECURITY.md`, sub-processors | Review; CI: `security.txt` contact equals the page's |
+| PB-ST1, PB-ST2 | Status page before the link; dot after `load`, reserved slot | e2e: no status request before `load`, CLS budget |
 | PB-E1 | 404 status and page | e2e against the nginx container: unknown URL → 404 and the page |
 | PB-E2 | No broken internal link, redirects on rename | CI `links` |
-| PB-H2, PB-OS4 | No link to a private repository before the go | CI: built HTML scan for `github.com/ostrom-hq` while the indexable setting is off |
 | PB-CO1–CO5 | Console public screens | Review with captures (desktop, mobile, light, dark) |
+| PB-G1, PB-G2 | README front page and social preview | Review in each repository |
 
 ### Captures a pull request attaches
 
