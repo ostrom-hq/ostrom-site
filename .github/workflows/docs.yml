@@ -26,6 +26,9 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+          cache: npm
+          cache-dependency-path: docs-tools/package-lock.json
+      - run: npm ci
       - name: Unit tests of the docs tooling, 100 % lines, branches and functions
         run: npm test
 
@@ -38,6 +41,9 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+          cache: npm
+          cache-dependency-path: docs-tools/package-lock.json
+      - run: npm ci
       - name: Frontmatter, code blocks, MDX-safe prose, links, navigation
         run: npm run lint:docs
 
@@ -50,5 +56,8 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+          cache: npm
+          cache-dependency-path: docs-tools/package-lock.json
+      - run: npm ci
       - name: Run every tested code block (strict, a missing binary or server fails)
         run: node bin/docs-tools.mjs run ../content/docs --strict

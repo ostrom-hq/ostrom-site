@@ -1,13 +1,41 @@
 // SPDX-License-Identifier: Apache-2.0
-import {existsSync, statSync} from "node:fs"
+import {spawnSync} from "node:child_process"
+import {existsSync, readFileSync, statSync, writeFileSync} from "node:fs"
+import {parse} from "yaml"
+import {generateApiReference} from "./apireference.mjs"
+import {generateCliReference} from "./clireference.mjs"
 import {runTree} from "./doctest.mjs"
 import {lintTree} from "./lint.mjs"
 
-const USAGE = "usage: docs-tools lint <docs-dir> | docs-tools run <docs-dir> [--strict]"
+export const USAGE = "usage: docs-tools lint <docs-dir> | docs-tools run <docs-dir> [--strict] | docs-tools cli-reference <ostrom-binary> <page.mdx> | docs-tools api-reference <openapi.yaml> <page.mdx>"
+
+/** `ostrom <path> --help` through the real binary; undefined when it fails. */
+function helpOf(binary, env) {
+    return (path) => {
+        const run = spawnSync(binary, [...path, "--help"], {encoding: "utf8", env, timeout: 10_000})
+        return run.status === 0 ? run.stdout : undefined
+    }
+}
 
 /** Runs a command; returns the exit code. `out` and `err` receive whole lines. */
 export function main(argv, {out, err, env}) {
     const [command, ...rest] = argv
+    if (command === "cli-reference" || command === "api-reference") {
+        if (rest.length !== 2) {
+            err(USAGE)
+            return 2
+        }
+        const [source, page] = rest
+        try {
+            const text = command === "cli-reference" ? generateCliReference(helpOf(source, env)) : generateApiReference(parse(readFileSync(source, "utf8")))
+            writeFileSync(page, text)
+        } catch (error) {
+            err(`${command}: ${error.message}`)
+            return 1
+        }
+        out(`${command}: wrote ${page}`)
+        return 0
+    }
     const flags = rest.filter((arg) => arg.startsWith("-"))
     const [root, ...extra] = rest.filter((arg) => !arg.startsWith("-"))
     const allowed = command === "run" ? ["--strict"] : []
