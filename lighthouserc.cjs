@@ -32,11 +32,9 @@ module.exports = {
         'categories:accessibility': floor,
         'categories:best-practices': floor,
         'categories:seo': floor,
-        // Budgets of the public bar (PB-P1). LCP: 1.8 s on desktop. Mobile: the bar says 2.5 s; on the CI runner the
-        // landing measures 2.58 to 2.66 s (median of three; the heading is painted at 0.25 s, the simulation charges
-        // Next.js's runtime before it). 2.7 s until that runtime is cut (provisional, 30/10/2026); the 95 floor of each
-        // category does not move.
-        'largest-contentful-paint': ['error', { maxNumericValue: desktop ? 1800 : 2700 }],
+        // Budgets of the public bar (PB-P1): LCP 1.8 s on desktop, 2.5 s (Core Web Vitals "good") on the throttled
+        // mobile profile.
+        'largest-contentful-paint': ['error', { maxNumericValue: desktop ? 1800 : 2500 }],
         'cumulative-layout-shift': ['error', { maxNumericValue: 0.01 }],
         'total-byte-weight': ['error', { maxNumericValue: 600000 }],
       },

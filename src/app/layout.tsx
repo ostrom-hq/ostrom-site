@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { Metadata, Viewport } from 'next'
+import { RuntimeReady } from '@/components/layout/RuntimeReady'
 import { SiteFooter } from '@/components/layout/SiteFooter'
 import { SiteHeader } from '@/components/layout/SiteHeader'
 import { getMessages } from '@/i18n'
@@ -71,6 +72,7 @@ export default function RootLayout({ children }: { readonly children: React.Reac
           {children}
         </main>
         <SiteFooter messages={messages} config={site} />
+        <RuntimeReady />
       </body>
     </html>
   )
