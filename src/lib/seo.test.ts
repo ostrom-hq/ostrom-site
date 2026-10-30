@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { en } from '@/i18n/en'
 import { homeJsonLd, indexingFor, OG_IMAGE, robotsFor } from './seo'
 import { readSiteConfig } from './site'

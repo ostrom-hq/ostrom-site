@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Usage: node scripts/serve.ts <export dir> <port>. Serves the export like docker/nginx.conf does (no headers).
 import { readdirSync, readFileSync } from 'node:fs'
 import { createServer } from 'node:http'

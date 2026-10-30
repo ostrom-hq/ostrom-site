@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { render } from '@testing-library/react'
 import { Converge } from './Converge'
 import { Iris } from './Iris'

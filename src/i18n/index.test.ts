@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { defaultLocale, getMessages, locales } from '.'
 import { en } from './en'
 
