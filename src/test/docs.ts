@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { join } from 'node:path'
 import { vi } from 'vitest'
 import { readDocsSite, type DocsSite } from '@/lib/docs/site'

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { captured } from '@/lib/docs/text'
 
 /** Text from the OpenAPI description, with its `code` spans shown as code. */

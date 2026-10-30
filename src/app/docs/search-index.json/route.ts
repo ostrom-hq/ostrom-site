@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { getMessages } from '@/i18n'
 import { buildSearchIndex } from '@/lib/docs/search'
 import { getDocsSite } from '@/lib/docs/site'

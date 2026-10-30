@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { cleanup, render, screen } from '@testing-library/react'
 import { join } from 'node:path'
 import { en } from '@/i18n/en'

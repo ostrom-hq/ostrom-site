@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import GithubSlugger from 'github-slugger'
 import type { Element, ElementContent, Root, RootContent } from 'hast'
 import { toHtml } from 'hast-util-to-html'

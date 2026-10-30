@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { captured, collapseWhitespace, fill, truncate } from './text'
 
 describe('text helpers', () => {

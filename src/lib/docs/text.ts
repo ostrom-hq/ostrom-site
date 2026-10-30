@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /** The text of a capture group, or '' when the group took no part in the match. */
 export function captured(match: RegExpExecArray, index: number): string {
   return match[index] ?? ''

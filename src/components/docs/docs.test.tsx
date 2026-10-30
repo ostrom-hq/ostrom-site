@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { en } from '@/i18n/en'

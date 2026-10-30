@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { Messages } from '@/i18n'
 import type { PageStatus } from '@/lib/docs/content'
 

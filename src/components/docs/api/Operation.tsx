@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { codeBlockHtml } from '@/lib/docs/code'
 import { fill } from '@/lib/docs/text'
 import type { ApiOperation, ApiResponse } from '@/lib/openapi/reference'

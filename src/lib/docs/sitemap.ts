@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { SitemapEntry } from '@/lib/routes'
 import { docsRoutes, getDocsSite, type DocsSite } from './site'
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Usage: node scripts/sync-openapi.ts [--from <path> | --ref <ref>]. Copies ostrom-core's api/openapi.yaml into
 // content/api/openapi.yaml, the source of /docs/api/. Without arguments it reads ostrom-core's main through `gh`.
 import { execFileSync } from 'node:child_process'

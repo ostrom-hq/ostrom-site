@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { renderMarkdown, type RenderedMarkdown } from './markdown'
 import { pageHref, type DocsVersion } from './site'
 import type { DocPage } from './content'

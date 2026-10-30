@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { FIXTURE_CONTENT, MISSING_CONTENT, TEST_API_URL } from '@/test/docs'

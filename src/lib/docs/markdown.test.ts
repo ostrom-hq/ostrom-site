@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { codeBlockHtml, codeTitle } from './code'
 import { highlight } from './highlight'
 import { renderMarkdown } from './markdown'

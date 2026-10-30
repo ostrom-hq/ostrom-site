@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import Link from 'next/link'
 import type { Messages } from '@/i18n'
 import { API_SCHEMAS_HREF } from '@/lib/docs/site'

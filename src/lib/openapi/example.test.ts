@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { JsonSchema } from './document'
 import { curlCommand, EXAMPLE_DEPTH, exampleValue } from './example'
 

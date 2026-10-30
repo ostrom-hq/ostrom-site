@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 'use client'
 
 import { lazy, Suspense, useEffect, useState, useSyncExternalStore } from 'react'

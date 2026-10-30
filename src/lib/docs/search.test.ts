@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { fixtureSite } from '@/test/docs'
 import { buildSearchIndex, searchIndexSchema } from './search'
 import { createSearch, SEARCH_LIMIT } from './searchEngine'

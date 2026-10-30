@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { JsonSchema, JsonValue } from './document'
 
 /** A schema ready to show: `$ref` resolved, `null` folded into `nullable`, cycles and depth cut into links. */

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { Element, Root } from 'hast'
 import { createHighlighterCoreSync, type HighlighterCore } from 'shiki/core'
 import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'

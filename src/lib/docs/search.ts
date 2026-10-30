@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { collapseWhitespace, truncate } from './text'
 import { SECTION_TEXT_LIMIT } from './markdown'
 import { renderPage } from './render'

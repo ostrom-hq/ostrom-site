@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import '@/styles/docs.css'
 
 /** The docs section: its styles load here, not on the rest of the site. Each page renders its own frame (DocsShell). */

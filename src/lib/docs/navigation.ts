@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { isPublished, type ApiReference } from '@/lib/openapi/reference'
 import type { DocFolder, DocPage, PageStatus } from './content'
 import { API_BASE, API_SCHEMAS_HREF, apiTagHref, pageHref, type DocsVersion } from './site'

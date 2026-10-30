@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { en } from '@/i18n/en'
 import { buildSearchIndex, type SearchIndex } from '@/lib/docs/search'

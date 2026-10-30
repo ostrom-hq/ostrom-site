@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // The snapshot of the API contract the docs are generated from: ostrom-core/api/openapi.yaml, copied into
 // content/api/openapi.yaml (committed, so a build never needs the network). Pure logic; scripts/sync-openapi.ts runs it.
 import { parse as parseYaml } from 'yaml'

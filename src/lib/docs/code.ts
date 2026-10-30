@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { Element, ElementContent } from 'hast'
 import { toHtml } from 'hast-util-to-html'
 import { highlight } from './highlight'
