@@ -1,0 +1,3 @@
+# Dependencies whose install scripts may run. core-js (via posthog-js) only prints a message: denied.
+allowBuilds:
+  core-js: false
