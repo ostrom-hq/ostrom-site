@@ -1,7 +1,7 @@
-# zizmor configuration (https://docs.zizmor.sh/configuration/).
+# zizmor configuration (https://docs.zizmor.sh/configuration/). Every exception is temporary and listed, with its
+# owner, in ostrom-core/docs/OPEN-SOURCE.md ("Exceptions to close before going public"): none survives the launch.
 rules:
-  # Temporary: docs.yml, and ci.yml that replaces it (the single `ci` job of the QA template), cache dependencies in a workflow that also runs on
-  # release tags. Drop the cache on tag runs, or split the release job, then remove this exception.
+  # ci.yml and docs.yml (SITE) cache dependencies in workflows that also run on release tags.
   cache-poisoning:
     ignore:
       - ci.yml
