@@ -58,3 +58,26 @@ plain('a yes pressed before the runtime runs is not lost', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-runtime', 'ready')
   await expect(page.getByRole('status')).toHaveText('Approved by you · on the receipt')
 })
+
+// Lighthouse counts in its simulated mobile LCP every request started before the largest paint: the runtime's
+// scripts must start after it, or the landing loses about a second on a slow phone.
+test('requests the runtime only after the largest paint', async ({ page }) => {
+  await page.goto('/')
+  const timings = await page.evaluate(
+    () =>
+      new Promise<{ largest: number; firstScript: number }>((resolve) => {
+        new PerformanceObserver((list) => {
+          const entries = list.getEntries()
+          const largest = entries[entries.length - 1]?.startTime ?? Number.NaN
+          const scripts = performance
+            .getEntriesByType('resource')
+            .filter(
+              (entry) => new URL(entry.name).pathname.startsWith('/_next/') && entry.name.endsWith('.js'),
+            )
+          resolve({ largest, firstScript: Math.min(...scripts.map((entry) => entry.startTime)) })
+        }).observe({ type: 'largest-contentful-paint', buffered: true })
+      }),
+  )
+  expect(Number.isFinite(timings.firstScript)).toBe(true)
+  expect(timings.firstScript).toBeGreaterThan(timings.largest)
+})

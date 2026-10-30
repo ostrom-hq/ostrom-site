@@ -54,21 +54,39 @@ interface Added {
   readonly async: boolean
 }
 
+interface Timer {
+  readonly run: () => void
+  readonly delay: number
+}
+
+/** How the fake window reports the first paint: a largest-paint observer, animation frames, or neither. */
+type Paint = 'observer' | 'frames' | 'none'
+
 interface Run {
   readonly root: HTMLElement
   readonly documentListeners: Map<string, (event: Event) => void>
   readonly added: Added[]
   readonly listeners: Listener[]
   readonly idle: (() => void)[]
-  readonly timers: (() => void)[]
+  readonly timers: Timer[]
+  readonly frames: (() => void)[]
+  readonly observers: FakeObserver[]
+}
+
+interface FakeObserver {
+  readonly report: () => void
+  readonly options: () => unknown
+  readonly disconnected: () => boolean
 }
 
 /** Runs the loader against a fake document and window, and returns what it did. */
-function run(readyState: string, withIdle: boolean): Run {
+function run(readyState: string, withIdle: boolean, paint: Paint = 'observer'): Run {
   const added: Added[] = []
   const listeners: Listener[] = []
   const idle: (() => void)[] = []
-  const timers: (() => void)[] = []
+  const timers: Timer[] = []
+  const frames: (() => void)[] = []
+  const observers: FakeObserver[] = []
   const body = { appendChild: (element: Added) => added.push(element) }
   const root = window.document.createElement('div')
   const documentListeners = new Map<string, (event: Event) => void>()
@@ -80,26 +98,54 @@ function run(readyState: string, withIdle: boolean): Run {
     addEventListener: (type: string, listener: (event: Event) => void) =>
       documentListeners.set(type, listener),
   }
+  class PerformanceObserver {
+    static readonly supportedEntryTypes =
+      paint === 'observer' ? ['paint', 'largest-contentful-paint'] : ['paint']
+    private observed: unknown = null
+    private off = false
+    constructor(callback: () => void) {
+      observers.push({ report: callback, options: () => this.observed, disconnected: () => this.off })
+    }
+    observe(options: unknown): void {
+      this.observed = options
+    }
+    disconnect(): void {
+      this.off = true
+    }
+  }
   const fakeWindow = {
     addEventListener: (type: string, listener: () => void) => listeners.push({ type, run: listener }),
     ...(withIdle ? { requestIdleCallback: (callback: () => void) => idle.push(callback) } : {}),
+    ...(paint === 'none' ? {} : { PerformanceObserver }),
+    ...(paint === 'frames' ? { requestAnimationFrame: (callback: () => void) => frames.push(callback) } : {}),
   }
   runInNewContext(loader(['/_next/a.js', '/_next/b.js']), {
     document,
     window: fakeWindow,
-    setTimeout: (callback: () => void) => timers.push(callback),
+    setTimeout: (callback: () => void, delay: number) => timers.push({ run: callback, delay }),
     MutationObserver: window.MutationObserver,
     Event: window.Event,
     Object,
   })
-  return { root, documentListeners, added, listeners, idle, timers }
+  return { root, documentListeners, added, listeners, idle, timers, frames, observers }
+}
+
+/** Runs the timers set so far whose delay is under the given one, in order. */
+function elapse(timers: Timer[], under: number): void {
+  for (const timer of timers.splice(0).filter((pending) => pending.delay < under)) timer.run()
 }
 
 describe('loader', () => {
-  it('waits for the load event, then for an idle moment, then adds the scripts in order', () => {
-    const { added, listeners, idle } = run('loading', true)
+  it('waits for the load event, the largest paint and an idle moment, then adds the scripts in order', () => {
+    const { added, listeners, idle, observers, timers } = run('loading', true)
     expect(added).toHaveLength(0)
     listeners.find((listener) => listener.type === 'load')?.run()
+    expect(observers[0]?.options()).toEqual({ type: 'largest-contentful-paint', buffered: true })
+    elapse(timers, 3000)
+    expect(idle).toHaveLength(0)
+    observers[0]?.report()
+    elapse(timers, 3000)
+    expect(observers[0]?.disconnected()).toBe(true)
     expect(added).toHaveLength(0)
     idle[0]?.()
     expect(added).toEqual([
@@ -108,8 +154,35 @@ describe('loader', () => {
     ])
   })
 
+  it('waits for two frames without a largest-paint observer', () => {
+    const { idle, frames, timers } = run('complete', true, 'frames')
+    elapse(timers, 3000)
+    frames.shift()?.()
+    expect(idle).toHaveLength(0)
+    frames.shift()?.()
+    elapse(timers, 3000)
+    expect(idle).toHaveLength(1)
+  })
+
+  it('goes on after a moment without frames or observer', () => {
+    const { idle, timers } = run('complete', true, 'none')
+    elapse(timers, 3000)
+    expect(idle).toHaveLength(1)
+  })
+
+  it('starts the runtime after 3 s when no paint is reported, once', () => {
+    const { idle, observers, timers } = run('complete', true)
+    const all = [...timers]
+    elapse(timers, Infinity)
+    expect(all.map((timer) => timer.delay)).toEqual([3000])
+    expect(idle).toHaveLength(1)
+    observers[0]?.report()
+    elapse(timers, Infinity)
+    expect(idle).toHaveLength(1)
+  })
+
   it('starts at the first interaction, once', () => {
-    const { added, listeners, idle } = run('complete', true)
+    const { added, listeners, idle, observers, timers } = run('complete', true)
     expect(listeners.map((listener) => listener.type)).toEqual([
       'pointerdown',
       'keydown',
@@ -118,13 +191,18 @@ describe('loader', () => {
     ])
     listeners[0]?.run()
     listeners[1]?.run()
+    observers[0]?.report()
+    elapse(timers, 3000)
     idle[0]?.()
     expect(added).toHaveLength(2)
   })
 
   it('falls back to a timer without requestIdleCallback', () => {
-    const { added, timers } = run('complete', false)
-    timers[0]?.()
+    const { added, observers, timers } = run('complete', false)
+    observers[0]?.report()
+    elapse(timers, 3000)
+    expect(added).toHaveLength(0)
+    elapse(timers, 3000)
     expect(added).toHaveLength(2)
   })
 
