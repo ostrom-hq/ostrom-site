@@ -21,7 +21,7 @@
 .prose blockquote {
     margin: var(--space-5) 0;
     padding: var(--space-3) var(--space-5);
-    border-left: 3px solid var(--signal);
+    border-left: 3px solid var(--text);
     font-size: var(--fs-20);
     font-weight: 600;
 }

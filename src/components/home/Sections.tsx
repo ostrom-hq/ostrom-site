@@ -26,7 +26,7 @@ export function Hero({
           <h1>{copy.title}</h1>
           <p className="lead">{copy.lead}</p>
           <div className="row hero__actions">
-            <a className="button button--signal" href={signupUrl(config)}>
+            <a className="button button--primary" href={signupUrl(config)}>
               {copy.primary}
             </a>
             <a className="button" href="#how-it-works">
@@ -253,7 +253,7 @@ export function FinalCta({
       <div className="container cta__inner">
         <h2 id="cta-title">{copy.title}</h2>
         <div className="row">
-          <a className="button button--signal" href={signupUrl(config)}>
+          <a className="button button--primary" href={signupUrl(config)}>
             {copy.primary}
           </a>
           <a className="button" href={`mailto:${config.contactEmail}`}>

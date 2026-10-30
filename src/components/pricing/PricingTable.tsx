@@ -81,7 +81,7 @@ function PlanCard({ plan, interval, copy, config }: PlanCardProps): React.JSX.El
         <h2 id={`plan-${plan}`} className="plan__name">
           {details.name}
         </h2>
-        {popular ? <span className="badge badge--signal">{copy.popular}</span> : null}
+        {popular ? <span className="badge">{copy.popular}</span> : null}
       </div>
       <p className="plan__tagline muted">{details.tagline}</p>
       <p className="plan__price" data-testid={`price-${plan}`}>
@@ -99,7 +99,7 @@ function PlanCard({ plan, interval, copy, config }: PlanCardProps): React.JSX.El
           ? format(copy.billedYearly, { amount: formatUsd(yearly) })
           : ' '}
       </p>
-      <a className={popular ? 'button button--signal button--block' : 'button button--block'} href={href}>
+      <a className={popular ? 'button button--primary button--block' : 'button button--block'} href={href}>
         {details.cta}
       </a>
       <ul className="plan__features">

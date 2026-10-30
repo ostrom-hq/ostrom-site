@@ -229,7 +229,7 @@
     padding: 0;
     border: 0;
     background: none;
-    color: var(--signal-text);
+    color: var(--text);
     font: inherit;
     text-decoration: underline;
     text-underline-offset: 0.18em;

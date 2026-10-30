@@ -76,7 +76,7 @@
     border-radius: var(--radius-lg);
 }
 .plan--popular {
-    border-color: var(--signal-border);
+    border: 2px solid var(--text);
     box-shadow: var(--shadow-md);
 }
 .plan__head {

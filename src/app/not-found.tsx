@@ -16,7 +16,7 @@ export default function NotFound(): React.JSX.Element {
       <h1>{notFound.title}</h1>
       <p className="lead">{notFound.body}</p>
       <div className="row">
-        <Link className="button button--signal" href="/">
+        <Link className="button button--primary" href="/">
           {notFound.home}
         </Link>
       </div>
