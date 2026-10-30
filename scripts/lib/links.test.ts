@@ -1,4 +1,4 @@
-import { checkLinks, extractIds, extractLinks, pathOfFile, resolvePath } from './links'
+import { checkLinks, extractIds, extractLinks, orEmpty, pathOfFile, resolvePath } from './links'
 
 const origin = 'https://ostrom.run'
 
@@ -25,6 +25,11 @@ describe('resolvePath', () => {
 })
 
 describe('extract', () => {
+  it('reads a missing value as empty', () => {
+    expect(orEmpty(undefined)).toBe('')
+    expect(orEmpty('x')).toBe('x')
+  })
+
   it('reads href, src and ids', () => {
     expect(extractLinks('<a href="/a?x=1&amp;y=2">a</a><img src="/b.png">')).toEqual(['/a?x=1&y=2', '/b.png'])
     expect(extractIds('<h2 id="one"></h2><p id="two">')).toEqual(new Set(['one', 'two']))

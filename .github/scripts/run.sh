@@ -9,8 +9,11 @@ log="$(mktemp)"
 "$@" 2>&1 | tee "$log"
 status=${PIPESTATUS[0]}
 if [ "$status" -ne 0 ]; then
-  grep -v '^\s*$' "$log" | sed 's/\x1b\[[0-9;]*m//g' | tail -n 40 | while IFS= read -r line; do
-    printf '::error title=%s::%s\n' "$title" "${line//%/%25}"
-  done
+  # One annotation holding the last 60 lines (GitHub keeps at most 10 annotations per step).
+  tail_text="$(grep -v '^[[:space:]]*$' "$log" | sed 's/\x1b\[[0-9;]*m//g' | tail -n 60)"
+  tail_text="${tail_text//'%'/'%25'}"
+  tail_text="${tail_text//$'\r'/'%0D'}"
+  tail_text="${tail_text//$'\n'/'%0A'}"
+  printf '::error title=%s::%s\n' "$title" "$tail_text"
 fi
 exit "$status"
