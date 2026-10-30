@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Next.js's runtime starts once the page is shown. The exported HTML is complete without it, and on a slow phone its
 // scripts (about 150 kB compressed) otherwise compete with the first paint. Their tags and preloads are replaced by a
-// loader that adds them, in their order, after the load event at the first idle moment, or at the first touch, key
-// press or focus, whichever comes first. Inline scripts (theme, React payload) and nomodule scripts are left as they
+// loader that adds them, in their order, after the load event and the largest paint, at the first idle moment, or at
+// the first touch, key press or focus, whichever comes first. Inline scripts (theme, React payload) and nomodule scripts are left as they
 // are.
 //
 // A press on a button, or a choice in a select, made before React runs the page is not lost: the loader holds it, and
@@ -32,7 +32,16 @@ export function loader(sources: readonly string[]): string {
     'if(x.value===undefined){x.el.click();return}',
     'Object.getOwnPropertyDescriptor(Object.getPrototypeOf(x.el),"value").set.call(x.el,x.value);',
     'x.el.dispatchEvent(new Event("change",{bubbles:true}))}).observe(h,{attributes:true,attributeFilter:["data-runtime"]});',
-    'function idle(){if(w.requestIdleCallback)w.requestIdleCallback(go,{timeout:2000});else setTimeout(go,1)}',
+    // After the largest paint, never before: a script requested before it is counted in the mobile LCP that
+    // Lighthouse simulates (about 1 s more for these chunks). The observer's callback comes after the paint; without
+    // it, two frames; the 3 s timer starts the runtime anyway (a tab opened in the background reports no paint).
+    'function painted(f){var n=false,P=w.PerformanceObserver,t=P&&P.supportedEntryTypes,o;',
+    'function k(){if(n)return;n=true;if(o)o.disconnect();f()}',
+    'if(t&&t.indexOf("largest-contentful-paint")>=0){o=new P(function(){setTimeout(k,0)});',
+    'o.observe({type:"largest-contentful-paint",buffered:true})}',
+    'else if(w.requestAnimationFrame)w.requestAnimationFrame(function(){w.requestAnimationFrame(function(){setTimeout(k,0)})});',
+    'else setTimeout(k,1);setTimeout(k,3000)}',
+    'function idle(){painted(function(){if(w.requestIdleCallback)w.requestIdleCallback(go,{timeout:2000});else setTimeout(go,1)})}',
     'if(d.readyState==="complete")idle();else w.addEventListener("load",idle)})()',
   ].join('')
 }

@@ -100,8 +100,9 @@ not to index it (a `noindex` meta tag on every page and an `X-Robots-Tag` header
 ## Performance
 
 `pnpm build` ends with `scripts/defer-runtime.ts`: every exported page is complete HTML, and Next.js's runtime (about
-150 kB compressed) starts after the first paint, at the first idle moment after `load` or at the first touch, key
-press or focus. Until then the controls are plain HTML: a button pressed or a select changed in that moment is held and
+150 kB compressed) starts after `load` and the largest paint, at the first idle moment, or at the first touch, key
+press or focus. A script requested before the largest paint counts in the mobile LCP Lighthouse simulates (about a
+second more); an end-to-end test checks the order. Until then the controls are plain HTML: a button pressed or a select changed in that moment is held and
 played again once `<html data-runtime="ready">` marks that React runs the page. The end-to-end tests wait for that
 mark (`e2e/test.ts`).
 
