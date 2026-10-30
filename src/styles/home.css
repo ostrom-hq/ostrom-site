@@ -140,7 +140,7 @@
 .quote {
     margin: 0;
     padding: var(--space-5);
-    border-left: 3px solid var(--signal);
+    border-left: 3px solid var(--text);
     background: var(--surface);
     border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
@@ -170,8 +170,8 @@
     margin: 0;
 }
 .options__ours {
-    border-color: var(--signal-border);
-    background: var(--signal-tint);
+    border-color: var(--text);
+    border-width: 2px;
 }
 .options__ours .options__verdict {
     color: var(--text);
@@ -184,7 +184,7 @@
 }
 .steps__number {
     display: block;
-    color: var(--signal-text);
+    color: var(--text-muted);
     font-weight: 700;
     margin-bottom: var(--space-3);
 }
@@ -200,7 +200,7 @@
     font-stretch: var(--display-stretch);
     font-weight: 800;
     font-size: var(--fs-28);
-    color: var(--signal-text);
+    color: var(--text);
     margin-bottom: var(--space-2);
 }
 
@@ -247,7 +247,12 @@
 .cta h2 {
     margin: 0;
 }
-.cta .button:not(.button--signal) {
+.cta .button--primary {
+    background: var(--on-inverse);
+    border-color: var(--on-inverse);
+    color: var(--inverse);
+}
+.cta .button:not(.button--primary) {
     background: transparent;
     color: var(--on-inverse);
     border-color: currentColor;

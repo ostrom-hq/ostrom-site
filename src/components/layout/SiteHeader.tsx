@@ -33,7 +33,7 @@ export function SiteHeader({ messages, config }: SiteHeaderProps): React.JSX.Ele
           <a className="button button--ghost button--small site-header__signin" href={signinUrl(config)}>
             {messages.nav.signIn}
           </a>
-          <a className="button button--signal button--small" href={signupUrl(config)}>
+          <a className="button button--primary button--small" href={signupUrl(config)}>
             {messages.nav.startFree}
           </a>
           <MobileMenu label={messages.a11y.openMenu}>

@@ -70,7 +70,7 @@ interface PlanCardProps {
 function PlanCard({ plan, copy, config }: PlanCardProps): React.JSX.Element {
   const details = copy.plans[plan]
   const popular = plan === 'team'
-  const buttonClass = popular ? 'button button--inverse button--block' : 'button button--block'
+  const buttonClass = popular ? 'button button--primary button--block' : 'button button--block'
   return (
     <li className={popular ? 'plan plan--popular' : 'plan'} data-testid={`plan-${plan}`}>
       <div className="plan__head">

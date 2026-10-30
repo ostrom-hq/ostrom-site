@@ -188,7 +188,7 @@ export const en = {
       href: 'https://arxiv.org/abs/2603.00822',
     },
     motif: {
-      label: 'Many agents. One way out: four agents converge into the gate, one signed change ships',
+      label: 'Many agents. One way out: four agents converge on one approval, one signed change ships',
       title: 'Many agents. One way out.',
       agents: ['Claude Code', 'Codex', 'Self-hosted model', 'Support agent'],
       gate: 'your rules + a human yes',
