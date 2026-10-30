@@ -107,7 +107,6 @@ jobs:
         if: always()
         with: { name: lighthouse, path: lighthouse-reports/, if-no-files-found: ignore, retention-days: 7 }
 
-
   publish:
     name: publish
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
