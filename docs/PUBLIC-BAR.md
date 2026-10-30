@@ -130,9 +130,10 @@ The Signal brand sets the faces; the best sites set the discipline.
   On public pages, at most one garnet button per viewport. In the console, one per request: a list of pending
   requests shows one approve button per row. Amber is warning, red is error; garnet is never either. The rule
   comment at the top of `tokens.css` comes from the brand generator (`research/brand/build/tokens.py` in the
-  research repository; ostrom-site copies its output, ostrom-web generates its own) and still describes the old rule
-  ("the one primary action of a screen"). It changes in the generator first, then in each copy; a hand edit of a
-  copy is overwritten by the next one.
+  research repository), whose output each repository copies as it is (ostrom-web today, ostrom-site with its first
+  styles). It still describes the old rule ("the one primary action of a screen"), and until it changes, the decision
+  of 30 October 2026 written here wins over that comment. It changes in the generator first, then in each copy; a
+  hand edit of a copy is overwritten by the next one.
 - **PB-C3.** Light and dark are both first class. The default follows the system; a three-way switch (System,
   Light, Dark) sits in the footer (Vercel does this) and is remembered; the stored choice is applied before the
   first paint (inline script in `<head>`, no flash). Linear ships dark only and Stripe light only: Ostrom ships
@@ -645,7 +646,7 @@ test in the site's suite; "Review" means the reviewer checks it by hand, with th
 |---|---|---|
 | PB-W1 | Marketing wording matches the locked proposition | Review against `proposition-de-valeur.md`; strings live in `src/i18n/en.ts` |
 | PB-W2 | No banned jargon on marketing pages outside `[data-audience="engineers"]` | CI: scan of the visible text nodes of the marketing routes |
-| PB-W2b | Approval lexicon: approve, send back, request; never "gate" or "Yes, run it" in user-facing text | site CI: the PB-W2 scan, extended to the docs' task guides and quickstart; console CI (ostrom-web): the same scan over its message catalogue |
+| PB-W2b | Approval lexicon: approve, send back, request; never "gate" or "Yes, run it" in user-facing text | site CI: the PB-W2 scan (visible text outside `code` and `pre`), extended to the docs' task guides and quickstart; console CI (ostrom-web): the same scan over its message catalogue |
 | PB-W3 | Every number has a source or is ours and dated | Review |
 | PB-W4 | Nothing presented as available before it ships | Review; docs `status` front matter |
 | PB-W5, PB-W6 | Sentence-case titles, no "!" in headings, no "simply/just/easily" in instructions, no mixed languages | CI: scan of `h1`–`h3` and `<title>` for "!"; review |
