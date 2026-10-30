@@ -18,6 +18,9 @@ export interface NavColumn {
 const internal = (label: string, href: string): NavLink => ({ label, href, external: false })
 const external = (label: string, href: string): NavLink => ({ label, href, external: true })
 
+/** The interval as the console and the billing contract name it (`BillingCheckout.interval`: month or year). */
+const CHECKOUT_INTERVAL: Record<Interval, 'month' | 'year'> = { yearly: 'year', monthly: 'month' }
+
 /** The console page that opens a sign-up, optionally for a plan and, for a paid plan, its billing interval. */
 export function signupUrl(
   config: SiteConfig,
@@ -26,7 +29,7 @@ export function signupUrl(
   const url = new URL('/signup', config.appUrl)
   if (plan !== undefined) {
     url.searchParams.set('plan', plan.plan)
-    if (plan.interval !== undefined) url.searchParams.set('interval', plan.interval)
+    if (plan.interval !== undefined) url.searchParams.set('interval', CHECKOUT_INTERVAL[plan.interval])
   }
   return url.toString()
 }
