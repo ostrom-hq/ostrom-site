@@ -1,26 +1,33 @@
 {
   "title": "Docs",
   "pages": [
+    "---Get started---",
     "index",
     "quickstart",
     "install",
+    "---Concepts---",
     "agents",
     "workflows",
     "approvals",
     "receipts",
     "harness",
-    "mcp-and-secrets",
-    "inference",
+    "---Cloud---",
     "cloud-sessions",
     "automations",
     "artifacts",
+    "inference",
+    "mcp-and-secrets",
+    "---Administration---",
     "organizations",
     "billing",
-    "self-hosting",
     "security",
+    "---Self-hosting---",
+    "self-hosting",
+    "---Reference---",
     "reference",
-    "migrate-from-teamcode",
+    "---Help---",
     "faq",
-    "troubleshooting"
+    "troubleshooting",
+    "migrate-from-teamcode"
   ]
 }

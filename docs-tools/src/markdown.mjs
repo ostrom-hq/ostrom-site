@@ -70,7 +70,7 @@ function scan(body, firstLine) {
         }
         if (fence !== null && fence[1].startsWith(open.fence[0]) && fence[1].length >= open.fence.length && fence[2].trim() === "") {
             const {fence: _, code, ...block} = open
-            blocks.push({...block, code: code.join("\n")})
+            blocks.push({...block, code: code.join("\n"), end: firstLine + index})
             open = undefined
             return
         }
