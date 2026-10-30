@@ -58,6 +58,8 @@ export const POSTHOG_OPTIONS = {
   capture_pageview: false,
   capture_pageleave: false,
   disable_session_recording: true,
+  // No script from PostHog's servers: the page's CSP allows scripts from the site only.
+  disable_external_dependency_loading: true,
   opt_out_capturing_by_default: true,
 } as const
 

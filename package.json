@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/defer-runtime.ts out",
+    "build": "next build && node scripts/defer-runtime.ts out && node scripts/csp.ts out",
     "typecheck": "next typegen && tsc --noEmit -p tsconfig.json",
     "lint": "eslint --max-warnings=0 .",
     "format": "prettier --write .",
