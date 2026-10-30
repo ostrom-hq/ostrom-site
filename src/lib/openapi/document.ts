@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { parse as parseYaml } from 'yaml'
-import { z } from 'zod'
+import { z } from '@/lib/zod'
 
 // The part of OpenAPI 3.1 the reference renders, parsed with Zod: every value used by the pages has a known type, and
 // a key we do not render is dropped by the parse instead of travelling as `unknown`.

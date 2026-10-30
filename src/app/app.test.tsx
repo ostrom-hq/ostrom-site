@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { en } from '@/i18n/en'
 import HomePage from './page'
@@ -86,6 +86,11 @@ describe('not found', () => {
     render(<NotFound />)
     expect(screen.getByRole('heading', { level: 1, name: en.notFound.title })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: en.notFound.home })).toHaveAttribute('href', '/')
+    const elsewhere = screen.getByRole('navigation', { name: en.notFound.elsewhere })
+    expect(within(elsewhere).getByRole('link', { name: en.nav.changelog })).toHaveAttribute(
+      'href',
+      '/changelog/',
+    )
   })
 })
 
@@ -99,5 +104,16 @@ describe('robots and sitemap', () => {
     expect(entries[0]?.url).toBe('https://ostrom.run/')
     expect(entries.every((entry) => entry.url.startsWith('https://ostrom.run/'))).toBe(true)
     expect(entries.map((entry) => entry.url)).toContain('https://ostrom.run/docs/api/')
+  })
+})
+
+describe('pricing page', () => {
+  it('has its title, the plans, the comparison and the questions', async () => {
+    const { default: PricingPage, metadata: pricingMetadata } = await import('./pricing/page')
+    render(<PricingPage />)
+    expect(screen.getByRole('heading', { level: 1, name: en.pricing.title })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: en.pricing.compare.title })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: en.pricing.faq.title })).toBeInTheDocument()
+    expect(pricingMetadata.title).toBe('Pricing')
   })
 })

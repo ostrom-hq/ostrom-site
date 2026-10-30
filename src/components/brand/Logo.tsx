@@ -11,13 +11,13 @@ interface LogoProps {
 export function Logo({ symbolOnly = false, className }: LogoProps): React.JSX.Element {
   if (symbolOnly) {
     return (
-      <svg className={className} viewBox="-6 -6 76 76" aria-hidden="true" focusable="false">
+      <svg className={className} viewBox="-6 -6 76 76" aria-hidden="true" focusable="false" data-mark="">
         <path fill="var(--signal)" fillRule="evenodd" d={SYMBOL_PATH} />
       </svg>
     )
   }
   return (
-    <svg className={className} viewBox="0 0 314.201 64" aria-hidden="true" focusable="false">
+    <svg className={className} viewBox="0 0 314.201 64" aria-hidden="true" focusable="false" data-mark="">
       <path fill="var(--signal)" fillRule="evenodd" d={SYMBOL_PATH} />
       {WORDMARK_PATHS.map((d) => (
         <path key={d.slice(0, 24)} fill="currentColor" d={d} />

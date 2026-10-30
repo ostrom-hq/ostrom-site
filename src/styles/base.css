@@ -65,7 +65,7 @@ p {
     text-wrap: pretty;
 }
 a {
-    color: var(--signal-text);
+    color: var(--text);
     text-underline-offset: 0.18em;
     text-decoration-thickness: 1px;
 }
@@ -89,7 +89,7 @@ samp {
     font-size: 0.9em;
 }
 ::selection {
-    background: var(--signal-tint);
+    background: var(--border-strong);
     color: var(--text);
 }
 hr {
@@ -139,8 +139,11 @@ hr {
 }
 .section {
     padding-block: var(--space-9);
-    /* A section out of view is neither laid out, painted nor animated (the motifs loop): on a slow phone the main
-       thread is free for the first screen. The size is remembered once the section has been shown. */
+}
+/* On the long home page, a section out of view is neither laid out, painted nor animated (the motifs loop): on a slow
+   phone the main thread is free for the first screen. The size is remembered once the section has been shown. Not on
+   the short pages: there the placeholder size would move the footer in view when the real size arrives (CLS). */
+#main:has(> .hero) > .section {
     content-visibility: auto;
     contain-intrinsic-size: auto 800px;
 }
@@ -157,7 +160,7 @@ hr {
     font-weight: 600;
     letter-spacing: var(--label-tracking);
     text-transform: uppercase;
-    color: var(--signal-text);
+    color: var(--text-muted);
     margin-bottom: var(--space-3);
 }
 .lead {
@@ -233,6 +236,17 @@ hr {
 .button:active {
     transform: translateY(1px);
 }
+/* Garnet is the gesture of a person approving an agent's work, nothing else (PUBLIC-BAR PB-C2): only inside a product
+   scene ([data-scene]). Every other action is the neutral primary button, ink on paper, paper on ink. */
+.button--primary {
+    background: var(--inverse);
+    border-color: var(--inverse);
+    color: var(--on-inverse);
+}
+.button--primary:hover {
+    background: var(--text-muted);
+    border-color: var(--text-muted);
+}
 .button--signal {
     background: var(--signal);
     border-color: var(--signal);
@@ -277,11 +291,6 @@ hr {
     letter-spacing: 0.02em;
     color: var(--text-muted);
     background: var(--surface-sunken);
-}
-.badge--signal {
-    color: var(--signal-text);
-    border-color: var(--signal-border);
-    background: var(--signal-tint);
 }
 .badge--warning {
     color: var(--warning-text);

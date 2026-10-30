@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/defer-runtime.ts out",
+    "build": "next build && node scripts/defer-runtime.ts out && node scripts/csp.ts out",
     "typecheck": "next typegen && tsc --noEmit -p tsconfig.json",
     "lint": "eslint --max-warnings=0 .",
     "format": "prettier --write .",
@@ -30,6 +30,7 @@
     "mdast-util-to-hast": "13.2.1",
     "minisearch": "7.2.0",
     "next": "16.4.3",
+    "posthog-js": "1.438.24",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "remark-gfm": "4.0.1",

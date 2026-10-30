@@ -156,8 +156,12 @@
 .o-converge .o-out {
     stroke: var(--text);
 }
+/* The motif is not the approval scene: its iris and signature stay ink (PB-C2). */
+.o-converge .o-iris {
+    color: var(--text);
+}
 .o-converge .o-sig {
-    fill: var(--signal);
+    fill: var(--text);
 }
 .o-converge .o-sigt {
     fill: var(--text);

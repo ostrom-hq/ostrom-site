@@ -29,7 +29,12 @@ export function ApprovalScene({ labels }: ApprovalSceneProps): React.JSX.Element
   }
 
   return (
-    <section className="approval" aria-labelledby="approval-title" data-decision={decision}>
+    <section
+      className="approval"
+      aria-labelledby="approval-title"
+      data-decision={decision}
+      data-scene="approval"
+    >
       <header className="approval__head">
         <div className="approval__iris">
           <Iris state={decision} />

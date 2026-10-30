@@ -2,7 +2,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse as parseYaml } from 'yaml'
-import { z } from 'zod'
+import { z } from '@/lib/zod'
 import { captured } from './text'
 
 // The content contract of the DOCS agent (ostrom-site#1, CONTRIBUTING.md): one `.mdx` file per page with a YAML

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { z } from 'zod'
+import { z } from '@/lib/zod'
 
 // The shape of /docs/search-index.json, shared by the build (search.ts) and the search dialog in the browser: this
 // module must not import anything that reads files.
