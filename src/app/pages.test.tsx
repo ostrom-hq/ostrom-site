@@ -46,7 +46,7 @@ describe('content pages', () => {
     expect(screen.getByRole('note')).toHaveTextContent('à valider')
     expect(screen.getByText(/under number 933 169 278/)).toBeInTheDocument()
     expect(await legalMetadata({ params })).toMatchObject({
-      robots: { index: false },
+      robots: { index: false, follow: false },
       alternates: { canonical: '/legal/imprint/' },
     })
     await expect(legalMetadata({ params: Promise.resolve({ slug: 'missing' }) })).rejects.toThrow(

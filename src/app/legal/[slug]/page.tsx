@@ -5,6 +5,7 @@ import { PageHead } from '@/components/content/PageHead'
 import { getMessages } from '@/i18n'
 import { baseSlug } from '@/lib/content'
 import { formatDate, legalPages } from '@/lib/collections'
+import { site } from '@/lib/site'
 
 interface LegalPageProps {
   readonly params: Promise<{ readonly slug: string }>
@@ -29,8 +30,8 @@ export async function generateMetadata({ params }: LegalPageProps): Promise<Meta
     title: page.meta.title,
     description: page.meta.description,
     alternates: { canonical: `/legal/${slug}/` },
-    // A draft is reachable for review, never indexed.
-    ...(page.meta.draft ? { robots: { index: false, follow: true } } : {}),
+    // A draft is reachable for review, never indexed; before the launch its links are not followed either (PB-S7).
+    ...(page.meta.draft ? { robots: { index: false, follow: site.launched } } : {}),
   }
 }
 

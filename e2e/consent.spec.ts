@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page } from './test'
 import { expectAccessible } from './a11y'
 
 /** Gives the page an analytics key, as a container with OSTROM_POSTHOG_API_KEY would, and records what reaches PostHog. */

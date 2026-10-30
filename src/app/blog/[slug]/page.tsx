@@ -6,6 +6,7 @@ import { PageHead } from '@/components/content/PageHead'
 import { format, getMessages } from '@/i18n'
 import { baseSlug } from '@/lib/content'
 import { allPosts, formatDate } from '@/lib/collections'
+import { site } from '@/lib/site'
 
 interface PostPageProps {
   readonly params: Promise<{ readonly slug: string }>
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       authors: [post.meta.author],
       url: `/blog/${slug}/`,
     },
-    ...(post.meta.draft ? { robots: { index: false, follow: true } } : {}),
+    ...(post.meta.draft ? { robots: { index: false, follow: site.launched } } : {}),
   }
 }
 
