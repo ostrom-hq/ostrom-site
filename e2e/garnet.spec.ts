@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { expect, test, type Page } from '@playwright/test'
 
 // PUBLIC-BAR PB-C2: garnet is the gesture of a person approving an agent's work. On public pages it appears only
