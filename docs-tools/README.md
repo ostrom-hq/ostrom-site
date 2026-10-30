@@ -58,6 +58,11 @@ node bin/docs-tools.mjs api-reference ../../ostrom-core/api/openapi.yaml ../cont
 The CLI reference puts each `ostrom ... --help` in a `requires="ostrom"` test block followed by its output, so
 `docs-test` reruns it against the real binary.
 
+CI keeps both pages true. `docs-lint` regenerates the API page from `ostrom-core`'s `main` and fails on any
+difference once the page is generated (before that, it warns when the contract marks an operation implemented).
+`docs-test` builds the real `ostrom` from `ostrom-cli`'s `main` whenever a page has a `requires="ostrom"` block, runs
+those blocks against it, and regenerates the CLI page and fails on any difference.
+
 ## Check locally
 
 ```sh notest="needs this repository"
