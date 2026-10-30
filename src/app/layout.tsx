@@ -14,6 +14,7 @@ import '@/styles/brand.css'
 import '@/styles/layout.css'
 import '@/styles/home.css'
 import '@/styles/pricing.css'
+import '@/styles/pages.css'
 
 const messages = getMessages()
 

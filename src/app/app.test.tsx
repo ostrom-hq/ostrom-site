@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { en } from '@/i18n/en'
 import HomePage from './page'
@@ -86,6 +86,11 @@ describe('not found', () => {
     render(<NotFound />)
     expect(screen.getByRole('heading', { level: 1, name: en.notFound.title })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: en.notFound.home })).toHaveAttribute('href', '/')
+    const elsewhere = screen.getByRole('navigation', { name: en.notFound.elsewhere })
+    expect(within(elsewhere).getByRole('link', { name: en.nav.changelog })).toHaveAttribute(
+      'href',
+      '/changelog/',
+    )
   })
 })
 

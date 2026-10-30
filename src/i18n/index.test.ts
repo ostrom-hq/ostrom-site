@@ -38,6 +38,35 @@ describe('i18n', () => {
   })
 })
 
+describe('public pages', () => {
+  const values = (node: unknown): string[] =>
+    typeof node === 'string'
+      ? [node]
+      : typeof node === 'object' && node !== null
+        ? Object.values(node).flatMap(values)
+        : []
+
+  it('keep the words the pitch forbids out of every public text', () => {
+    const texts = [en.security, en.openSource, en.compare, en.blog, en.changelog, en.status, en.legal]
+      .flatMap(values)
+      .join(' ')
+      .toLowerCase()
+    for (const word of [
+      'harness',
+      'control plane',
+      'mcp',
+      'hooks',
+      'git blame',
+      'skills',
+      'guardrails',
+      'nobody',
+    ]) {
+      expect(texts).not.toContain(word)
+    }
+    expect(values(42)).toEqual([])
+  })
+})
+
 describe('pricing', () => {
   it('says the two locked sentences about the AI word for word', () => {
     expect(en.pricing.noAiCharge).toBe('We never charge for the AI itself.')

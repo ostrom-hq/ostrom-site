@@ -39,7 +39,12 @@ export function signinUrl(config: SiteConfig): string {
 }
 
 export function headerLinks(messages: Messages): readonly NavLink[] {
-  return [internal(messages.nav.product, '/#how-it-works'), internal(messages.nav.pricing, '/pricing/')]
+  return [
+    internal(messages.nav.product, '/#how-it-works'),
+    internal(messages.nav.pricing, '/pricing/'),
+    internal(messages.nav.blog, '/blog/'),
+    internal(messages.nav.changelog, '/changelog/'),
+  ]
 }
 
 export function footerColumns(messages: Messages, config: SiteConfig): readonly NavColumn[] {
@@ -47,15 +52,38 @@ export function footerColumns(messages: Messages, config: SiteConfig): readonly 
   const columns: readonly NavColumn[] = [
     {
       title: messages.footer.columns.product,
-      links: [internal(links.howItWorks, '/#how-it-works'), internal(links.pricing, '/pricing/')],
+      links: [
+        internal(links.howItWorks, '/#how-it-works'),
+        internal(links.pricing, '/pricing/'),
+        internal(links.changelog, '/changelog/'),
+        internal(links.compare, '/compare/'),
+        internal(links.status, '/status/'),
+      ],
     },
     {
       title: messages.footer.columns.developers,
-      links: config.launched ? [external(links.github, config.githubUrl)] : [],
+      links: [
+        internal(links.openSource, '/open-source/'),
+        ...(config.launched ? [external(links.github, config.githubUrl)] : []),
+      ],
     },
     {
       title: messages.footer.columns.company,
-      links: [external(links.contact, `mailto:${config.contactEmail}`)],
+      links: [
+        internal(links.blog, '/blog/'),
+        internal(links.security, '/security/'),
+        external(links.contact, `mailto:${config.contactEmail}`),
+      ],
+    },
+    {
+      title: messages.footer.columns.legal,
+      links: [
+        internal(links.terms, '/legal/terms/'),
+        internal(links.privacy, '/legal/privacy/'),
+        internal(links.dpa, '/legal/dpa/'),
+        internal(links.cookies, '/legal/cookies/'),
+        internal(links.imprint, '/legal/imprint/'),
+      ],
     },
   ]
   return columns.filter((column) => column.links.length > 0)
