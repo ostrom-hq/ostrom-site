@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { en, type Messages } from './en'
 
 export const locales = ['en'] as const

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Usage: node scripts/check-links.ts <export dir>. Fails when an internal link or anchor of the export is broken.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'

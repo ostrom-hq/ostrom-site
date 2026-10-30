@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { useId } from 'react'
 import { IRIS_CUTS_PATH } from './geometry'
 

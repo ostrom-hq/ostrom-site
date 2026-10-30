@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { Converge } from '@/components/brand/Converge'
 import type { Messages } from '@/i18n'
 import { signupUrl } from '@/lib/navigation'

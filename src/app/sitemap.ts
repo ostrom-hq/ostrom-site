@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { MetadataRoute } from 'next'
 import { docsSitemapEntries } from '@/lib/docs/sitemap'
 import { staticRoutes } from '@/lib/routes'
