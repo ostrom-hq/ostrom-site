@@ -1,0 +1,28 @@
+---
+title: Security
+description: "What Ostrom guarantees, what it does not, and how to report a vulnerability."
+status: partial
+---
+
+This page states guarantees only for released parts. The threat model of the server, the CLI and the approvals is Coming soon, with them.
+
+## Receipts
+
+What a valid receipt guarantees:
+
+- **Integrity.** Not one byte of the signed content changed since signing. Every field counts, including fields a verifier does not know.
+- **Origin.** It was signed by the holder of the private key whose id is in the receipt.
+- **Offline checking.** Anyone with the public key can check it, without asking Ostrom or the instance.
+
+What it does not guarantee:
+
+- **That the content is true.** A receipt records what the signing instance saw and decided. A compromised instance, or a stolen key, can sign false receipts.
+- **That the key is the right one.** The verifier trusts the public key you give it. Get the key of your instance from a source you trust, and keep it.
+- **Completeness.** A receipt proves what it contains. It does not prove that no other work happened without a receipt.
+- **Secrecy.** Receipts are signed, not encrypted. Anyone who holds one can read it.
+
+The test key of the [format's vectors](/docs/receipts/format#test-vectors) derives from a published seed. A receipt signed with it proves nothing.
+
+## Report a vulnerability
+
+Coming soon: the address and the disclosure process are published with the first release.
