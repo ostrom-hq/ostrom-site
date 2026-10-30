@@ -1,16 +1,14 @@
-# Contributing to ostrom-site
-
-## Documentation
+# Writing the documentation
 
 The documentation lives in `content/docs/`, one `.mdx` file per page, ordered by a `meta.json` in each folder
 (`{"title": "...", "pages": ["index", "quickstart", ...]}`).
 
-### The one rule
+## The one rule
 
 A page documents only what is in the released code of the `ostrom-*` repositories. A part that is not released yet is
 a page with `status: coming-soon` that says "Coming soon", or nothing at all.
 
-### A page
+## A page
 
 ```mdx notest="shape of a page"
 ---
@@ -26,7 +24,7 @@ Plain Markdown. No import, no JSX component.
 - Prose cannot hold `<`, `{` or `}`: MDX would read them as JSX. Put them in `code`.
 - Links between pages are absolute: `[receipts](/docs/receipts)`. The lint fails on a link to a missing page.
 
-### Every code block is tested or says why not
+## Every code block is tested or says why not
 
 Each fenced block carries exactly one of these:
 
@@ -47,7 +45,7 @@ missing. `exit` and `requires` go on `test` blocks only.
 The verifier of `receipts/format.mdx` is also run on every receipt and canonical-form case of the format's test vectors
 (`docs-tools/vectors/`, frozen), by `docs-tools/test/receipt-format.test.mjs`.
 
-### Check locally
+## Check locally
 
 ```sh notest="needs this repository"
 cd docs-tools
@@ -55,7 +53,3 @@ npm test              # the tooling's own tests, 100 % coverage
 npm run lint:docs     # frontmatter, blocks, prose, links, navigation
 npm run test:docs     # run every tested block
 ```
-
-## Commits and pull requests
-
-Conventional Commits in English, one subject per pull request, squash-merged when CI is green.
