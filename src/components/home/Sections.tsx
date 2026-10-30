@@ -14,7 +14,10 @@ export function Hero({
   copy,
   approval,
   config,
-}: SectionProps<'hero'> & { readonly approval: Messages['approval']; readonly config: SiteConfig }): React.JSX.Element {
+}: SectionProps<'hero'> & {
+  readonly approval: Messages['approval']
+  readonly config: SiteConfig
+}): React.JSX.Element {
   return (
     <section className="hero">
       <div className="container hero__grid">
@@ -97,7 +100,10 @@ export function ThirdOption({ copy }: SectionProps<'third'>): React.JSX.Element 
         <p className="lead">{copy.body}</p>
         <ul className="options grid grid--3">
           {copy.options.map((option, index) => (
-            <li key={option.name} className={index === copy.options.length - 1 ? 'card options__ours' : 'card'}>
+            <li
+              key={option.name}
+              className={index === copy.options.length - 1 ? 'card options__ours' : 'card'}
+            >
               <p className="options__name">{option.name}</p>
               <p className="options__verdict">{option.verdict}</p>
             </li>
@@ -205,12 +211,7 @@ export function Motif({ copy }: SectionProps<'motif'>): React.JSX.Element {
         <h2 id="motif-title" className="motif__title">
           {copy.title}
         </h2>
-        <Converge
-          label={copy.label}
-          agents={copy.agents}
-          gate={copy.gate}
-          shipped={copy.shipped}
-        />
+        <Converge label={copy.label} agents={copy.agents} gate={copy.gate} shipped={copy.shipped} />
       </div>
     </section>
   )

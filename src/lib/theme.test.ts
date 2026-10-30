@@ -1,4 +1,11 @@
-import { applyTheme, parseTheme, readTheme, THEME_BOOT_SCRIPT, THEME_STORAGE_KEY, type ThemeStorage } from './theme'
+import {
+  applyTheme,
+  parseTheme,
+  readTheme,
+  THEME_BOOT_SCRIPT,
+  THEME_STORAGE_KEY,
+  type ThemeStorage,
+} from './theme'
 
 const memory = (): ThemeStorage & { values: Map<string, string> } => {
   const values = new Map<string, string>()

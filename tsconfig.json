@@ -1,11 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "types": [
-      "node",
-      "vitest/globals",
-      "@testing-library/jest-dom/vitest"
-    ],
+    "types": ["node", "vitest/globals", "@testing-library/jest-dom/vitest"],
     "allowJs": false,
     "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": false,
@@ -16,23 +12,10 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
     "erasableSyntaxOnly": true
   },
-  "include": [
-    "next-env.d.ts",
-    "src",
-    "scripts",
-    "e2e",
-    "*.ts",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "out",
-    ".next/dev"
-  ]
+  "include": ["next-env.d.ts", "src", "scripts", "e2e", "*.ts", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", "out", ".next/dev"]
 }

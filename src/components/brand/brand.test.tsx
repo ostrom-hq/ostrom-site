@@ -39,7 +39,12 @@ describe('Iris', () => {
 describe('Converge', () => {
   it('names the four agents, the gate and the signed exit', () => {
     const { getByRole, getByText } = render(
-      <Converge label="Many agents. One way out." agents={['A', 'B', 'C', 'D']} gate="gate" shipped={['shipped,', 'signed']} />,
+      <Converge
+        label="Many agents. One way out."
+        agents={['A', 'B', 'C', 'D']}
+        gate="gate"
+        shipped={['shipped,', 'signed']}
+      />,
     )
     expect(getByRole('img', { name: 'Many agents. One way out.' })).toBeInTheDocument()
     for (const text of ['A', 'B', 'C', 'D', 'gate', 'shipped,', 'signed']) {

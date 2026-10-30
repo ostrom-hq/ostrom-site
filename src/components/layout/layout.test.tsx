@@ -37,7 +37,9 @@ describe('SiteFooter', () => {
 
 describe('NavAnchor', () => {
   it('gives external web links noopener, and leaves mail links alone', () => {
-    const { rerender } = render(<NavAnchor link={{ label: 'GitHub', href: 'https://github.com', external: true }} />)
+    const { rerender } = render(
+      <NavAnchor link={{ label: 'GitHub', href: 'https://github.com', external: true }} />,
+    )
     expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute('rel', 'noopener')
     rerender(<NavAnchor link={{ label: 'Mail', href: 'mailto:a@b.c', external: true }} />)
     expect(screen.getByRole('link', { name: 'Mail' })).not.toHaveAttribute('rel')

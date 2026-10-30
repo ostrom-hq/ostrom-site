@@ -18,13 +18,7 @@ export function Converge({ label, agents, gate, shipped }: ConvergeProps): React
       <defs>
         {THREAD_Y.map((_, index) => (
           <clipPath key={index} id={`${id}-c${String(index)}`}>
-            <rect
-              className={`o-clip o-c${String(index + 1)}`}
-              x="170"
-              y="0"
-              width="268"
-              height="240"
-            />
+            <rect className={`o-clip o-c${String(index + 1)}`} x="170" y="0" width="268" height="240" />
           </clipPath>
         ))}
         <clipPath id={`${id}-x`}>

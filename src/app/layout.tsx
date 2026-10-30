@@ -11,6 +11,7 @@ import '@/styles/brand.css'
 import '@/styles/layout.css'
 import '@/styles/home.css'
 import '@/styles/pricing.css'
+import '@/styles/pages.css'
 
 const messages = getMessages()
 
@@ -36,7 +37,11 @@ export const metadata: Metadata = {
     url: '/',
     locale: 'en_US',
   },
-  twitter: { card: 'summary_large_image', title: messages.meta.title, description: messages.meta.description },
+  twitter: {
+    card: 'summary_large_image',
+    title: messages.meta.title,
+    description: messages.meta.description,
+  },
 }
 
 export const viewport: Viewport = {

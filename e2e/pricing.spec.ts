@@ -19,10 +19,15 @@ test.describe('pricing', () => {
     await expect(page.getByText('billed yearly, $336 per person')).toBeVisible()
   })
 
-  test('a plan button opens the console sign-up for that plan, ready for Stripe Checkout', async ({ page }) => {
+  test('a plan button opens the console sign-up for that plan, ready for Stripe Checkout', async ({
+    page,
+  }) => {
     // The console is another deployment (app.ostrom.run): the test stands in for it and checks what it receives.
     await page.route('https://app.ostrom.run/**', (route) =>
-      route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Sign up</title><h1>Sign up</h1>' }),
+      route.fulfill({
+        contentType: 'text/html',
+        body: '<!doctype html><title>Sign up</title><h1>Sign up</h1>',
+      }),
     )
     await page.goto('/pricing/')
     await page.getByText('Yearly').click()
@@ -41,7 +46,10 @@ test.describe('pricing', () => {
       'href',
       'https://app.ostrom.run/signup?plan=business&interval=month',
     )
-    await expect(page.getByRole('link', { name: 'Talk to us' })).toHaveAttribute('href', /^mailto:hello@ostrom\.run/)
+    await expect(page.getByRole('link', { name: 'Talk to us' })).toHaveAttribute(
+      'href',
+      /^mailto:hello@ostrom\.run/,
+    )
   })
 
   test('meets WCAG 2.2 AA in both themes', async ({ page }) => {

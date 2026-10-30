@@ -6,7 +6,13 @@ interface CompareProps {
 
 const PLAN_COLUMNS = ['free', 'team', 'business', 'enterprise'] as const
 
-function Cell({ value, copy }: { readonly value: string; readonly copy: Messages['pricing'] }): React.JSX.Element {
+function Cell({
+  value,
+  copy,
+}: {
+  readonly value: string
+  readonly copy: Messages['pricing']
+}): React.JSX.Element {
   if (value === 'yes') {
     return (
       <span className="compare__mark compare__mark--yes" role="img" aria-label={copy.compare.yes}>
