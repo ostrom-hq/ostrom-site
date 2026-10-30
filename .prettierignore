@@ -15,3 +15,4 @@ docs/
 src/test/fixtures
 # Owned by OSS (the open source community files), formatted by its own tooling.
 .github/renovate.json5
+.github/workflows/docs.yml
