@@ -60,3 +60,30 @@ test('the container answers its health probe and sends the security headers', as
   const cached = await request.get(asset ?? '/')
   expect(cached.headers()['cache-control']).toBe('public, max-age=31536000, immutable')
 })
+
+test('every script runs under the Content-Security-Policy, without a violation', async ({ page }) => {
+  await page.addInitScript(() => {
+    const seen: string[] = []
+    Object.assign(window, { cspViolations: seen })
+    document.addEventListener('securitypolicyviolation', (event) => {
+      seen.push(`${event.violatedDirective} ${event.blockedURI}`)
+    })
+  })
+  const violations = async (): Promise<unknown> =>
+    page.evaluate((): unknown => {
+      const seen: unknown = Reflect.get(window, 'cspViolations')
+      return seen
+    })
+  for (const path of ['/', '/pricing/', '/security/', '/status/']) {
+    await page.goto(path)
+    await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveAttribute(
+      'content',
+      /script-src 'self'/,
+    )
+    expect(await violations()).toEqual([])
+  }
+  // The scene of the yes is interactive: the React scripts the policy allows did run.
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Approve and ship' }).click()
+  expect(await violations()).toEqual([])
+})
