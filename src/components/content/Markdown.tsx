@@ -33,10 +33,12 @@ function Inlines({ items }: { readonly items: readonly Inline[] }): React.JSX.El
   )
 }
 
+const HEADING_TAGS = { 2: 'h2', 3: 'h3', 4: 'h4' } as const
+
 function BlockView({ block }: { readonly block: Block }): React.JSX.Element {
   switch (block.kind) {
     case 'heading': {
-      const Tag = `h${String(block.level)}` as const
+      const Tag = HEADING_TAGS[block.level]
       return (
         <Tag id={block.id}>
           <Inlines items={block.children} />
