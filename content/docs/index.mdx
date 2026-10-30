@@ -1,0 +1,45 @@
+---
+title: Introduction
+description: "What Ostrom is, the words it uses, and what you can use today."
+status: partial
+---
+
+Ostrom runs a company's AI coding agents in the cloud and makes them follow the team's rules. Every change they make leaves a receipt, and the few that matter wait for a person's yes.
+
+Ostrom is open source. These pages describe only what is in the released code. A page marked Coming soon describes a part that is not released yet; it fills in when the code ships.
+
+## What works today
+
+| Part | Status |
+|---|---|
+| [Receipt format v1](/docs/receipts/format): specification, test vectors, verifying a receipt yourself | Available |
+| [Installing the CLI](/docs/install), [running an agent](/docs/agents), [workflows](/docs/workflows), [approvals](/docs/approvals) | Coming soon |
+| [Self-hosting](/docs/self-hosting), [organizations and SSO](/docs/organizations), [billing](/docs/billing) | Coming soon |
+
+## The words Ostrom uses
+
+**Agent.** A coding agent such as Claude Code or Codex, started by a person on their machine or run in the cloud.
+
+**Harness.** Everything an agent starts with: your team's rules, the checks that run on its actions, and its settings. Ostrom builds it from your workflows, so every agent of the team starts with the same one.
+
+**Workflow.** How your team ships, written down: steps, checks, gates and notifications, in the order they happen.
+
+**Gate.** A point in a workflow where an action waits for a person. Pushing to `main` is a typical gate. Most actions have no gate: a yes asked for everything becomes a reflex.
+
+**Yes.** A named person's approval of one gate, given with the evidence in front of them. It is recorded in a receipt.
+
+**Receipt.** A signed record of what happened: who started the work, which agent and rules were involved, and who said yes. Anyone with the instance's public key can check it, offline. See [receipts](/docs/receipts).
+
+**Organization.** Your company in Ostrom: its people, its repositories, its workflows and its receipts. Each organization's data is kept apart from every other organization's.
+
+## Licences
+
+| Repository | What it is | Licence |
+|---|---|---|
+| `ostrom-core` | shared library: protocol, receipts, workflow model, API contract | Apache 2.0 |
+| `ostrom-cli` | the `ostrom` command | Apache 2.0 |
+| `ostrom-server` | the server | AGPL-3.0, except `ee/` |
+| `ostrom-web` | the web console | AGPL-3.0, except `ee/` |
+| `ostrom-app` | the mobile app | AGPL-3.0, except `ee/` |
+
+Code under an `ee/` folder is under the Ostrom Enterprise License: enterprise features, unlocked by a key.
