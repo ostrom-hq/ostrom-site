@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { defaultLocale, getMessages, locales } from '.'
+import { defaultLocale, format, getMessages, locales } from '.'
 import { en } from './en'
 
 describe('i18n', () => {
@@ -35,5 +35,21 @@ describe('i18n', () => {
     ]) {
       expect(marketing).not.toContain(word)
     }
+  })
+})
+
+describe('pricing', () => {
+  it('says the two locked sentences about the AI word for word', () => {
+    expect(en.pricing.noAiCharge).toBe('We never charge for the AI itself.')
+    expect(en.pricing.byok).toBe('Bring your own models. We never resell model access.')
+  })
+})
+
+describe('format', () => {
+  it('fills placeholders and leaves unknown ones visible', () => {
+    expect(format('billed yearly, {amount} per person', { amount: '$336' })).toBe(
+      'billed yearly, $336 per person',
+    )
+    expect(format('{missing}', {})).toBe('{missing}')
   })
 })

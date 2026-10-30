@@ -210,6 +210,204 @@ export const en = {
       secondary: 'Talk to us',
     },
   },
+  pricing: {
+    metaTitle: 'Pricing',
+    metaDescription:
+      'Free for small teams. Team at $35 and Business at $65 per active person per month. We never charge for the AI itself.',
+    eyebrow: 'Pricing',
+    title: 'Pay for the people who decide, not for the agents.',
+    lead: 'Free for up to 5 people. Paid plans are priced per active person, billed monthly or yearly.',
+    intervalLabel: 'Billing',
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+    yearlySave: '−20 %',
+    perPerson: 'per active person / month',
+    billedYearly: 'billed yearly, {amount} per person',
+    billedMonthly: 'billed monthly',
+    currency: 'USD, excl. tax',
+    free: 'free',
+    custom: 'On request',
+    popular: 'Recommended',
+    plans: {
+      free: {
+        name: 'Free',
+        tagline: 'For a small team trying Ostrom on real work.',
+        cta: 'Start free',
+        features: [
+          'Up to 5 people',
+          '5 cloud agents at a time',
+          '300 agent hours a month',
+          'Rules, approvals and signed receipts',
+          'Receipts kept 30 days',
+        ],
+      },
+      team: {
+        name: 'Team',
+        tagline: 'Your rules and approvals, for one team.',
+        cta: 'Start with Team',
+        features: [
+          'Everything in Free, plus…',
+          'As many people as you need',
+          '5 cloud agents per paid person',
+          '100 agent hours per paid person, pooled',
+          'Receipts kept 90 days',
+        ],
+      },
+      business: {
+        name: 'Business',
+        tagline: 'Several teams, shared budgets, audits.',
+        cta: 'Start with Business',
+        features: [
+          'Everything in Team, plus…',
+          'Single sign-on: OIDC and SAML',
+          'Organization policies',
+          '150 agent hours per paid person, pooled',
+          'Receipts kept 1 year',
+        ],
+      },
+      enterprise: {
+        name: 'Enterprise',
+        tagline: 'On your servers, on your terms.',
+        cta: 'Talk to us',
+        features: [
+          'Everything in Business, plus…',
+          'Self-hosted, unlocked by an enterprise key',
+          'No limit on agents or hours',
+          'Receipts kept as long as you need',
+          'Contract, invoicing and support on your terms',
+        ],
+      },
+    },
+    // Word for word from the locked value proposition (PB-PR2).
+    noAiCharge: 'We never charge for the AI itself.',
+    byok: 'Bring your own models. We never resell model access.',
+    allowanceNote:
+      'Cloud agent and hour allowances of the paid plans can still change before general availability; we will say so here first.',
+    compare: {
+      title: 'Compare plans',
+      feature: 'Feature',
+      yes: 'Included',
+      no: 'Not included',
+      // PB-PR3: grouped by See / Steer / Prove / Security and admin / Support, one line under each row name, and a
+      // value in every cell ('yes' is a tick, 'no' a dash).
+      groups: [
+        {
+          name: 'See',
+          rows: [
+            {
+              label: 'Cloud agents at a time',
+              detail: 'Agents your team runs in the cloud at the same time.',
+              values: ['5', '5 per paid person', '5 per paid person, 10 minimum', 'Unlimited'],
+            },
+            {
+              label: 'Agent hours a month',
+              detail: 'Cloud time for your agents, pooled across the organization.',
+              values: ['300', '100 per paid person', '150 per paid person, 600 minimum', 'Unlimited'],
+            },
+            {
+              label: 'Bring your own models',
+              detail: 'Your model keys or your developers’ subscriptions; your provider bills the inference.',
+              values: ['yes', 'yes', 'yes', 'yes'],
+            },
+          ],
+        },
+        {
+          name: 'Steer',
+          rows: [
+            {
+              label: 'Rules and approvals',
+              detail: 'Your rules enforced by the server, and a person’s yes where it matters.',
+              values: ['yes', 'yes', 'yes', 'yes'],
+            },
+            {
+              label: 'Organization policies',
+              detail: 'Rules set once for every team of the organization.',
+              values: ['no', 'no', 'yes', 'yes'],
+            },
+          ],
+        },
+        {
+          name: 'Prove',
+          rows: [
+            {
+              label: 'Signed receipts',
+              detail: 'What the agent was told, the rules it followed, who said yes.',
+              values: ['yes', 'yes', 'yes', 'yes'],
+            },
+            {
+              label: 'Receipt retention',
+              detail: 'How long receipts stay in Ostrom Cloud.',
+              values: ['30 days', '90 days', '1 year', 'Your choice'],
+            },
+          ],
+        },
+        {
+          name: 'Security and admin',
+          rows: [
+            {
+              label: 'People',
+              detail: 'Everyone who launches an agent or answers an approval.',
+              values: ['Up to 5', 'Unlimited', 'Unlimited', 'Unlimited'],
+            },
+            {
+              label: 'Single sign-on (OIDC, SAML)',
+              detail: 'Sign in through your identity provider.',
+              values: ['no', 'no', 'yes', 'yes'],
+            },
+            {
+              label: 'Self-hosting with an enterprise key',
+              detail: 'Ostrom on your servers, with the enterprise features unlocked.',
+              values: ['no', 'no', 'no', 'yes'],
+            },
+          ],
+        },
+        {
+          name: 'Support',
+          rows: [
+            {
+              label: 'Help',
+              detail: 'Where you get answers when you are stuck.',
+              values: [
+                'Docs and community',
+                'From the team, in the console',
+                'From the team, in the console',
+                'On your terms',
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    faq: {
+      title: 'Questions',
+      items: [
+        {
+          question: 'Who counts as an active person?',
+          answer:
+            'Everyone who launched an agent or answered an approval during the billing period. People who only read receipts are free.',
+        },
+        {
+          question: 'Do you charge for the AI?',
+          answer:
+            'No. You bring your own model keys or use your developers’ subscriptions; your provider bills the inference. We never resell model access.',
+        },
+        {
+          question: 'Can we run Ostrom ourselves?',
+          answer:
+            'Yes. Ostrom is open source and self-hosts with Docker or Helm. The enterprise features need a license key: talk to us.',
+        },
+        {
+          question: 'How does yearly billing work?',
+          answer:
+            'You commit to a number of people for the year and pay up front, 20% below the monthly price. Monthly plans are billed at the end of each month for the active people of that month.',
+        },
+        {
+          question: 'Are taxes included?',
+          answer: 'Prices are in US dollars, before tax. Sales tax or VAT is added where it is due.',
+        },
+      ],
+    },
+  },
   approval: {
     example: 'Example',
     heading: 'Agents propose. Your team decides.',

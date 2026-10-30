@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { Messages } from '@/i18n'
+import type { Interval } from './pricing'
 import type { SiteConfig } from './site'
 
 export interface NavLink {
@@ -17,15 +18,18 @@ export interface NavColumn {
 const internal = (label: string, href: string): NavLink => ({ label, href, external: false })
 const external = (label: string, href: string): NavLink => ({ label, href, external: true })
 
-/** The console page that opens a sign-up, optionally for a plan and a billing interval. */
+/** The interval as the console and the billing contract name it (`BillingCheckout.interval`: month or year). */
+const CHECKOUT_INTERVAL: Record<Interval, 'month' | 'year'> = { yearly: 'year', monthly: 'month' }
+
+/** The console page that opens a sign-up, optionally for a plan and, for a paid plan, its billing interval. */
 export function signupUrl(
   config: SiteConfig,
-  plan?: { readonly plan: string; readonly interval: 'month' | 'year' },
+  plan?: { readonly plan: string; readonly interval?: Interval },
 ): string {
   const url = new URL('/signup', config.appUrl)
   if (plan !== undefined) {
     url.searchParams.set('plan', plan.plan)
-    url.searchParams.set('interval', plan.interval)
+    if (plan.interval !== undefined) url.searchParams.set('interval', CHECKOUT_INTERVAL[plan.interval])
   }
   return url.toString()
 }
@@ -35,7 +39,7 @@ export function signinUrl(config: SiteConfig): string {
 }
 
 export function headerLinks(messages: Messages): readonly NavLink[] {
-  return [internal(messages.nav.product, '/#how-it-works')]
+  return [internal(messages.nav.product, '/#how-it-works'), internal(messages.nav.pricing, '/pricing/')]
 }
 
 export function footerColumns(messages: Messages, config: SiteConfig): readonly NavColumn[] {
@@ -43,7 +47,7 @@ export function footerColumns(messages: Messages, config: SiteConfig): readonly 
   const columns: readonly NavColumn[] = [
     {
       title: messages.footer.columns.product,
-      links: [internal(links.howItWorks, '/#how-it-works')],
+      links: [internal(links.howItWorks, '/#how-it-works'), internal(links.pricing, '/pricing/')],
     },
     {
       title: messages.footer.columns.developers,

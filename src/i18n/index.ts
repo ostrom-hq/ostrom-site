@@ -13,3 +13,8 @@ export function getMessages(locale: Locale = defaultLocale): Messages {
 }
 
 export type { Messages }
+
+/** Fills `{name}` placeholders of a text. A missing value leaves the placeholder visible, so a test catches it. */
+export function format(template: string, values: Readonly<Record<string, string>>): string {
+  return template.replace(/\{(\w+)\}/g, (placeholder, name: string) => values[name] ?? placeholder)
+}

@@ -1,0 +1,226 @@
+/* Pricing page. */
+.pricing-head h1 {
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+    max-width: 18ch;
+}
+.pricing {
+    margin-top: var(--space-7);
+}
+.interval {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+/* A floated legend takes part in the flex row like any other child, visible next to the switch. */
+.interval__legend {
+    float: left;
+    padding: 0;
+    font-weight: 650;
+    font-size: var(--fs-14);
+}
+.segmented {
+    display: inline-flex;
+    gap: var(--space-1);
+    padding: var(--space-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+}
+.segmented .badge {
+    white-space: nowrap;
+}
+.segmented__option {
+    position: relative;
+}
+.segmented__option input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    margin: 0;
+    cursor: pointer;
+}
+.segmented__option > span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 40px;
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    font-size: var(--fs-14);
+    color: var(--text-muted);
+}
+.segmented__option input:checked + span {
+    background: var(--inverse);
+    color: var(--on-inverse);
+}
+.segmented__option input:checked + span .badge {
+    background: transparent;
+    color: inherit;
+    border-color: currentColor;
+}
+.segmented__option input:focus-visible + span {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+.plans {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--space-4);
+}
+@media (min-width: 720px) {
+    .plans {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (min-width: 1100px) {
+    .plans {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+.plan {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: var(--space-5);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+.plan--popular {
+    border-color: var(--signal-border);
+    box-shadow: var(--shadow-md);
+}
+.plan__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+}
+.plan__name {
+    font-size: var(--fs-20);
+    margin: 0;
+}
+.plan__tagline {
+    margin: var(--space-2) 0 var(--space-4);
+    min-height: 3.2em;
+}
+.plan__price {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+}
+.plan__amount {
+    font-family: var(--font-display);
+    font-stretch: var(--display-stretch);
+    font-weight: 800;
+    font-size: var(--fs-40);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+/* Both intervals' prices take the same box (PB-PR6): same amount width (tabular figures), same unit, and the billing
+   line keeps room for two lines, so switching moves nothing. */
+.plan__pricebox {
+    margin-bottom: var(--space-4);
+}
+.plan__billing {
+    margin: var(--space-2) 0 0;
+    min-height: 2lh;
+}
+.plan__currency {
+    margin: 0;
+}
+.plan__actions {
+    display: grid;
+}
+/* The switch, without a script: yearly is checked in the HTML; the unchecked interval's prices and links are not
+   rendered (display: none, so a screen reader reads one price and one link). */
+.pricing:not(:has(#interval-monthly:checked)) [data-interval='monthly'],
+.pricing:has(#interval-monthly:checked) [data-interval='yearly'] {
+    display: none;
+}
+.plan__features {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-5) 0 0;
+    font-size: var(--fs-14);
+}
+.plan__features li {
+    padding-left: var(--space-5);
+    position: relative;
+    margin-bottom: var(--space-2);
+}
+.plan__features li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0.55em;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+}
+.pricing-note {
+    margin-top: var(--space-6);
+}
+/* The plan names stay in view under the site header (64 px and its border) while the table scrolls (PB-PR3). On narrow
+   screens the table scrolls sideways in its frame, where a sticky header could not follow the page. */
+@media (min-width: 900px) {
+    .compare-wrap {
+        overflow: visible;
+    }
+    .compare thead th {
+        position: sticky;
+        top: 65px;
+        z-index: 1;
+    }
+}
+.compare th[scope='col'] {
+    white-space: nowrap;
+}
+.compare__group th {
+    background: var(--surface);
+    font-size: var(--fs-12);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.compare__label {
+    display: block;
+}
+.compare__detail {
+    display: block;
+    margin-top: var(--space-1);
+    font-weight: 400;
+    font-size: var(--fs-12);
+    color: var(--text-muted);
+}
+.compare__mark {
+    color: var(--text-muted);
+}
+.compare__mark--yes {
+    color: var(--success);
+    font-weight: 700;
+}
+.faq {
+    max-width: 820px;
+}
+.faq__item {
+    border-bottom: 1px solid var(--border);
+    padding-block: var(--space-4);
+}
+.faq__item summary {
+    cursor: pointer;
+    font-weight: 650;
+}
+.faq__item p {
+    margin: var(--space-3) 0 0;
+}
