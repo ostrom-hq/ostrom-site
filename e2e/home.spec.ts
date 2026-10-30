@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { test as plain } from '@playwright/test'
 import { expect, test } from './test'
 import { expectAccessible } from './a11y'
 
@@ -38,4 +39,22 @@ test.describe('home', () => {
     await page.goto('/')
     await expectAccessible(page)
   })
+})
+
+// The runtime starts after the first paint: a press before it is held, then played once React runs the page.
+plain('a yes pressed before the runtime runs is not lost', async ({ page }) => {
+  let release = (): void => undefined
+  const held = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  await page.route('**/_next/static/chunks/**', async (route) => {
+    await held
+    await route.continue()
+  })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Approve and ship' }).click()
+  await expect(page.locator('html')).not.toHaveAttribute('data-runtime', 'ready')
+  release()
+  await expect(page.locator('html')).toHaveAttribute('data-runtime', 'ready')
+  await expect(page.getByRole('status')).toHaveText('Approved by you · on the receipt')
 })
