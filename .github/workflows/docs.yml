@@ -7,7 +7,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [main]
-    tags: ["v*"]
+    tags: ["[0-9]*"]
   workflow_dispatch:
 
 # One run per workflow and ref; a new push cancels the previous run, except on main.
@@ -34,6 +34,9 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+          cache: npm
+          cache-dependency-path: docs-tools/package-lock.json
+      - run: npm ci
       - name: Unit tests of the docs tooling, 100 % lines, branches and functions
         run: npm test
       - name: Frontmatter, code blocks, MDX-safe prose, links, navigation
