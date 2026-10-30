@@ -16,7 +16,7 @@ export function DocsHome({ messages }: { readonly messages: Messages }): React.J
       <div className="docs-prose">
         <p>{text.home.lead}</p>
         <p>
-          <Link className="button" href="/docs/api/">
+          <Link className="button" href="/docs/api/" prefetch={false}>
             {text.home.api}
           </Link>
         </p>

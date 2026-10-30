@@ -16,13 +16,13 @@ export function Pager({ pager, labels }: PagerProps): React.JSX.Element | null {
       {pager.previous === null ? (
         <span />
       ) : (
-        <Link className="docs-pager__link" href={pager.previous.href} rel="prev">
+        <Link className="docs-pager__link" href={pager.previous.href} rel="prev" prefetch={false}>
           <span className="docs-pager__label">{labels.previous}</span>
           <span className="docs-pager__title">{pager.previous.title}</span>
         </Link>
       )}
       {pager.next === null ? null : (
-        <Link className="docs-pager__link docs-pager__link--next" href={pager.next.href} rel="next">
+        <Link className="docs-pager__link docs-pager__link--next" href={pager.next.href} rel="next" prefetch={false}>
           <span className="docs-pager__label">{labels.next}</span>
           <span className="docs-pager__title">{pager.next.title}</span>
         </Link>

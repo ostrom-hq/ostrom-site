@@ -48,7 +48,7 @@ export function DocsShell({
     <div className="docs">
       <div className="docs-bar">
         <div className="container docs-bar__inner">
-          <Link className="docs-bar__title" href={home}>
+          <Link className="docs-bar__title" href={home} prefetch={false}>
             {text.title}
           </Link>
           <SearchButton labels={text.search} version={version.id} />
@@ -63,7 +63,7 @@ export function DocsShell({
           {version.latest ? null : (
             <p className="notice docs-archived">
               {fill(text.versions.archived, { label: version.label })}{' '}
-              <Link href="/docs/">{text.versions.latest}</Link>
+              <Link href="/docs/" prefetch={false}>{text.versions.latest}</Link>
             </p>
           )}
           <Breadcrumbs

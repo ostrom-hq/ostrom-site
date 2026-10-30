@@ -368,6 +368,9 @@ a.docs-nav__heading[aria-current='page'] {
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--surface-sunken);
+    /* The system monospace, not the web font: Azeret loads late (not preloaded) and its swap would reflow the
+       paragraph around inline code (layout shift, and a later LCP). Code blocks keep Azeret. */
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
     font-size: 0.875em;
     overflow-wrap: anywhere;
 }
