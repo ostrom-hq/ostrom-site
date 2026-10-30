@@ -51,7 +51,9 @@ export type PostHogClient = Pick<PostHog, 'init' | 'capture' | 'opt_in_capturing
 
 export const POSTHOG_OPTIONS = {
   person_profiles: 'identified_only',
-  persistence: 'localStorage+cookie',
+  // No cookie at all: a PostHog cookie is set on the parent domain (ostrom.run, so app.ostrom.run too) and a refusal
+  // could not take it back from here.
+  persistence: 'localStorage',
   autocapture: false,
   capture_pageview: false,
   capture_pageleave: false,
@@ -73,14 +75,20 @@ export function ctaOf(href: string, appUrl: string): Cta | null {
   return null
 }
 
-/** Removes what PostHog stored in the browser (cookies and local storage named `ph_…`), after a refusal. */
+const POSTHOG_PREFIXES = ['ph_', '__ph_']
+const isPostHog = (name: string): boolean => POSTHOG_PREFIXES.some((prefix) => name.startsWith(prefix))
+
+/**
+ * Removes what PostHog stored in the browser after a refusal: local storage keys `ph_…` and `__ph_…` (its opt-in
+ * flag), and any `ph_` cookie of this host (none since persistence is local storage; one left by an older visit).
+ */
 export function clearAnalyticsStorage(document: Document, storage: Storage): void {
   for (const key of Object.keys(storage)) {
-    if (key.startsWith('ph_')) storage.removeItem(key)
+    if (isPostHog(key)) storage.removeItem(key)
   }
   for (const cookie of document.cookie.split(';')) {
     const name = at(cookie.split('='), 0).trim()
-    if (name.startsWith('ph_')) document.cookie = `${name}=; Max-Age=0; path=/`
+    if (isPostHog(name)) document.cookie = `${name}=; Max-Age=0; path=/`
   }
 }
 
@@ -115,7 +123,8 @@ export function createAnalytics({ config, loadClient, clearStorage }: AnalyticsD
         loaded.init(config.key, { ...POSTHOG_OPTIONS, api_host: config.host })
         client = loaded
       }
-      client.opt_in_capturing()
+      // No `$opt_in` event: it would be sent again on every page load.
+      client.opt_in_capturing({ captureEventName: false })
       live = client
       if (announce) live.capture('consent_updated', { analytics: true })
       live.capture('$pageview', { $current_url: url })

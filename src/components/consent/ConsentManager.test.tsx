@@ -152,14 +152,70 @@ describe('ConsentManager', () => {
         <CookieSettingsButton label={en.consent.settings} loadConfig={configured} />
       </>,
     )
-    await user.click(await screen.findByRole('button', { name: en.consent.settings }))
-    await user.click(await screen.findByRole('button', { name: en.consent.refuse }))
+    const settings = await screen.findByRole('button', { name: en.consent.settings })
+    await user.click(settings)
+    const region = await screen.findByRole('region', { name: en.consent.title })
+    expect(region).toHaveFocus()
+    expect(document.documentElement.dataset['consent']).toBe('open')
+    expect(document.documentElement.style.getPropertyValue('--consent-height')).toBe('0px')
+    await user.click(screen.getByRole('button', { name: en.consent.refuse }))
+    expect(settings).toHaveFocus()
+    expect(document.documentElement.dataset['consent']).toBeUndefined()
     expect(window.localStorage.getItem(CONSENT_KEY)).toContain('"analytics":false')
     await waitFor(() => {
       expect(client.opt_out_capturing).toHaveBeenCalled()
     })
     expect(window.localStorage.getItem('ph_phc_test_posthog')).toBeNull()
     expect(screen.queryByRole('region')).toBeNull()
+  })
+
+  it('gives the focus to the content after a first choice', async () => {
+    const user = userEvent.setup()
+    render(
+      <>
+        <main id="main" tabIndex={-1} />
+        <ConsentManager
+          labels={en.consent}
+          appUrl="https://app.ostrom.run"
+          loadConfig={configured}
+          loadClient={() => Promise.resolve(fakeClient())}
+        />
+      </>,
+    )
+    const region = await screen.findByRole('region', { name: en.consent.title })
+    expect(region).not.toHaveFocus()
+    await user.click(screen.getByRole('button', { name: en.consent.accept }))
+    expect(screen.getByRole('main')).toHaveFocus()
+    // Reopened while the focus is on something that cannot take it back (an SVG), the content gets it after.
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    document.body.append(svg)
+    vi.spyOn(document, 'activeElement', 'get').mockReturnValueOnce(svg)
+    act(() => {
+      window.dispatchEvent(new Event('ostrom-consent-open'))
+    })
+    await user.click(await screen.findByRole('button', { name: en.consent.refuse }))
+    expect(screen.getByRole('main')).toHaveFocus()
+    svg.remove()
+  })
+
+  it('works, without remembering, when the browser blocks storage', async () => {
+    const user = userEvent.setup()
+    const blocked = vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+      throw new DOMException('The operation is insecure.', 'SecurityError')
+    })
+    const client = fakeClient()
+    render(
+      <ConsentManager
+        labels={en.consent}
+        appUrl="https://app.ostrom.run"
+        loadConfig={configured}
+        loadClient={() => Promise.resolve(client)}
+      />,
+    )
+    await user.click(await screen.findByRole('button', { name: en.consent.refuse }))
+    expect(screen.queryByRole('region')).toBeNull()
+    expect(client.opt_out_capturing).not.toHaveBeenCalled()
+    blocked.mockRestore()
   })
 
   it('ignores a configuration that arrives after it is gone, and navigation before it arrives', async () => {

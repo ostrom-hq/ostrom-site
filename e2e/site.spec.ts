@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 import { expectAccessible } from './a11y'
 
 test('an unknown page answers 404 with a way home', async ({ page }) => {
@@ -83,8 +83,9 @@ test('every script runs under the Content-Security-Policy, without a violation',
     )
     expect(await violations()).toEqual([])
   }
-  // The scene of the yes is interactive: the React scripts the policy allows did run.
+  // The scene of the yes is interactive: the loader and the React scripts the policy allows did run.
   await page.goto('/')
+  await expect(page.locator('html')).toHaveAttribute('data-runtime', 'ready')
   await page.getByRole('button', { name: 'Approve and ship' }).click()
   expect(await violations()).toEqual([])
 })

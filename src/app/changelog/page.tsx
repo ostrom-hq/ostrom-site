@@ -6,6 +6,7 @@ import { getMessages } from '@/i18n'
 import { byMonth, loadReleases, productName } from '@/lib/changelog'
 import { formatDate } from '@/lib/collections'
 import { parseMarkdown } from '@/lib/markdown'
+import { site } from '@/lib/site'
 
 const { changelog } = getMessages()
 
@@ -42,9 +43,12 @@ export default function ChangelogPage(): React.JSX.Element {
                     </p>
                   </header>
                   <Markdown blocks={parseMarkdown(release.body)} />
-                  <a href={release.url} rel="noopener" className="small">
-                    {changelog.view}
-                  </a>
+                  {/* The repositories stay private until the launch (PB-H2): no link to them before. */}
+                  {site.launched ? (
+                    <a href={release.url} rel="noopener" className="small">
+                      {changelog.view}
+                    </a>
+                  ) : null}
                 </article>
               ))}
             </section>

@@ -72,14 +72,20 @@ describe('calls to action', () => {
   })
 })
 
+it('keeps PostHog out of cookies', () => {
+  expect(POSTHOG_OPTIONS.persistence).toBe('localStorage')
+})
+
 describe('clearAnalyticsStorage', () => {
   it('removes PostHog cookies and local storage, and nothing else', () => {
     window.localStorage.setItem('ph_phc_test_posthog', '{}')
+    window.localStorage.setItem('__ph_opt_in_out_phc_test', '1')
     window.localStorage.setItem('ostrom-theme', 'dark')
     document.cookie = 'ph_phc_test_posthog=1; path=/'
     document.cookie = 'other=1; path=/'
     clearAnalyticsStorage(document, window.localStorage)
     expect(window.localStorage.getItem('ph_phc_test_posthog')).toBeNull()
+    expect(window.localStorage.getItem('__ph_opt_in_out_phc_test')).toBeNull()
     expect(window.localStorage.getItem('ostrom-theme')).toBe('dark')
     expect(document.cookie).not.toContain('ph_')
     expect(document.cookie).toContain('other=1')
@@ -113,7 +119,7 @@ describe('createAnalytics', () => {
       ...POSTHOG_OPTIONS,
       api_host: 'https://eu.i.posthog.com',
     })
-    expect(client.opt_in_capturing).toHaveBeenCalled()
+    expect(client.opt_in_capturing).toHaveBeenCalledWith({ captureEventName: false })
     expect(capture).toHaveBeenNthCalledWith(1, 'consent_updated', { analytics: true })
     expect(capture).toHaveBeenNthCalledWith(2, '$pageview', { $current_url: 'https://ostrom.run/' })
     analytics.pageview('https://ostrom.run/pricing/')

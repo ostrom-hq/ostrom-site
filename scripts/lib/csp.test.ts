@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { createHash } from 'node:crypto'
 import { inlineScripts, policyFor, sha256, withPolicy } from './csp'
+import { deferRuntime, loader } from './defer'
 
 const theme = "(function(){document.documentElement.dataset.theme='dark'})()"
 const page = [
@@ -44,5 +45,12 @@ describe('csp', () => {
     expect(withPolicy('<html><head lang="en"><title>x</title></head></html>')).toBe(
       `<html><head lang="en"><meta http-equiv="Content-Security-Policy" content="${policyFor('')}"/><title>x</title></head></html>`,
     )
+  })
+
+  it('allows the loader of the deferred runtime, which the build writes before the policy', () => {
+    const page =
+      '<html><head><meta charSet="utf-8"/></head><body><script src="/_next/static/chunks/a.js" async=""></script></body></html>'
+    const html = withPolicy(deferRuntime(page))
+    expect(html).toContain(sha256(loader(['/_next/static/chunks/a.js'])))
   })
 })
