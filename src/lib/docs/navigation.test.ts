@@ -8,6 +8,10 @@ import {
   sidebar,
   type NavEntry,
 } from './navigation'
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { buildApiReference } from '@/lib/openapi/reference'
 import { readDocsSite } from './site'
 
 const docs = fixtureSite()
@@ -63,6 +67,20 @@ describe('sidebar', () => {
       'Quickstart',
     ])
     expect(titles(sidebar(readDocsSite(MISSING_CONTENT).latest, null, labels))).toEqual(['API reference'])
+  })
+})
+
+describe('edge cases', () => {
+  it('lists a served API without schemas, and a version without an index page', () => {
+    const api = buildApiReference(
+      { openapi: '3.1.0', info: { title: 'T', version: '1' }, paths: { '/x': { get: { responses: {}, 'x-ostrom-status': 'served' } } } },
+      'https://api.example.test',
+    )
+    expect(apiGroup(api, labels).items.map((item) => item.href)).toEqual(['/docs/api/', '/docs/api/other/'])
+    const dir = mkdtempSync(join(tmpdir(), 'ostrom-nav-'))
+    mkdirSync(join(dir, 'docs'))
+    writeFileSync(join(dir, 'docs', 'only.mdx'), '---\ntitle: Only\ndescription: "Alone."\n---\n\nText.\n')
+    expect(titles(sidebar(readDocsSite(dir).latest, null, labels))).toEqual(['Only', 'API reference'])
   })
 })
 

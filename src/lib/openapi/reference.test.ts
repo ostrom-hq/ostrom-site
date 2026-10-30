@@ -38,7 +38,7 @@ describe('the reference of the fixture', () => {
     expect(api).toMatchObject({
       title: 'Fixture API',
       version: '9.9.9',
-      description: 'The `fixture` contract.',
+      description: 'The `fixture` contract. Read [the guides](/docs/) first.',
       baseUrl: TEST_API_URL,
     })
     expect(api?.servers).toEqual([

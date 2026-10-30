@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Fixture API
   version: 9.9.9
-  description: The `fixture` contract.
+  description: The `fixture` contract. Read [the guides](/docs/) first.
 servers:
   - url: https://{host}/base
     description: Self-hosted
