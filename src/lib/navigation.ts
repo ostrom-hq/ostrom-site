@@ -34,7 +34,7 @@ export function signinUrl(config: SiteConfig): string {
 }
 
 export function headerLinks(messages: Messages): readonly NavLink[] {
-  return [internal(messages.nav.product, '/#how-it-works')]
+  return [internal(messages.nav.product, '/#how-it-works'), internal(messages.nav.pricing, '/pricing/')]
 }
 
 export function footerColumns(messages: Messages, config: SiteConfig): readonly NavColumn[] {
@@ -42,7 +42,7 @@ export function footerColumns(messages: Messages, config: SiteConfig): readonly 
   return [
     {
       title: messages.footer.columns.product,
-      links: [internal(links.howItWorks, '/#how-it-works')],
+      links: [internal(links.howItWorks, '/#how-it-works'), internal(links.pricing, '/pricing/')],
     },
     {
       title: messages.footer.columns.developers,

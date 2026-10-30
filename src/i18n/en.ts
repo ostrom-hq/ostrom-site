@@ -207,6 +207,122 @@ export const en = {
       secondary: 'Talk to us',
     },
   },
+  pricing: {
+    metaTitle: 'Pricing',
+    metaDescription:
+      'Free for small teams. Team at $35 and Business at $65 per active person per month. We never charge for the AI itself.',
+    eyebrow: 'Pricing',
+    title: 'Pay for the people who decide, not for the agents.',
+    lead: 'Priced per active person. Bring your own models: we never resell model access, and never charge for the AI itself.',
+    intervalLabel: 'Billing',
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+    yearlySave: '−20%',
+    perPerson: 'per active person / month',
+    billedYearly: 'billed yearly, {amount} per person',
+    free: 'free',
+    custom: 'Custom',
+    popular: 'Most teams start here',
+    plans: {
+      free: {
+        name: 'Free',
+        tagline: 'For a small team trying Ostrom on real work.',
+        cta: 'Start free',
+        features: [
+          'Up to 5 people',
+          '5 cloud agents at a time',
+          '300 agent hours a month',
+          'Rules, approvals and signed receipts',
+          'Receipts kept 30 days',
+        ],
+      },
+      team: {
+        name: 'Team',
+        tagline: 'Your rules and approvals, for one team.',
+        cta: 'Start with Team',
+        features: [
+          'Everything in Free',
+          'As many people as you need',
+          '5 cloud agents per paid person',
+          '100 agent hours per paid person, pooled',
+          'Receipts kept 90 days',
+        ],
+      },
+      business: {
+        name: 'Business',
+        tagline: 'Several teams, shared budgets, audits.',
+        cta: 'Start with Business',
+        features: [
+          'Everything in Team',
+          'Single sign-on: OIDC and SAML',
+          'Organization policies',
+          '150 agent hours per paid person, pooled',
+          'Receipts kept 1 year',
+        ],
+      },
+      enterprise: {
+        name: 'Enterprise',
+        tagline: 'On your servers, on your terms.',
+        cta: 'Talk to us',
+        features: [
+          'Everything in Business',
+          'Self-hosted, unlocked by an enterprise key',
+          'No limit on agents or hours',
+          'Receipts kept as long as you need',
+          'Contract, invoicing and support on your terms',
+        ],
+      },
+    },
+    byok: 'Every plan: bring your own model keys or your developers’ subscriptions. Inference is billed by your provider, never by us.',
+    allowanceNote:
+      'Cloud agent and hour allowances of the paid plans can still change before general availability; we will say so here first.',
+    compare: {
+      title: 'Compare plans',
+      feature: 'Feature',
+      yes: 'Included',
+      no: 'Not included',
+      rows: [
+        { label: 'People', values: ['Up to 5', 'Unlimited', 'Unlimited', 'Unlimited'] },
+        { label: 'Cloud agents at a time', values: ['5', '5 per paid person', '5 per paid person, 10 minimum', 'Unlimited'] },
+        { label: 'Agent hours a month', values: ['300', '100 per paid person', '150 per paid person, 600 minimum', 'Unlimited'] },
+        { label: 'Bring your own models', values: ['yes', 'yes', 'yes', 'yes'] },
+        { label: 'Rules, approvals, signed receipts', values: ['yes', 'yes', 'yes', 'yes'] },
+        { label: 'Receipt retention', values: ['30 days', '90 days', '1 year', 'Your choice'] },
+        { label: 'Single sign-on (OIDC, SAML)', values: ['no', 'no', 'yes', 'yes'] },
+        { label: 'Organization policies', values: ['no', 'no', 'yes', 'yes'] },
+        { label: 'Self-hosting with an enterprise key', values: ['no', 'no', 'no', 'yes'] },
+      ],
+    },
+    faq: {
+      title: 'Questions',
+      items: [
+        {
+          question: 'Who counts as an active person?',
+          answer:
+            'Everyone who launched an agent or answered an approval during the billing period. People who only read receipts are free.',
+        },
+        {
+          question: 'Do you charge for the AI?',
+          answer:
+            'No. You bring your own model keys or use your developers’ subscriptions; your provider bills the inference. We never resell model access.',
+        },
+        {
+          question: 'Can we run Ostrom ourselves?',
+          answer:
+            'Yes. Ostrom is open source and self-hosts with Docker or Helm. The enterprise features need a license key: talk to us.',
+        },
+        {
+          question: 'How does yearly billing work?',
+          answer:
+            'You commit to a number of people for the year and pay up front, 20% below the monthly price. Monthly plans are billed at the end of each month for the active people of that month.',
+        },
+        {
+          question: 'Are taxes included?',
+          answer: 'Prices are in US dollars, before tax. Sales tax or VAT is added where it is due.',
+        },
+      ],
+    },
+  },
   approval: {
     example: 'Example',
     heading: 'Agents propose. Your team decides.',

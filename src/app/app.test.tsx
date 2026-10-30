@@ -83,3 +83,14 @@ describe('robots and sitemap', () => {
     expect(entries.every((entry) => entry.url.startsWith('https://ostrom.run/'))).toBe(true)
   })
 })
+
+describe('pricing page', () => {
+  it('has its title, the plans, the comparison and the questions', async () => {
+    const { default: PricingPage, metadata: pricingMetadata } = await import('./pricing/page')
+    render(<PricingPage />)
+    expect(screen.getByRole('heading', { level: 1, name: en.pricing.title })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: en.pricing.compare.title })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: en.pricing.faq.title })).toBeInTheDocument()
+    expect(pricingMetadata.title).toBe('Pricing')
+  })
+})

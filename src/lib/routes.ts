@@ -5,4 +5,7 @@ export interface SitemapEntry {
   readonly changeFrequency: 'daily' | 'weekly' | 'monthly' | 'yearly'
 }
 
-export const staticRoutes: readonly SitemapEntry[] = [{ path: '/', priority: 1, changeFrequency: 'weekly' }]
+export const staticRoutes: readonly SitemapEntry[] = [
+  { path: '/', priority: 1, changeFrequency: 'weekly' },
+  { path: '/pricing/', priority: 0.9, changeFrequency: 'monthly' },
+]
