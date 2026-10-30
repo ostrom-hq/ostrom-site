@@ -107,12 +107,12 @@ The Signal brand sets the faces; the best sites set the discipline.
 ### 2.3 Colour
 
 - **PB-C1.** Every colour comes from `tokens.css`. No hex value in a component.
-- **PB-C2.** Garnet (`--signal`) means "a person is awaited": the gate, the approve button, the one primary action
-  of a screen (`tokens.css`). At most one garnet button per viewport, everywhere, site included. Every other action
-  uses the neutral button (ink on paper, paper on ink). In practice: on the landing, the first screen's garnet is
-  the approve button of the approval scene (the product saying what garnet means), so "Start free" in the header and
-  in the hero are ink buttons; on other pages whose first screen has its own primary action, the header's action is
-  neutral; on pricing, only the recommended plan's action is garnet; in the console, only the approve button. Amber is warning, red is error; garnet is never either.
+- **PB-C2.** Garnet (`--signal`) means "a person is awaited" (`tokens.css`): it is the yes a person gives to an
+  agent, and nothing else. In the console it is the approve button, the one primary action of that screen. On public
+  pages it appears only where that button is shown, inside a product scene (`data-scene`): the landing's approval
+  scene, a docs screenshot. Every other action, "Start free", the header action, a plan's button, is the neutral
+  button (ink on paper, paper on ink); pricing marks the recommended plan by its card (border and label), not by
+  garnet. At most one garnet button per viewport. Amber is warning, red is error; garnet is never either.
 - **PB-C3.** Light and dark are both first class. The default follows the system; a three-way switch (System,
   Light, Dark) sits in the footer (Vercel does this) and is remembered; the stored choice is applied before the
   first paint (inline script in `<head>`, no flash). Linear ships dark only and Stripe light only: Ostrom ships
@@ -125,7 +125,7 @@ The Signal brand sets the faces; the best sites set the discipline.
 - **PB-L1.** Content grid: 12 columns, 24 px gutter, max 1 200 px (`--grid-max`); 16 px side margin on mobile, 24 px
   from 768 px. Sections separated by `--space-9` (96 px) desktop, `--space-8` (64 px) mobile.
 - **PB-L2.** No horizontal scroll at 320 px. Tables and code scroll inside their own box.
-- **PB-L3.** Docs use three columns from 1 280 px: navigation (240–280 px), content (≤ 72 ch), "On this page"
+- **PB-L3.** Docs use three columns from 1 280 px: navigation (240–280 px), content sized so prose meets PB-T3 (about 680–720 px), "On this page"
   (200–240 px); two columns from 1 024 px (the table of contents folds into the top of the page); one below.
 - **PB-L4.** The header is sticky, 56–64 px tall (measured: Linear 72, Biome 64, Vercel 64), with a translucent
   background that keeps text readable when content scrolls under it.
@@ -150,7 +150,7 @@ Budgets, checked by Lighthouse CI on the static build, on the throttled mobile p
 |---|---|---|---|---|---|
 | Landing | ≥ 95 | ≤ 2.5 s / ≤ 1.8 s | ≤ 0.01 | ≤ 150 KB | ≤ 600 KB (video excluded, lazy) |
 | Docs page | ≥ 95 | ≤ 2.5 s / ≤ 1.5 s | ≤ 0.01 | ≤ 200 KB (search index lazy) | ≤ 450 KB |
-| Pricing, changelog, blog | ≥ 95 | ≤ 2.5 s / ≤ 1.8 s | ≤ 0.01 | ≤ 150 KB | ≤ 600 KB |
+| Pricing, changelog, blog | ≥ 95 | ≤ 2.5 s / ≤ 1.8 s | ≤ 0.01 | ≤ 150 KB | ≤ 600 KB (video excluded, poster counted) |
 
 (2.5 s is the "good" threshold of Core Web Vitals under Lighthouse's simulated slow 4G.)
 
@@ -208,10 +208,13 @@ no reason to come near the others, and being several times lighter is an easy, v
 - **PB-S5.** JSON-LD: `Organization` and `SoftwareApplication` on the home page, `BreadcrumbList` and `TechArticle`
   on docs, `BlogPosting` on posts.
 - **PB-S6.** `sitemap.xml`, `robots.txt`, RSS (or Atom) for the changelog and the blog, `/.well-known/security.txt`.
-- **PB-S7.** Until Lyes gives the go, every response of every deployed environment carries `X-Robots-Tag: noindex,
-  nofollow` (HTML, Markdown and feeds alike), and `robots.txt` lets crawlers in (a crawler kept out by `Disallow` never sees the header and can still
-  list the bare URL) but names no sitemap. The switch to indexable is one setting (`indexable`), flipped on launch
-  day, and tested both ways on the header.
+- **PB-S7.** One launch switch (`NEXT_PUBLIC_LAUNCHED`, closed by default) decides everything that changes on
+  Lyes's go. Closed: every page carries `<meta name="robots" content="noindex, nofollow">`, every nginx response
+  (HTML, Markdown, feeds) carries `X-Robots-Tag: noindex, nofollow`, `robots.txt` disallows all, and no link to
+  `github.com` appears (PB-H2). Open: all four reversed. The switch is read at build time, so CI builds both images from the same commit (closed
+  as `:main`, open as `:launched`) and the go is a change of image tag, nothing else. The meta and the header are what keep
+  pages out of the index (a crawler kept out by `robots.txt` cannot read them, but nothing links to the site before
+  the go). Tested both ways in CI.
 
 ### 2.9 Machines are readers too
 
@@ -223,8 +226,8 @@ and Fumadocs out of the box). For a product that runs AI agents, this is not opt
 - **PB-AI2.** Every docs page is also served as Markdown at its path without the trailing slash plus `.md`
   (`/docs/receipts/format/` → `/docs/receipts/format.md`; the docs home → `/docs.md`), written by the postbuild step
   next to the HTML and served by nginx as `text/markdown; charset=utf-8` with a
-  `Link: <…/docs/receipts/format/>; rel="canonical"` header, so the HTML page stays the one indexed (the same holds
-  for `llms.txt` and `llms-full.txt`). The page has a
+  `Link: <…/docs/receipts/format/>; rel="canonical"` header, so the HTML page stays the one indexed. `llms.txt` and
+  `llms-full.txt` have no HTML twin: they carry `X-Robots-Tag: noindex` at all times instead. The page has a
   "Copy page" button (Markdown to clipboard) with "Open in ChatGPT" and "Open in Claude" next to it.
 - **PB-AI3.** Code blocks in the Markdown output keep their language; their test meta (`test`, `notest`,
   `requires`, `exit`) and tab meta (`tab`, `group`) are stripped, and a tab set keeps each block under a line naming
@@ -256,11 +259,11 @@ Capture names refer to the private capture set (`<site>-<page>-<variant>.jpg`).
 
 - **PB-H1.** Header: logo (home), at most six links (Product, Docs, Pricing, Changelog, Blog, and Open source
   once the repositories are public; a link appears only when its page exists), then "Sign in" (quiet) and one
-  action: "Start free" once the console takes sign-ups, "Become a design partner" before. It is neutral when the
-  page's first screen has its own primary action (PB-C2).
+  action: "Start free" once the console takes sign-ups, "Become a design partner" before. It is always the neutral
+  button (PB-C2).
 - **PB-H2.** The GitHub link with the star count appears only once the repositories are public (Lyes's go). Until
-  then no link to a private repository appears anywhere on the site. This is its own setting (`reposPublic`),
-  separate from `indexable` (PB-S7): the two goes may not come on the same day.
+  then no link to a private repository appears anywhere on the site, JSON-LD `sameAs` included. The launch switch
+  (PB-S7) governs it; if the repositories and the site ever go public on different days, it splits in two.
 - **PB-H3.** The mobile menu is a full-height sheet, opens from a real button with `aria-expanded`, traps focus,
   closes on Escape and on navigation.
 - **PB-H4.** Footer: four columns (Product, Developers, Company, Legal), each at most seven links; theme switch;
@@ -272,7 +275,7 @@ Capture names refer to the private capture set (`<site>-<page>-<variant>.jpg`).
 
 **The references**
 
-- **Linear** ([linear.app](https://linear.app/), `linear-landing-desktop-full`). Good: headline of nine words, one
+- **Linear** ([linear.app](https://linear.app/), `linear-landing-desktop-full`). Good: headline of eight words, one
   line under it, then the product itself in the first screen, then logos. Each later section is one idea with a
   real product scene. Not so good: dark only; 16 contrast failures; on mobile 27 tap targets under 24 px.
 - **Stripe** ([stripe.com](https://stripe.com/), `stripe-landing-desktop-full`). Good: a live counter of payment
@@ -333,7 +336,7 @@ request, annual −20 %)
 - **PB-PR2.** Under the cards, word for word: "We never charge for the AI itself." and "Bring your own models. We
   never resell model access."
 - **PB-PR3.** A comparison table grouped by See / Steer / Prove / Security and admin / Support, with a sticky header
-  of plan names and neutral actions (never garnet: the card above keeps the page's one garnet action, PB-C2), a one-line explanation under each row name, and a value or "—" in each cell (never a
+  of plan names and neutral actions (PB-C2), a one-line explanation under each row name, and a value or "—" in each cell (never a
   bare cross).
 - **PB-PR4.** Self-hosting has its own line: open source, free, enterprise features unlocked by a key.
 - **PB-PR5.** FAQ: what an active person is, what happens over a limit, BYOK, annual billing and refunds, taxes
@@ -414,14 +417,17 @@ quickstart shifts its layout while loading (CLS 0.199), a rare miss.
   breadcrumbs, content, "Was this page helpful?" (yes/no, optional comment, sent as a PostHog event), "Edit this page
   on GitHub" (only once the repository is public), "Last updated" (from git), previous/next links.
 - **PB-DP2.** Every code block has a copy button and a language label; shell blocks are written without a `$`
-  prompt (the test runner executes them as written, and the copy button gives exactly the command).
+  prompt (the test runner executes them as written, and the copy button gives exactly the command). The output you
+  should see is a block marked `output` right after its `test` block (docs-test compares it, never runs it); the agent
+  prompt of PB-DP4b is a `text` block marked `notest="prompt for an agent"`.
   Blocks marked `test` run in CI (already in the docs contract); a block that cannot be tested says why
   (`notest="…"`).
 - **PB-DP3.** Choices are tabs that persist across pages and visits: operating system (macOS, Linux, Windows),
   agent (Claude Code, Codex), package manager when relevant. The docs stay plain Markdown in their `.mdx` files
   (front matter, no import, no JSX): a tab set is
   consecutive code blocks with the same `group` and their own `tab` in the meta (`sh tab="macOS" group="os"`), which
-  the site renders as Fumadocs `Tabs` with `groupId` and `persist`, and GitHub shows as plain blocks.
+  the site renders as Fumadocs `Tabs` with `groupId` and `persist`. GitHub hides the meta, so each block's first line is a
+  comment naming its tab (`# macOS`); the site drops that line inside the tab, and the lint checks it matches `tab`.
   `docs-tools`' lint, which rejects unknown block attributes today, learns `tab` and `group` in the same pull
   request as the first tabbed page (and checks that a group's blocks are consecutive).
 - **PB-DP4.** The quickstart: prerequisites first, then at most six numbered steps, each one action with its command
@@ -434,8 +440,9 @@ quickstart shifts its layout while loading (CLS 0.199), a rare miss.
 - **PB-DP5.** Install page: one command per OS in tabs, the alternatives (Homebrew, a package, a binary download
   with its checksum and signature), how to upgrade, how to uninstall, how to verify the binary.
 - **PB-DP6.** Callouts only of three kinds, written as GitHub alerts in plain Markdown (`> [!NOTE]`,
-  `> [!WARNING]`, `> [!CAUTION]`) and rendered as Note, Warning and Danger with the info, amber and red tokens —
-  never garnet. `docs-lint` rejects any other alert type.
+  `> [!WARNING]`, `> [!CAUTION]`) and rendered as Note, Warning and Caution with the info, amber and red tokens —
+  never garnet. `docs-lint` rejects any other alert type, and its message for GitHub's `[!TIP]` and `[!IMPORTANT]`
+  says to use `[!NOTE]`.
 - **PB-DP7.** Every concept page links to the reference it relies on and to one guide that uses it.
 
 ### 3.6 API and CLI reference
@@ -489,7 +496,7 @@ quickstart shifts its layout while loading (CLS 0.199), a rare miss.
 
 - **PB-CL1.** One entry per release train (date as the anchor), titled by the benefit, with the versions of each
   component it includes (CLI, server, web, app) linking to their GitHub releases once public.
-- **PB-CL2.** Sections inside an entry: the headline change (one image or a short muted video, ≤ 2 MB), then New,
+- **PB-CL2.** Sections inside an entry: the headline change (one image, or a short muted video ≤ 2 MB that loads only its poster until played, `preload="none"`, so the first load stays within §2.6), then New,
   Improved, Fixed, and Breaking (with the migration step) when there is one.
 - **PB-CL3.** Only what shipped and is enabled for customers. Generated from the release notes, edited by a person.
 - **PB-CL4.** RSS/Atom feed, an anchor link per entry, an OG image per entry.
@@ -508,7 +515,7 @@ quickstart shifts its layout while loading (CLS 0.199), a rare miss.
 **Ostrom rules**
 
 - **PB-B1.** Each post: title, one-line summary, author(s) with photo and role, date, reading time, OG image, RSS.
-- **PB-B2.** Prose at 64 ch, code and figures in the docs' components, captions on every figure.
+- **PB-B2.** Prose lines per PB-T3 (60–75 characters), code and figures in the docs' components, captions on every figure.
 - **PB-B3.** Numbers follow PB-W3; research claims carry their source inline.
 
 ### 3.9 Open source page
@@ -626,7 +633,7 @@ test in the site's suite; "Review" means the reviewer checks it by hand, with th
 | PB-T3 | Long-form lines of 60–75 characters, never over 80 | e2e at 1 440 px: for every paragraph of 150 characters or more, count the characters of each rendered line (Range client rects); none over 80 |
 | PB-T4, PB-T5 | Tabular figures; uppercase only for eyebrows and table headers | e2e: computed `font-variant-numeric` on prices and table cells; review |
 | PB-C1 | No colour literal in components | CI: lint rule / grep for hex, `rgb(`, `hsl(` outside `tokens.css` |
-| PB-C2 | ≤ 1 garnet button per viewport | e2e: count visible elements with the `--signal` background in each viewport-high slice of every route |
+| PB-C2 | Garnet only on the approve button of a product scene, ≤ 1 per viewport | e2e on every route: no visible element with the `--signal` background outside `[data-scene]`, and ≤ 1 in each viewport-high slice |
 | PB-C3 | System default, three-way switch, no flash | e2e: load with stored "dark" and assert the first paint background |
 | PB-C4, PB-A1 | axe: 0 violations, light and dark, desktop and mobile | CI `e2e` (axe on every route in the sitemap and on the 404 page) |
 | PB-L1, PB-L3, PB-L4 | Grid, docs columns, sticky header 56–64 px | e2e: header height and stickiness; docs column count at 1 280, 1 024 and 390 px |
@@ -644,10 +651,10 @@ test in the site's suite; "Review" means the reviewer checks it by hand, with th
 | PB-A5 | Zoom allowed | e2e: viewport meta has no `maximum-scale` / `user-scalable=no` |
 | PB-A6, PB-A7 | SVG hidden or titled; one `h1`, no skipped level | e2e: heading outline and SVG attributes on every route |
 | PB-S1–S6 | Title, description length, canonical per page, OG, JSON-LD, sitemap, RSS, security.txt | CI: metadata test over every built page |
-| PB-S7, PB-AI2 | `noindex` until the go; `.md` copies canonical to their page | e2e against the nginx container: `X-Robots-Tag` on HTML, Markdown and feeds with `indexable` off, absent with it on; no sitemap line while off; `Link: rel="canonical"` on `.md` |
+| PB-S7, PB-AI2 | `noindex` until the go; `.md` copies canonical to their page | e2e against the nginx container, built closed and open: meta and `X-Robots-Tag` on HTML, Markdown and feeds when closed, absent when open; `Link: rel="canonical"` on `.md` |
 | PB-AI1–AI3 | `llms.txt`, `llms-full.txt`, `.md` per docs page with its headers, Copy page | CI: postbuild check that each docs route has its `.md`; e2e on the headers |
 | PB-H1, PB-H4, PB-H5 | Header and footer contents, links only to pages that exist | e2e: header link count; CI `links` |
-| PB-H2, PB-OS4 | No link to a private repository before the go | CI: built HTML scan for `github.com/ostrom-hq` while `reposPublic` is off |
+| PB-H2, PB-OS4 | No link to a private repository before the go | CI: built HTML scan for `github.com/ostrom-hq` in the closed build |
 | PB-H3 | Mobile menu: button with `aria-expanded`, focus kept, Escape and navigation close it | e2e at 390 px |
 | PB-LD1–LD8 | Landing order, proof, sections, mobile scene position | Review with captures; e2e: the scene's top is within 1.5 viewports at 390 px |
 | PB-PR1–PR7 | Pricing structure, wording, static prices for both intervals, plan in sign-up link | e2e on `/pricing`, with JavaScript on and off |
