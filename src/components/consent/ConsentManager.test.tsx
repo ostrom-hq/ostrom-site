@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { PostHog } from 'posthog-js'
