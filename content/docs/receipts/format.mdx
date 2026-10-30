@@ -92,10 +92,10 @@ ed25519;kid=KEY_ID;sha256=DIGEST;sig=SIGNATURE
 A receipt is valid when all of these hold, checked in this order:
 
 1. it is a JSON object with a `signature` string;
-2. the signature field is exactly `ALGORITHM;kid=KEY_ID;sha256=DIGEST;sig=SIGNATURE`, each part once and in this order, and the algorithm is `ed25519`;
+2. the signature field is exactly `ALGORITHM;kid=KEY_ID;sha256=DIGEST;sig=SIGNATURE`, each part once and in this order, with 16 and 64 lowercase hexadecimal characters for `KEY_ID` and `DIGEST`, and 86 base64 characters then `==` for `SIGNATURE`; the algorithm is `ed25519`;
 3. the public key you trust is an Ed25519 key, and the `kid` is its id;
 4. the SHA-256 of the signed bytes equals `sha256`;
-5. `sig` is the standard base64 of 64 bytes, and those bytes are a valid Ed25519 signature of the signed bytes under that key.
+5. `sig` decodes to 64 bytes that encode back to the same text, and those bytes are a valid Ed25519 signature of the signed bytes under that key.
 
 This verifier does exactly that, with Node.js 24 or later and nothing else. It is two files. The first is the canonical form, save it as `canonical.mjs`:
 
