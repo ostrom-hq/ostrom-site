@@ -89,6 +89,7 @@ jobs:
         run: |
           docker run -d --name site -p 8080:8080 ostrom-site:ci
           for i in $(seq 1 30); do curl -fsS http://localhost:8080/healthz && break; sleep 1; done
+          curl -fsS http://localhost:8080/healthz
       - run: pnpm exec playwright install --with-deps chromium
       - name: Playwright, desktop and mobile, against the container
         env: { PLAYWRIGHT_BASE_URL: 'http://localhost:8080' }
@@ -103,6 +104,7 @@ jobs:
           docker rm -f site
           docker run -d --name site -p 8080:8080 ostrom-site:lighthouse
           for i in $(seq 1 30); do curl -fsS http://localhost:8080/healthz && break; sleep 1; done
+          curl -fsS http://localhost:8080/healthz
       - name: Lighthouse, mobile, every page of the sitemap, 95 minimum in each category
         run: .github/scripts/run.sh lighthouse pnpm exec lhci autorun --config=lighthouserc.cjs
       - name: Lighthouse, desktop
@@ -147,13 +149,27 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { persist-credentials: false }
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - name: Push ghcr.io/ostrom-hq/ostrom-site (launched-sha and launched)
+      - name: Build the launched image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
-          push: true
+          load: true
           build-args: NEXT_PUBLIC_LAUNCHED=1
-          tags: |
-            ghcr.io/ostrom-hq/ostrom-site:launched-${{ github.sha }}
-            ghcr.io/ostrom-hq/ostrom-site:launched
+          tags: ostrom-site:launched
           cache-from: type=gha
+      # Lighthouse audited this build on localhost URLs; this one has the real ones: it starts, answers, is indexable.
+      - name: Smoke test of the launched image
+        run: |
+          docker run -d --name launched -p 8080:8080 ostrom-site:launched
+          for i in $(seq 1 30); do curl -fsS http://localhost:8080/healthz && break; sleep 1; done
+          curl -fsS http://localhost:8080/healthz
+          headers=$(curl -fsSI http://localhost:8080/)
+          if grep -qi '^x-robots-tag' <<<"$headers"; then echo "::error::the launched image still asks not to be indexed"; exit 1; fi
+          curl -fsS http://localhost:8080/robots.txt | grep -q '^Sitemap: https://ostrom.run/sitemap.xml'
+          curl -fsS http://localhost:8080/ | grep -q 'https://github.com/ostrom-hq'
+      - name: Push ghcr.io/ostrom-hq/ostrom-site (launched-sha and launched)
+        run: |
+          for tag in "launched-$GITHUB_SHA" launched; do
+            docker tag ostrom-site:launched "ghcr.io/ostrom-hq/ostrom-site:$tag"
+            docker push "ghcr.io/ostrom-hq/ostrom-site:$tag"
+          done

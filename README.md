@@ -30,14 +30,17 @@ docker run -p 8080:8080 ghcr.io/ostrom-hq/ostrom-site:main
 Build-time configuration (public URLs only, no secret): `NEXT_PUBLIC_SITE_URL` (default `https://ostrom.run`),
 `NEXT_PUBLIC_APP_URL` (`https://app.ostrom.run`, where sign-up and sign-in live), `NEXT_PUBLIC_API_URL`
 (`https://api.ostrom.run`), and `NEXT_PUBLIC_LAUNCHED`: unset until the public launch, the site asks search engines
-not to index it (`robots.txt`, a `noindex` meta tag, an `X-Robots-Tag` header from nginx) and links to no repository;
+not to index it (a `noindex` meta tag on every page and an `X-Robots-Tag` header from nginx on every file;
+`robots.txt` stays open so crawlers can read them, and announces the sitemap only after the launch) and links to no repository;
 `1` opens all of it.
 
 ## Image
 
 `main` publishes `ghcr.io/ostrom-hq/ostrom-site:<sha>` and `:main`: the exact image Playwright and Lighthouse tested.
-It listens on port 8080 as an unprivileged user and answers `GET /healthz`. The same build with
-`NEXT_PUBLIC_LAUNCHED=1` is published as `:launched-<sha>` and `:launched`, for the day of the launch.
+It listens on port 8080 as an unprivileged user and answers `GET /healthz`. The same source built with
+`NEXT_PUBLIC_LAUNCHED=1` is published as `:launched-<sha>` and `:launched`, for the day of the launch: Lighthouse
+audits that build (on localhost URLs), and the published one passes a smoke test (health, indexable, repository
+links) before it is pushed.
 
 ## Layout
 

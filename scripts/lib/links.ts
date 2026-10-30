@@ -23,9 +23,20 @@ export function pathOfFile(file: string): string {
   return `/${normalized}`
 }
 
+/** A percent-decoded value, or null when the encoding is invalid (`%E0%A4%A`), where decodeURIComponent throws. */
+export function safeDecode(value: string): string | null {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return null
+  }
+}
+
 /** The file that serves a site path, following nginx's try_files ($uri, $uri/index.html, $uri.html). */
 export function resolvePath(path: string, files: ReadonlySet<string>): string | null {
-  const clean = decodeURIComponent(path).replace(/^\/+/, '')
+  const decoded = safeDecode(path)
+  if (decoded === null) return null
+  const clean = decoded.replace(/^\/+/, '')
   const candidates =
     clean === '' || clean.endsWith('/')
       ? [`${clean}index.html`]
@@ -57,8 +68,11 @@ export function checkLinks(files: ReadonlyMap<string, string>, siteOrigin: strin
         broken.push({ page: pagePath, href: raw, reason: 'missing-page' })
         continue
       }
-      const anchor = decodeURIComponent(url.hash.slice(1))
-      if (anchor !== '' && target.endsWith('.html') && !extractIds(orEmpty(files.get(target))).has(anchor)) {
+      const anchor = safeDecode(url.hash.slice(1))
+      if (
+        anchor === null ||
+        (anchor !== '' && target.endsWith('.html') && !extractIds(orEmpty(files.get(target))).has(anchor))
+      ) {
         broken.push({ page: pagePath, href: raw, reason: 'missing-anchor' })
       }
     }
