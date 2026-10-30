@@ -1,7 +1,7 @@
 'use client'
 
 import { useId, useSyncExternalStore } from 'react'
-import { applyTheme, parseTheme, readTheme, themes, type Theme } from '@/lib/theme'
+import { applyTheme, browserStorage, parseTheme, readTheme, themes, type Theme } from '@/lib/theme'
 import type { Messages } from '@/i18n'
 
 const THEME_EVENT = 'ostrom-theme-change'
@@ -15,7 +15,7 @@ function subscribe(onChange: () => void): () => void {
   }
 }
 
-const currentTheme = (): Theme => readTheme(window.localStorage)
+const currentTheme = (): Theme => readTheme(browserStorage)
 const serverTheme = (): Theme => 'system'
 
 interface ThemeSelectProps {
@@ -33,7 +33,7 @@ export function ThemeSelect({ labels }: ThemeSelectProps): React.JSX.Element {
         id={id}
         value={theme}
         onChange={(event) => {
-          applyTheme(document.documentElement, window.localStorage, parseTheme(event.target.value))
+          applyTheme(document.documentElement, browserStorage, parseTheme(event.target.value))
           window.dispatchEvent(new Event(THEME_EVENT))
         }}
       >
