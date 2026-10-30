@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { PostHog } from 'posthog-js'
 import type { Mock } from 'vitest'
 import {

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // The local twin of docker/nginx.conf, for Playwright and Lighthouse runs without Docker.
 import { resolvePath } from './links.ts'
 

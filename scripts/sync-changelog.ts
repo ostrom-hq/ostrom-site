@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // Usage: node scripts/sync-changelog.ts — reads the releases of every Ostrom repository with the GitHub CLI and writes
 // content/changelog/releases.json. Run at each release; the site never calls GitHub at build or at request time.
 import { execFileSync } from 'node:child_process'

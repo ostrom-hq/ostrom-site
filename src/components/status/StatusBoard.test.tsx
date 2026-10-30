@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { render, screen, waitFor } from '@testing-library/react'
 import { en } from '@/i18n/en'
 import type { Fetcher } from '@/lib/status'

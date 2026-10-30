@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import {
   CONSENT_EVENT,
   CONSENT_KEY,

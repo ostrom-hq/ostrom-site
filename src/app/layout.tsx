@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import type { Metadata, Viewport } from 'next'
 import { ConsentManager, CookieSettingsButton } from '@/components/consent/ConsentManager'
 import { SiteFooter } from '@/components/layout/SiteFooter'
