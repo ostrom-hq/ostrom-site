@@ -10,3 +10,5 @@ content/changelog/releases.json
 content/docs
 docs-tools
 lighthouse-reports
+# Owned by BENCH-PUBLIC, written by hand (wide tables).
+docs/
