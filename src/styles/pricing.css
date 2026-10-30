@@ -6,14 +6,33 @@
 .pricing {
     margin-top: var(--space-7);
 }
+.interval {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+/* A floated legend takes part in the flex row like any other child, visible next to the switch. */
+.interval__legend {
+    float: left;
+    padding: 0;
+    font-weight: 650;
+    font-size: var(--fs-14);
+}
 .segmented {
     display: inline-flex;
     gap: var(--space-1);
     padding: var(--space-1);
-    margin: 0 0 var(--space-6);
     border: 1px solid var(--border);
     border-radius: var(--radius-pill);
     background: var(--surface);
+}
+.segmented .badge {
+    white-space: nowrap;
 }
 .segmented__option {
     position: relative;
@@ -106,9 +125,28 @@
     font-weight: 800;
     font-size: var(--fs-40);
     line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+/* Both intervals' prices take the same box (PB-PR6): same amount width (tabular figures), same unit, and the billing
+   line keeps room for two lines, so switching moves nothing. */
+.plan__pricebox {
+    margin-bottom: var(--space-4);
 }
 .plan__billing {
-    margin: var(--space-2) 0 var(--space-4);
+    margin: var(--space-2) 0 0;
+    min-height: 2lh;
+}
+.plan__currency {
+    margin: 0;
+}
+.plan__actions {
+    display: grid;
+}
+/* The switch, without a script: yearly is checked in the HTML; the unchecked interval's prices and links are not
+   rendered (display: none, so a screen reader reads one price and one link). */
+.pricing:not(:has(#interval-monthly:checked)) [data-interval='monthly'],
+.pricing:has(#interval-monthly:checked) [data-interval='yearly'] {
+    display: none;
 }
 .plan__features {
     list-style: none;
@@ -134,8 +172,36 @@
 .pricing-note {
     margin-top: var(--space-6);
 }
+/* The plan names stay in view under the site header (64 px and its border) while the table scrolls (PB-PR3). On narrow
+   screens the table scrolls sideways in its frame, where a sticky header could not follow the page. */
+@media (min-width: 900px) {
+    .compare-wrap {
+        overflow: visible;
+    }
+    .compare thead th {
+        position: sticky;
+        top: 65px;
+        z-index: 1;
+    }
+}
 .compare th[scope='col'] {
     white-space: nowrap;
+}
+.compare__group th {
+    background: var(--surface);
+    font-size: var(--fs-12);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.compare__label {
+    display: block;
+}
+.compare__detail {
+    display: block;
+    margin-top: var(--space-1);
+    font-weight: 400;
+    font-size: var(--fs-12);
+    color: var(--text-muted);
 }
 .compare__mark {
     color: var(--text-muted);

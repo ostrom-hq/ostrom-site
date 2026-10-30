@@ -8,9 +8,13 @@ const config = readSiteConfig({ NEXT_PUBLIC_APP_URL: 'https://app.example.test',
 describe('navigation', () => {
   it('opens the console sign-up, with the plan and interval when given', () => {
     expect(signupUrl(config)).toBe('https://app.example.test/signup')
-    expect(signupUrl(config, { plan: 'team', interval: 'year' })).toBe(
-      'https://app.example.test/signup?plan=team&interval=year',
+    expect(signupUrl(config, { plan: 'team', interval: 'yearly' })).toBe(
+      'https://app.example.test/signup?plan=team&interval=yearly',
     )
+    expect(signupUrl(config, { plan: 'business', interval: 'monthly' })).toBe(
+      'https://app.example.test/signup?plan=business&interval=monthly',
+    )
+    expect(signupUrl(config, { plan: 'free' })).toBe('https://app.example.test/signup?plan=free')
   })
 
   it('opens the console sign-in', () => {

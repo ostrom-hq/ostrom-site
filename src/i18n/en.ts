@@ -220,12 +220,14 @@ export const en = {
     intervalLabel: 'Billing',
     monthly: 'Monthly',
     yearly: 'Yearly',
-    yearlySave: '−20%',
+    yearlySave: '−20 %',
     perPerson: 'per active person / month',
     billedYearly: 'billed yearly, {amount} per person',
+    billedMonthly: 'billed monthly',
+    currency: 'USD, excl. tax',
     free: 'free',
-    custom: 'Custom',
-    popular: 'Most teams start here',
+    custom: 'On request',
+    popular: 'Recommended',
     plans: {
       free: {
         name: 'Free',
@@ -244,7 +246,7 @@ export const en = {
         tagline: 'Your rules and approvals, for one team.',
         cta: 'Start with Team',
         features: [
-          'Everything in Free',
+          'Everything in Free, plus…',
           'As many people as you need',
           '5 cloud agents per paid person',
           '100 agent hours per paid person, pooled',
@@ -256,7 +258,7 @@ export const en = {
         tagline: 'Several teams, shared budgets, audits.',
         cta: 'Start with Business',
         features: [
-          'Everything in Team',
+          'Everything in Team, plus…',
           'Single sign-on: OIDC and SAML',
           'Organization policies',
           '150 agent hours per paid person, pooled',
@@ -268,7 +270,7 @@ export const en = {
         tagline: 'On your servers, on your terms.',
         cta: 'Talk to us',
         features: [
-          'Everything in Business',
+          'Everything in Business, plus…',
           'Self-hosted, unlocked by an enterprise key',
           'No limit on agents or hours',
           'Receipts kept as long as you need',
@@ -286,22 +288,94 @@ export const en = {
       feature: 'Feature',
       yes: 'Included',
       no: 'Not included',
-      rows: [
-        { label: 'People', values: ['Up to 5', 'Unlimited', 'Unlimited', 'Unlimited'] },
+      // PB-PR3: grouped by See / Steer / Prove / Security and admin / Support, one line under each row name, and a
+      // value in every cell ('yes' is a tick, 'no' a dash).
+      groups: [
         {
-          label: 'Cloud agents at a time',
-          values: ['5', '5 per paid person', '5 per paid person, 10 minimum', 'Unlimited'],
+          name: 'See',
+          rows: [
+            {
+              label: 'Cloud agents at a time',
+              detail: 'Agents your team runs in the cloud at the same time.',
+              values: ['5', '5 per paid person', '5 per paid person, 10 minimum', 'Unlimited'],
+            },
+            {
+              label: 'Agent hours a month',
+              detail: 'Cloud time for your agents, pooled across the organization.',
+              values: ['300', '100 per paid person', '150 per paid person, 600 minimum', 'Unlimited'],
+            },
+            {
+              label: 'Bring your own models',
+              detail: 'Your model keys or your developers’ subscriptions; your provider bills the inference.',
+              values: ['yes', 'yes', 'yes', 'yes'],
+            },
+          ],
         },
         {
-          label: 'Agent hours a month',
-          values: ['300', '100 per paid person', '150 per paid person, 600 minimum', 'Unlimited'],
+          name: 'Steer',
+          rows: [
+            {
+              label: 'Rules and approvals',
+              detail: 'Your rules enforced by the server, and a person’s yes where it matters.',
+              values: ['yes', 'yes', 'yes', 'yes'],
+            },
+            {
+              label: 'Organization policies',
+              detail: 'Rules set once for every team of the organization.',
+              values: ['no', 'no', 'yes', 'yes'],
+            },
+          ],
         },
-        { label: 'Bring your own models', values: ['yes', 'yes', 'yes', 'yes'] },
-        { label: 'Rules, approvals, signed receipts', values: ['yes', 'yes', 'yes', 'yes'] },
-        { label: 'Receipt retention', values: ['30 days', '90 days', '1 year', 'Your choice'] },
-        { label: 'Single sign-on (OIDC, SAML)', values: ['no', 'no', 'yes', 'yes'] },
-        { label: 'Organization policies', values: ['no', 'no', 'yes', 'yes'] },
-        { label: 'Self-hosting with an enterprise key', values: ['no', 'no', 'no', 'yes'] },
+        {
+          name: 'Prove',
+          rows: [
+            {
+              label: 'Signed receipts',
+              detail: 'What the agent was told, the rules it followed, who said yes.',
+              values: ['yes', 'yes', 'yes', 'yes'],
+            },
+            {
+              label: 'Receipt retention',
+              detail: 'How long receipts stay in Ostrom Cloud.',
+              values: ['30 days', '90 days', '1 year', 'Your choice'],
+            },
+          ],
+        },
+        {
+          name: 'Security and admin',
+          rows: [
+            {
+              label: 'People',
+              detail: 'Everyone who launches an agent or answers an approval.',
+              values: ['Up to 5', 'Unlimited', 'Unlimited', 'Unlimited'],
+            },
+            {
+              label: 'Single sign-on (OIDC, SAML)',
+              detail: 'Sign in through your identity provider.',
+              values: ['no', 'no', 'yes', 'yes'],
+            },
+            {
+              label: 'Self-hosting with an enterprise key',
+              detail: 'Ostrom on your servers, with the enterprise features unlocked.',
+              values: ['no', 'no', 'no', 'yes'],
+            },
+          ],
+        },
+        {
+          name: 'Support',
+          rows: [
+            {
+              label: 'Help',
+              detail: 'Where you get answers when you are stuck.',
+              values: [
+                'Docs and community',
+                'From the team, in the console',
+                'From the team, in the console',
+                'On your terms',
+              ],
+            },
+          ],
+        },
       ],
     },
     faq: {
