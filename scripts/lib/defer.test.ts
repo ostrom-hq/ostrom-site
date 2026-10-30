@@ -55,6 +55,8 @@ interface Added {
 }
 
 interface Run {
+  readonly root: HTMLElement
+  readonly documentListeners: Map<string, (event: Event) => void>
   readonly added: Added[]
   readonly listeners: Listener[]
   readonly idle: (() => void)[]
@@ -68,17 +70,29 @@ function run(readyState: string, withIdle: boolean): Run {
   const idle: (() => void)[] = []
   const timers: (() => void)[] = []
   const body = { appendChild: (element: Added) => added.push(element) }
-  const document = { readyState, body, createElement: () => ({ src: '', async: true }) }
-  const window = {
+  const root = window.document.createElement('div')
+  const documentListeners = new Map<string, (event: Event) => void>()
+  const document = {
+    readyState,
+    body,
+    documentElement: root,
+    createElement: () => ({ src: '', async: true }),
+    addEventListener: (type: string, listener: (event: Event) => void) =>
+      documentListeners.set(type, listener),
+  }
+  const fakeWindow = {
     addEventListener: (type: string, listener: () => void) => listeners.push({ type, run: listener }),
     ...(withIdle ? { requestIdleCallback: (callback: () => void) => idle.push(callback) } : {}),
   }
   runInNewContext(loader(['/_next/a.js', '/_next/b.js']), {
     document,
-    window,
+    window: fakeWindow,
     setTimeout: (callback: () => void) => timers.push(callback),
+    MutationObserver: window.MutationObserver,
+    Event: window.Event,
+    Object,
   })
-  return { added, listeners, idle, timers }
+  return { root, documentListeners, added, listeners, idle, timers }
 }
 
 describe('loader', () => {
@@ -112,5 +126,73 @@ describe('loader', () => {
     const { added, timers } = run('complete', false)
     timers[0]?.()
     expect(added).toHaveLength(2)
+  })
+
+  it('holds a button pressed before the runtime, and presses it again once React runs the page', async () => {
+    const { root, documentListeners, added } = run('loading', true)
+    const button = window.document.createElement('button')
+    const inner = window.document.createElement('span')
+    button.append(inner)
+    window.document.body.append(button)
+    const pressed = vi.fn()
+    const early = new MouseEvent('click', { bubbles: true, cancelable: true })
+    Object.defineProperty(early, 'target', { value: inner })
+    documentListeners.get('click')?.(early)
+    expect(early.defaultPrevented).toBe(true)
+    expect(added).toHaveLength(2)
+    button.addEventListener('click', pressed)
+    root.setAttribute('data-runtime', 'ready')
+    await Promise.resolve()
+    expect(pressed).toHaveBeenCalledTimes(1)
+    // Once React runs, a press goes straight through.
+    const later = new MouseEvent('click', { bubbles: true, cancelable: true })
+    Object.defineProperty(later, 'target', { value: button })
+    documentListeners.get('click')?.(later)
+    expect(later.defaultPrevented).toBe(false)
+    button.remove()
+  })
+
+  it('leaves links, disabled buttons and other targets alone', () => {
+    const { documentListeners } = run('loading', true)
+    const link = window.document.createElement('a')
+    const disabled = window.document.createElement('button')
+    disabled.disabled = true
+    for (const target of [link, disabled, null, {}]) {
+      const event = new MouseEvent('click', { cancelable: true })
+      Object.defineProperty(event, 'target', { value: target })
+      documentListeners.get('click')?.(event)
+      expect(event.defaultPrevented).toBe(false)
+    }
+  })
+
+  it('sets a select changed before the runtime again, and announces it once React runs the page', async () => {
+    const { root, documentListeners } = run('loading', true)
+    const select = window.document.createElement('select')
+    for (const value of ['system', 'dark']) select.append(new Option(value, value))
+    window.document.body.append(select)
+    select.value = 'dark'
+    const early = new Event('change')
+    Object.defineProperty(early, 'target', { value: select })
+    documentListeners.get('change')?.(early)
+    const other = new Event('change')
+    Object.defineProperty(other, 'target', { value: window.document.createElement('input') })
+    documentListeners.get('change')?.(other)
+    select.value = 'system'
+    const changed = vi.fn()
+    select.addEventListener('change', changed)
+    root.setAttribute('data-runtime', 'ready')
+    await Promise.resolve()
+    expect(select.value).toBe('dark')
+    expect(changed).toHaveBeenCalledTimes(1)
+    select.remove()
+  })
+
+  it('plays nothing when nothing was held, and waits for the ready mark', async () => {
+    const { root } = run('loading', true)
+    root.setAttribute('data-runtime', 'loading')
+    await Promise.resolve()
+    root.setAttribute('data-runtime', 'ready')
+    await Promise.resolve()
+    expect(root.getAttribute('data-runtime')).toBe('ready')
   })
 })
