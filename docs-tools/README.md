@@ -23,6 +23,28 @@ Plain Markdown. No import, no JSX component.
 - `status` is `available`, `partial` (some sections are Coming soon) or `coming-soon`.
 - Prose cannot hold `<`, `{` or `}`: MDX would read them as JSX. Put them in `code`.
 - Links between pages are absolute: `[receipts](/docs/receipts)`. The lint fails on a link to a missing page.
+- Callouts are GitHub alerts, of three kinds only: `> [!NOTE]`, `> [!WARNING]` and `> [!CAUTION]` (shown as Note,
+  Warning and Danger). The marker stands alone on its line; the text follows on `> ` lines.
+- Each folder has a `meta.json` that lists every page and subfolder in sidebar order. A `"---Concepts---"` entry is
+  a group heading, not a page.
+
+## Tabs
+
+A choice the reader makes (operating system, agent) is a tab set: consecutive code blocks with the same `group` and
+their own `tab`. The site shows them as tabs and remembers the choice across pages; GitHub shows them as plain blocks.
+
+````md notest="shape of a tab set"
+```sh tab="macOS" group="os" notest="example"
+uname -s   # Darwin
+```
+
+```sh tab="Linux" group="os" notest="example"
+uname -s   # Linux
+```
+````
+
+Only blank lines may separate the blocks of one set; a set has at least two blocks, and each `tab` once. The tabs are
+alternatives and CI runs on one machine, so at most one block of a set is `test`; the others say `notest="why"`.
 
 ## Every code block is tested or says why not
 
@@ -35,6 +57,8 @@ Each fenced block carries exactly one of these:
 | `text output` | compares it with what the previous `test` block printed |
 | `json file="receipt.json"` | writes it to that file, for the blocks after it |
 | `text notest="why"` | nothing: the reason is required |
+
+Shell blocks (`sh`, `bash`, `shell`, `zsh`, `console`) have no `$` prompt: the copy button gives exactly what the block holds, and CI runs it as written.
 
 Blocks run in order, in one fresh empty folder per page (a temporary folder, not the page's own folder), so a page reads
 like a script: a file block, a command, its output. A block sees only the files the blocks before it wrote.
