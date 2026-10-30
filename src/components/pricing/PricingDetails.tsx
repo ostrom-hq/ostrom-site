@@ -37,7 +37,8 @@ export function ComparePlans({ copy }: CompareProps): React.JSX.Element {
     <section className="section" aria-labelledby="compare-title">
       <div className="container">
         <h2 id="compare-title">{copy.compare.title}</h2>
-        <div className="table-wrap compare-wrap">
+        {/* On a narrow screen the table scrolls sideways: the region takes the focus so a keyboard can scroll it. */}
+        <div className="table-wrap compare-wrap" role="region" aria-labelledby="compare-title" tabIndex={0}>
           <table className="compare">
             <thead>
               <tr>
