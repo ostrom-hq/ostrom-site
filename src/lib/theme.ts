@@ -14,6 +14,20 @@ export interface ThemeStorage {
   removeItem(key: string): void
 }
 
+/**
+ * `localStorage`, reached at each call: in a blocked context (Safari without cookies, a sandboxed frame) even reading
+ * `window.localStorage` throws, and the calls above already catch that.
+ */
+export const browserStorage: ThemeStorage = {
+  getItem: (key) => window.localStorage.getItem(key),
+  setItem: (key, value) => {
+    window.localStorage.setItem(key, value)
+  },
+  removeItem: (key) => {
+    window.localStorage.removeItem(key)
+  },
+}
+
 export function readTheme(storage: ThemeStorage): Theme {
   try {
     return parseTheme(storage.getItem(THEME_STORAGE_KEY))

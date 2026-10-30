@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Iris } from '@/components/brand/Iris'
 import type { Messages } from '@/i18n'
 
@@ -14,6 +14,18 @@ interface ApprovalSceneProps {
 export function ApprovalScene({ labels }: ApprovalSceneProps): React.JSX.Element {
   const [decision, setDecision] = useState<Decision>('waiting')
   const decided = decision !== 'waiting'
+  // The clicked button leaves the page: the focus goes to the button that replaces it, never back to the top.
+  const moveFocus = useRef(false)
+  const decide = (next: Decision): void => {
+    moveFocus.current = true
+    setDecision(next)
+  }
+  const takeFocus = (node: HTMLButtonElement | null): void => {
+    if (node !== null && moveFocus.current) {
+      moveFocus.current = false
+      node.focus()
+    }
+  }
 
   return (
     <section className="approval" aria-labelledby="approval-title" data-decision={decision}>
@@ -53,8 +65,9 @@ export function ApprovalScene({ labels }: ApprovalSceneProps): React.JSX.Element
             <button
               type="button"
               className="button button--small"
+              ref={takeFocus}
               onClick={() => {
-                setDecision('waiting')
+                decide('waiting')
               }}
             >
               {labels.undo}
@@ -65,8 +78,9 @@ export function ApprovalScene({ labels }: ApprovalSceneProps): React.JSX.Element
             <button
               type="button"
               className="button button--signal"
+              ref={takeFocus}
               onClick={() => {
-                setDecision('approved')
+                decide('approved')
               }}
             >
               {labels.approve}
@@ -75,7 +89,7 @@ export function ApprovalScene({ labels }: ApprovalSceneProps): React.JSX.Element
               type="button"
               className="button"
               onClick={() => {
-                setDecision('declined')
+                decide('declined')
               }}
             >
               {labels.sendBack}

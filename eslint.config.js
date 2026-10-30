@@ -16,6 +16,7 @@ export default tseslint.config(
       'playwright-report/**',
       'test-results/**',
       '.lighthouseci/**',
+      'lighthouse-reports/**',
       // Owned by the DOCS agent: page code blocks are tested byte for byte, docs-tools has its own CI.
       'content/docs/**',
       'docs-tools/**',
@@ -77,8 +78,20 @@ export default tseslint.config(
     rules: { 'no-console': 'off' },
   },
   {
+    // Plain JavaScript config files: no types to check (keep the parser options that turn the project service off).
     files: ['*.config.js', '*.config.mjs', 'lighthouserc.cjs'],
     ...tseslint.configs.disableTypeChecked,
-    languageOptions: { globals: { ...globals.node } },
+    languageOptions: { ...tseslint.configs.disableTypeChecked.languageOptions, globals: { ...globals.node } },
+    rules: {
+      ...tseslint.configs.disableTypeChecked.rules,
+      // JavaScript has no return type to write.
+      '@typescript-eslint/explicit-function-return-type': 'off',
+    },
+  },
+  {
+    // Lighthouse CI reads its configuration as CommonJS.
+    files: ['lighthouserc.cjs'],
+    languageOptions: { sourceType: 'commonjs' },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
   },
 )
