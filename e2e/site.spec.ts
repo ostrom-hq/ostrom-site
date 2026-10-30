@@ -75,7 +75,7 @@ test('every script runs under the Content-Security-Policy, without a violation',
       const seen: unknown = Reflect.get(window, 'cspViolations')
       return seen
     })
-  for (const path of ['/', '/pricing/', '/security/', '/status/']) {
+  for (const path of ['/', '/pricing/', '/security/', '/status/', '/docs/', '/docs/quickstart/']) {
     await page.goto(path)
     await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveAttribute(
       'content',

@@ -22,6 +22,10 @@ export default tseslint.config(
       'content/docs/**',
       'docs-tools/**',
       '**/*.d.ts',
+      // JavaScript config files are outside the TypeScript project (allowJs is off), so the type-aware parser cannot
+      // read them; the tools that load them (ESLint, Lighthouse CI) fail on any mistake in them.
+      'eslint.config.js',
+      'lighthouserc.cjs',
     ],
   },
   js.configs.recommended,

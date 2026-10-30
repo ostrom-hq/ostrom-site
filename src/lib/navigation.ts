@@ -42,6 +42,7 @@ export function headerLinks(messages: Messages): readonly NavLink[] {
   return [
     internal(messages.nav.product, '/#how-it-works'),
     internal(messages.nav.pricing, '/pricing/'),
+    internal(messages.nav.docs, '/docs/'),
     internal(messages.nav.blog, '/blog/'),
     internal(messages.nav.changelog, '/changelog/'),
   ]
@@ -63,6 +64,8 @@ export function footerColumns(messages: Messages, config: SiteConfig): readonly 
     {
       title: messages.footer.columns.developers,
       links: [
+        internal(links.docs, '/docs/'),
+        internal(links.api, '/docs/api/'),
         internal(links.openSource, '/open-source/'),
         ...(config.launched ? [external(links.github, config.githubUrl)] : []),
       ],

@@ -103,6 +103,7 @@ describe('robots and sitemap', () => {
     const entries = sitemap()
     expect(entries[0]?.url).toBe('https://ostrom.run/')
     expect(entries.every((entry) => entry.url.startsWith('https://ostrom.run/'))).toBe(true)
+    expect(entries.map((entry) => entry.url)).toContain('https://ostrom.run/docs/api/')
   })
 })
 
