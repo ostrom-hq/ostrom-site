@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Lighthouse CI: every page of the sitemap, against the container on localhost:8080. 95 is the floor in each
-// category; LHCI_PRESET=desktop audits the desktop profile, mobile otherwise. The audited image is built with
+// category; LIGHTHOUSE_PROFILE=desktop audits the desktop profile, mobile otherwise. The audited image is built with
 // NEXT_PUBLIC_LAUNCHED=1: Lighthouse checks the site as it will be once launched (indexable).
 const { readFileSync, existsSync } = require('node:fs')
 const { execSync } = require('node:child_process')
@@ -14,7 +14,7 @@ function sitemapUrls() {
   )
 }
 
-const desktop = process.env.LHCI_PRESET === 'desktop'
+const desktop = process.env.LIGHTHOUSE_PROFILE === 'desktop'
 const floor = ['error', { minScore: 0.95 }]
 
 module.exports = {
@@ -32,11 +32,9 @@ module.exports = {
         'categories:accessibility': floor,
         'categories:best-practices': floor,
         'categories:seo': floor,
-        // Budgets of the public bar (PB-P1). LCP: 1.8 s on desktop. Mobile: the bar says 2.5 s; on the CI runner the
-        // landing measures 2.58 to 2.66 s (median of three; the heading is painted at 0.25 s, the simulation charges
-        // Next.js's runtime before it). 2.7 s until that runtime is cut (provisional, 30/10/2026); the 95 floor of each
-        // category does not move.
-        'largest-contentful-paint': ['error', { maxNumericValue: desktop ? 1800 : 2700 }],
+        // Budgets of the public bar (PB-P1): LCP 1.8 s on desktop, 2.5 s (Core Web Vitals "good") on the throttled
+        // mobile profile.
+        'largest-contentful-paint': ['error', { maxNumericValue: desktop ? 1800 : 2500 }],
         'cumulative-layout-shift': ['error', { maxNumericValue: 0.01 }],
         'total-byte-weight': ['error', { maxNumericValue: 600000 }],
       },
