@@ -6,12 +6,12 @@ const before = readSiteConfig({})
 const after = readSiteConfig({ NEXT_PUBLIC_LAUNCHED: '1' })
 
 describe('seo', () => {
-  it('closes robots.txt before the launch and opens it after', () => {
-    expect(robotsFor(before)).toEqual({
-      rules: { userAgent: '*', disallow: '/' },
+  it('lets crawlers read the noindex before the launch, and announces the sitemap after', () => {
+    expect(robotsFor(before)).toEqual({ rules: { userAgent: '*', allow: '/' } })
+    expect(robotsFor(after)).toEqual({
+      rules: { userAgent: '*', allow: '/' },
       sitemap: 'https://ostrom.run/sitemap.xml',
     })
-    expect(robotsFor(after).rules).toEqual({ userAgent: '*', allow: '/' })
   })
 
   it('marks every page noindex until the launch', () => {

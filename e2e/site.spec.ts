@@ -33,9 +33,9 @@ test('robots.txt and the sitemap are published', async ({ request }) => {
   const robots = await request.get('/robots.txt')
   expect(robots.ok()).toBe(true)
   const rules = await robots.text()
-  expect(rules).toContain('Sitemap: https://ostrom.run/sitemap.xml')
-  // Before Lyes's go (NEXT_PUBLIC_LAUNCHED unset), nothing is indexed.
-  expect(rules).toContain('Disallow: /')
+  // Before Lyes's go (NEXT_PUBLIC_LAUNCHED unset): crawlable, so the noindex is read, and no sitemap announced.
+  expect(rules).toContain('Allow: /')
+  expect(rules).not.toContain('Sitemap:')
   const sitemap = await request.get('/sitemap.xml')
   expect(sitemap.ok()).toBe(true)
   expect(await sitemap.text()).toContain('<loc>https://ostrom.run/</loc>')

@@ -53,7 +53,8 @@ describe('checkLinks', () => {
     const files = new Map([
       [
         'index.html',
-        '<a href="/blog/">b</a><a href="/pricing/#nope">p</a><a href="https://ostrom.run/gone">abs</a>',
+        '<a href="/blog/">b</a><a href="/pricing/#nope">p</a><a href="https://ostrom.run/gone">abs</a>' +
+          '<a href="/%E0%A4%A">bad path</a><a href="/pricing/#%E0%A4%A">bad anchor</a>',
       ],
       ['pricing/index.html', '<section id="plans"></section>'],
     ])
@@ -61,6 +62,8 @@ describe('checkLinks', () => {
       { page: '/', href: '/blog/', reason: 'missing-page' },
       { page: '/', href: '/pricing/#nope', reason: 'missing-anchor' },
       { page: '/', href: 'https://ostrom.run/gone', reason: 'missing-page' },
+      { page: '/', href: '/%E0%A4%A', reason: 'missing-page' },
+      { page: '/', href: '/pricing/#%E0%A4%A', reason: 'missing-anchor' },
     ])
   })
 
