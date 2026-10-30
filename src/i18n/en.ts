@@ -410,6 +410,14 @@ export const en = {
       ],
     },
   },
+  consent: {
+    title: 'Cookie choice',
+    body: 'May we measure how this site is used, with PostHog (EU), to improve it? Nothing is measured unless you accept.',
+    policy: 'Cookie policy',
+    accept: 'Accept',
+    refuse: 'Refuse',
+    settings: 'Cookie settings',
+  },
   pages: {
     draftBanner: 'Draft, to be validated (à valider). This text is not in force yet.',
     updated: 'Last updated {date}',

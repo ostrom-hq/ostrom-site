@@ -195,3 +195,57 @@
     color: var(--text);
     font: inherit;
 }
+
+/* Cookie banner: bottom of the screen, the two answers side by side and equally visible. */
+.consent {
+    position: fixed;
+    inset: auto var(--space-4) var(--space-4);
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+}
+/* Room for the banner while it is shown: the end of the page and the focused element stay above it. */
+html[data-consent='open'] {
+    scroll-padding-bottom: calc(var(--consent-height, 0px) + var(--space-6));
+}
+html[data-consent='open'] body {
+    padding-bottom: calc(var(--consent-height, 0px) + var(--space-6));
+}
+.consent:focus-visible {
+    outline: none;
+}
+.consent:focus-visible .consent__inner {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+.consent__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+    max-width: 760px;
+    padding: var(--space-4) var(--space-5);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgb(0 0 0 / 0.12);
+}
+.consent__text {
+    flex: 1 1 320px;
+    margin: 0;
+    font-size: var(--fs-14);
+}
+.consent__actions {
+    display: flex;
+    gap: var(--space-3);
+}
+.link-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--signal-text);
+    font: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+    cursor: pointer;
+}
