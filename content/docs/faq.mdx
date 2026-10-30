@@ -19,3 +19,14 @@ Yes. The receipt format is open, and a complete verifier is a short script with 
 ## Why is a page marked Coming soon?
 
 These docs describe only released code. A page marked Coming soon covers a part that is not released yet; it is written when the code ships.
+
+## Does the `ostrom` command send usage statistics?
+
+Not unless you turn them on. They are off by default, and `ostrom telemetry` says whether they are on and what they contain. When on, each command sends its name, whether it succeeded, a duration range, the operating system, the architecture and the version, with a random id of the install. Never arguments, paths, repositories, code or your account.
+
+| Command or variable | Effect |
+|---|---|
+| `ostrom telemetry enable` | turns them on |
+| `ostrom telemetry disable` | turns them off and deletes the install id |
+| `OSTROM_TELEMETRY=0` (or `false`, `off`, `no`) | off, whatever the setting |
+| `DO_NOT_TRACK` set to anything but `0` | off, whatever the setting |

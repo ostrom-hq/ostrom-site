@@ -26,3 +26,15 @@ You need the receipt and the public key of the instance that signed it. The chec
 
 - By hand, with a short script: [receipt format v1](/docs/receipts/format#verify-a-receipt-yourself) gives a complete verifier and the rules it follows.
 - With `ostrom verify`: Coming soon, with the CLI.
+
+## Get the instance's public key
+
+Every instance publishes the keys it signs with, without sign-in, at `GET /api/v1/instance/keys`. Replace `ostrom.example.com` with your instance:
+
+```sh notest="needs a running Ostrom server"
+curl -s https://ostrom.example.com/api/v1/instance/keys
+```
+
+The answer lists every key the instance has used, oldest first. Each key has a `keyId`, the `kid` a receipt names; an `algorithm`, `ed25519`; the public key itself in `publicKeyPem`, in PEM (SPKI) form, the form the verifier takes; and `firstSeenAt`, when the instance first used it. Keep the key of the `kid` your receipt names. `GET /api/v1/instance` gives the key the instance signs with now, under `signingKey`.
+
+Fetch the key once, from a source you trust, and keep it: a key fetched again at the moment you check a receipt only proves what the server says at that moment. See [security](/docs/security).

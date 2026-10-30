@@ -19,4 +19,26 @@ A verifier following [receipt format v1](/docs/receipts/format#verify-a-receipt-
 | digest mismatch | the content changed after signing | the receipt was edited, or a tool rewrote it: reformatting is fine, but a dropped field, a changed value or a re-encoded number is not |
 | bad signature | the content matches its digest, but the signature does not match the key | the digest was forged too: treat the receipt as false |
 
-Other errors are Coming soon, with the CLI and the server.
+## Exit codes of `ostrom`
+
+Every `ostrom` command ends with one of these codes, so a script or an agent can tell a refusal from a failure. Once `ostrom claude` or `ostrom codex` has started the agent, it ends with the agent's own code.
+
+| Code | What it means | What to do |
+|---|---|---|
+| 0 | done | nothing |
+| 1 | the check you asked for failed: `ostrom doctor` found a ✗, `ostrom config get` found no value | read the message above the code |
+| 2 | incomplete, cancelled, or a no | nothing to fix: the answer was no |
+| 64 | bad usage: an unknown option, a value `ostrom config set` refuses, two different models named | run the command with `--help` |
+| 65 | sign-in required | sign in to your Ostrom server (Coming soon: `ostrom login`) |
+| 66 | not found | check the id or the folder you gave |
+| 69 | the Ostrom server cannot be reached, or did not give what the command needs | check your network and the server URL, then `ostrom doctor` |
+| 70 | the command is declared but not built in this version | its help ends with "(coming soon)"; it will work in a later release |
+| 73 | a local file cannot be written | check the owner and permissions of the folder named, or set `OSTROM_HOME` |
+| 75 | still waiting | try again later |
+| 77 | refused: by your organization's policy, your role, or because you cannot approve your own request | ask an admin of your organization |
+| 78 | a signature or a session package was refused | do not work around it: the package or the instance key is not the one your organization signed |
+| 127 | the agent is not installed | install it from its official page, then start it again |
+
+`ostrom doctor` checks the device in one go: the config folder, the secret store, the server, `git` and the agents installed. It exits with 1 when it finds a problem (✗), and `ostrom doctor --json` gives the same checks for a script.
+
+Other errors of the server are Coming soon, with it.
