@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { expect, test } from '@playwright/test'
+import { expect, test } from './test'
 import { expectAccessible } from './a11y'
 
 test('an unknown page answers 404 with a way home', async ({ page }) => {
