@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-import { expect, test, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import { expect, test } from './test'
 import { expectAccessible } from './a11y'
 
 /** Gives the page an analytics key, as a container with OSTROM_POSTHOG_API_KEY would, and records what reaches PostHog. */
@@ -46,8 +47,17 @@ test.describe('cookie consent', () => {
     await page.goto('/')
     await page.getByRole('button', { name: 'Accept' }).click()
     await expect.poll(() => sent.length).toBeGreaterThan(0)
-    await page.getByRole('button', { name: 'Cookie settings' }).click()
-    await expect(page.getByRole('region', { name: 'Cookie choice' })).toBeVisible()
+    // PostHog keeps its state in local storage: no cookie, here or on the parent domain.
+    expect((await page.context().cookies()).filter((cookie) => cookie.name.startsWith('ph_'))).toEqual([])
+    const settings = page.getByRole('button', { name: 'Cookie settings' })
+    await settings.click()
+    const banner = page.getByRole('region', { name: 'Cookie choice' })
+    await expect(banner).toBeVisible()
+    await expect(banner).toBeFocused()
+    await banner.getByRole('button', { name: 'Refuse' }).click()
+    await expect(settings).toBeFocused()
+    const keys = await page.evaluate(() => Object.keys(window.localStorage))
+    expect(keys.filter((key) => key.startsWith('ph_') || key.startsWith('__ph_'))).toEqual([])
   })
 })
 

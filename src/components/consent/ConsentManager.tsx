@@ -3,7 +3,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { Messages } from '@/i18n'
 import {
   clearAnalyticsStorage,
@@ -15,7 +15,14 @@ import {
   type AnalyticsConfig,
   type PostHogClient,
 } from '@/lib/analytics'
-import { CONSENT_OPEN_EVENT, readConsent, subscribeConsent, writeConsent, type Consent } from '@/lib/consent'
+import {
+  CONSENT_OPEN_EVENT,
+  consentStorage,
+  readConsent,
+  subscribeConsent,
+  writeConsent,
+  type Consent,
+} from '@/lib/consent'
 
 interface ConsentManagerProps {
   readonly labels: Messages['consent']
@@ -31,7 +38,7 @@ const defaultLoadClient = async (): Promise<PostHogClient> => (await import('pos
 
 /** Before hydration nothing is known: no banner is rendered on the server, and no page view is announced twice. */
 type KnownConsent = Consent | 'pending'
-const currentConsent = (): KnownConsent => readConsent(window.localStorage)
+const currentConsent = (): KnownConsent => readConsent(consentStorage())
 const serverConsent = (): KnownConsent => 'pending'
 
 /**
@@ -50,6 +57,21 @@ export function ConsentManager({
   const [reopened, setReopened] = useState(false)
   const previous = useRef<KnownConsent>('pending')
   const pathname = usePathname()
+  /** The control that reopened the banner ("Cookie settings"): focus goes back to it after the choice. */
+  const opener = useRef<HTMLElement | null>(null)
+  // While the banner is shown, the page keeps room for it at the bottom, so focus is never hidden behind it
+  // (WCAG 2.4.11). Reopened from "Cookie settings", it takes the focus.
+  const place = useCallback((element: HTMLElement | null): void => {
+    const root = document.documentElement
+    if (element === null) {
+      delete root.dataset['consent']
+      root.style.removeProperty('--consent-height')
+      return
+    }
+    root.dataset['consent'] = 'open'
+    root.style.setProperty('--consent-height', `${String(element.offsetHeight)}px`)
+    if (opener.current !== null) element.focus()
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -60,7 +82,9 @@ export function ConsentManager({
             config,
             loadClient,
             clearStorage: () => {
-              clearAnalyticsStorage(document, window.localStorage)
+              // With storage blocked, PostHog stored nothing there.
+              const storage = consentStorage()
+              if (storage instanceof Storage) clearAnalyticsStorage(document, storage)
             },
           }),
         )
@@ -73,6 +97,7 @@ export function ConsentManager({
 
   useEffect(() => {
     const open = (): void => {
+      opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
       setReopened(true)
     }
     window.addEventListener(CONSENT_OPEN_EVENT, open)
@@ -114,13 +139,19 @@ export function ConsentManager({
     }
   }, [analytics, appUrl])
 
-  if (analytics === null || (consent !== 'unset' && !reopened)) return null
+  const visible = analytics !== null && (consent === 'unset' || reopened)
+
+  if (!visible) return null
   const choose = (accepted: boolean): void => {
     setReopened(false)
-    writeConsent(window.localStorage, accepted)
+    writeConsent(consentStorage(), accepted)
+    // The pressed button goes away with the banner: focus returns to where the visitor was, or to the content.
+    const target = opener.current ?? document.getElementById('main')
+    opener.current = null
+    target?.focus()
   }
   return (
-    <section className="consent" aria-label={labels.title}>
+    <section className="consent" aria-label={labels.title} ref={place} tabIndex={-1}>
       <div className="consent__inner">
         <p className="consent__text">
           {labels.body} <Link href="/legal/cookies/">{labels.policy}</Link>

@@ -3,6 +3,8 @@ import {
   CONSENT_EVENT,
   CONSENT_KEY,
   CONSENT_MAX_AGE_MS,
+  consentStorage,
+  memoryStorage,
   readConsent,
   subscribeConsent,
   writeConsent,
@@ -39,5 +41,23 @@ describe('consent', () => {
     window.dispatchEvent(new Event(CONSENT_EVENT))
     expect(onChange).toHaveBeenCalledTimes(2)
     expect(readConsent(window.localStorage)).toBe('granted')
+  })
+
+  it('keeps the choice for the page when the browser blocks storage', () => {
+    const blocked = (): Storage => {
+      throw new DOMException('The operation is insecure.', 'SecurityError')
+    }
+    const storage = consentStorage(blocked)
+    expect(readConsent(storage)).toBe('unset')
+    writeConsent(storage, false)
+    expect(readConsent(consentStorage(blocked))).toBe('denied')
+    expect(consentStorage()).toBe(window.localStorage)
+  })
+
+  it('remembers values in memory', () => {
+    const storage = memoryStorage()
+    expect(storage.getItem('a')).toBeNull()
+    storage.setItem('a', 'b')
+    expect(storage.getItem('a')).toBe('b')
   })
 })

@@ -14,7 +14,7 @@ ostrom.run uses as little storage as it can. You choose, from the banner shown o
 
 ## Only with your consent
 
-- **PostHog analytics** (cookie `ph_*` and local storage, PostHog EU cloud): which pages are visited and how the site is used, so we can improve it. Kept 12 months. Not used for advertising, never sold.
+- **PostHog analytics** (local storage `ph_*`, no cookie; PostHog EU cloud): which pages are visited and how the site is used, so we can improve it. Kept 12 months. Not used for advertising, never sold.
 
 ## Changing your mind
 
