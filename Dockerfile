@@ -1,7 +1,8 @@
 # ostrom.run as a container: Next.js static export served by unprivileged nginx on port 8080.
 # Build: docker build -t ostrom-site . ; run: docker run -p 8080:8080 ostrom-site ; probe: GET /healthz.
 
-FROM node:24-alpine AS build
+# The export is the same for every architecture: build it once, natively, on the build machine.
+FROM --platform=$BUILDPLATFORM node:24-alpine AS build
 WORKDIR /app
 RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./

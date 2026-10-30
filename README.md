@@ -1,8 +1,71 @@
-# ostrom-site
+<p align="center">
+  <a href="https://ostrom.run">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset=".github/assets/banner-dark.svg">
+      <img alt="Ostrom. Agents propose. Your team decides." src=".github/assets/banner-light.svg" width="100%">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  <strong>Ostrom runs a company's AI coding agents in the cloud and makes them follow the team's rules.</strong><br>
+  Every change they make leaves a receipt, and the few that matter wait for a person's yes.
+</p>
+
+<p align="center">
+  <a href="https://ostrom.run">Website</a> ·
+  <a href="https://ostrom.run/docs">Docs</a> ·
+  <a href="https://github.com/ostrom-hq/ostrom-site/discussions">Discussions</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a> ·
+  <a href="SECURITY.md">Security</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/ostrom-hq/ostrom-site/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/ostrom-hq/ostrom-site/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="CONTRIBUTING.md#tests-the-bar"><img alt="Coverage: 100% enforced" src="https://img.shields.io/badge/coverage-100%25%20enforced-8E1B3A"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-8E1B3A"></a>
+  <a href="CHANGELOG.md"><img alt="Version: pre-1.0" src="https://img.shields.io/badge/version-pre--1.0-44393C"></a>
+</p>
+
+## What this is
 
 The public website of Ostrom, [ostrom.run](https://ostrom.run): the landing page, pricing, docs, blog, changelog,
 security, open source and legal pages. Next.js (App Router) in strict TypeScript, exported as static files and served
 by nginx from a container image. Nothing renders at request time.
+
+## Quick start
+
+```sh
+git clone https://github.com/ostrom-hq/ostrom-site.git && cd ostrom-site
+pnpm install
+pnpm dev                 # http://localhost:3000
+```
+
+## How it fits
+
+```mermaid
+flowchart LR
+  dev(["Developer"]) --> cli["ostrom CLI"]
+  cli -- "launches, under the rules" --> agent[["Coding agent<br/>Claude Code, Codex, ..."]]
+  agent -. "every action, through hooks" .-> cli
+  cli -- "sessions, gate requests" --> server["Ostrom server"]
+  server --- db[("PostgreSQL")]
+  server -- "reads the diff, runs checks" --> gh["GitHub"]
+  server -- "a yes is needed" --> person(["Approver"])
+  person --> web["Web console"] & app["Mobile app"]
+  web & app -- "API" --> server
+  server -- "signed receipt" --> receipt[/"Receipt"/]
+  core{{"ostrom-core<br/>contract, workflow model, receipts"}} -.- cli & server & web & app
+  helm["Helm chart"] -. "deploys" .-> server
+  site["ostrom.run<br/>docs"] -. "documents" .-> cli & server & web
+  classDef here fill:#8E1B3A,stroke:#8E1B3A,color:#FFFFFF
+  class site here
+```
+
+## Status
+
+Ostrom is before its first public release. Until then the site is built with `NEXT_PUBLIC_LAUNCHED` unset: search
+engines are asked not to index it and it links to no repository.
 
 ## Build and test
 
@@ -59,6 +122,25 @@ links) before it is pushed.
 - `scripts/`: build tools (link checker, static server); their logic lives in `scripts/lib/` and is tested.
 - `e2e/`: Playwright specs.
 
+## Repositories
+
+| Repository                                                  | What it is                                                                         | License       |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------- |
+| [ostrom-core](https://github.com/ostrom-hq/ostrom-core)     | Shared Kotlin Multiplatform library: API contract, workflow model, signed receipts | Apache-2.0    |
+| [ostrom-cli](https://github.com/ostrom-hq/ostrom-cli)       | The `ostrom` command line: runs coding agents under the team's rules               | Apache-2.0    |
+| [ostrom-server](https://github.com/ostrom-hq/ostrom-server) | The server: gates, receipts, policies, the API                                     | AGPL-3.0 + ee |
+| [ostrom-web](https://github.com/ostrom-hq/ostrom-web)       | The web console                                                                    | AGPL-3.0 + ee |
+| [ostrom-app](https://github.com/ostrom-hq/ostrom-app)       | The iOS and Android app                                                            | AGPL-3.0 + ee |
+| [ostrom-e2e](https://github.com/ostrom-hq/ostrom-e2e)       | Full-stack end-to-end and load tests                                               | Apache-2.0    |
+| **ostrom-site** (this one)                                  | ostrom.run: website, documentation, blog                                           | Apache-2.0    |
+| [ostrom-helm](https://github.com/ostrom-hq/ostrom-helm)     | Helm chart and Docker Compose for self-hosting                                     | AGPL-3.0      |
+
+## Contributing
+
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) (setup, tests, Conventional Commits, DCO), the
+[Code of Conduct](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md) to report a vulnerability privately. Questions
+go to [Discussions](https://github.com/ostrom-hq/ostrom-site/discussions); help options are in [SUPPORT.md](SUPPORT.md).
+
 ## License
 
-Private until the public launch. The site code follows the product's licensing (to be confirmed by Lyes).
+Apache License 2.0, see [LICENSE](LICENSE) and [NOTICE](NOTICE). You can use it in any project, open source or not.
