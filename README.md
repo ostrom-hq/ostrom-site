@@ -34,6 +34,13 @@ not to index it (a `noindex` meta tag on every page and an `X-Robots-Tag` header
 `robots.txt` stays open so crawlers can read them, and announces the sitemap only after the launch) and links to no repository;
 `1` opens all of it.
 
+## Performance
+
+`pnpm build` ends with `scripts/defer-runtime.ts`: every exported page is complete HTML, and Next.js's runtime (about
+150 kB compressed) starts after the first paint, at the first idle moment after `load` or at the first touch, key
+press or focus. Until then the controls are plain HTML; `<html data-runtime="ready">` marks the moment React runs the
+page, and the end-to-end tests wait for it (`e2e/test.ts`).
+
 ## Image
 
 `main` publishes `ghcr.io/ostrom-hq/ostrom-site:<sha>` and `:main`: the exact image Playwright and Lighthouse tested.
