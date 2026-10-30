@@ -13,7 +13,8 @@ checklist a pull request can be checked against.
   research repository); every claim below that starts with "measured" comes from that run. Links point to the
   live pages, which may have changed since.
 - **What wins when rules disagree.** The locked value proposition (wording, numbers, banned words) first, then
-  the Signal brand (`tokens.css`), then this file. Ostrom's own `CONVENTIONS.md` governs code; this file governs
+  the Signal brand (`tokens.css`), then this file. One exception: on the use of garnet, PB-C2 (decided 30 October
+  2026) wins over the older rule comment at the top of `tokens.css` until the generator changes. Ostrom's own `CONVENTIONS.md` governs code; this file governs
   what the code shows.
 
 The references, chosen by Lyes: Linear, Notion, Stripe (site, docs, changelog), Vercel, Supabase, PostHog,
@@ -130,10 +131,10 @@ The Signal brand sets the faces; the best sites set the discipline.
   On public pages, at most one garnet button per viewport. In the console, one per request: a list of pending
   requests shows one approve button per row. Amber is warning, red is error; garnet is never either. The rule
   comment at the top of `tokens.css` comes from the brand generator (`research/brand/build/tokens.py` in the
-  research repository), whose output each repository copies as it is (ostrom-web today, ostrom-site with its first
-  styles). It still describes the old rule ("the one primary action of a screen"), and until it changes, the decision
-  of 30 October 2026 written here wins over that comment. It changes in the generator first, then in each copy; a
-  hand edit of a copy is overwritten by the next one.
+  research repository), whose output ostrom-web copies byte for byte and ostrom-site copies with its own adaptations
+  (Prettier formatting, the `next/font` variables in the font tokens), kept when it refreshes the copy. It still describes the old rule ("the one primary action of a screen"), and until it changes, PB-C2 wins over that comment
+  (the exception stated at the top of this file). It changes in the generator first, then in each copy; a hand edit of
+  ostrom-web's copy is overwritten by the next one.
 - **PB-C3.** Light and dark are both first class. The default follows the system; a three-way switch (System,
   Light, Dark) sits in the footer (Vercel does this) and is remembered; the stored choice is applied before the
   first paint (inline script in `<head>`, no flash). Linear ships dark only and Stripe light only: Ostrom ships
