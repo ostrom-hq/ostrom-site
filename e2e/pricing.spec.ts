@@ -55,7 +55,7 @@ test.describe('pricing', () => {
     await expect(page.getByTestId('price-team-yearly')).toBeHidden()
     await expect(page.getByRole('link', { name: 'Start with Team' })).toHaveAttribute(
       'href',
-      `${signup}?plan=team&interval=monthly`,
+      `${signup}?plan=team&interval=month`,
     )
     expect(await teamCardBox(page)).toEqual(before)
   })
@@ -70,7 +70,7 @@ test.describe('pricing', () => {
     )
     await page.goto('/pricing/')
     await page.getByRole('link', { name: 'Start with Team' }).click()
-    await expect(page).toHaveURL(`${signup}?plan=team&interval=yearly`)
+    await expect(page).toHaveURL(`${signup}?plan=team&interval=year`)
     await expect(page.getByRole('heading', { name: 'Sign up' })).toBeVisible()
   })
 
@@ -84,7 +84,7 @@ test.describe('pricing', () => {
     )
     await expect(page.getByRole('link', { name: 'Start with Business' })).toHaveAttribute(
       'href',
-      `${signup}?plan=business&interval=yearly`,
+      `${signup}?plan=business&interval=year`,
     )
     await expect(page.getByRole('link', { name: 'Talk to us' })).toHaveAttribute(
       'href',
@@ -116,15 +116,15 @@ test.describe('pricing without JavaScript', () => {
     await expect(page.getByRole('radio', { name: 'Yearly −20 %' })).toBeChecked()
     await expect(page.getByTestId('price-team-yearly')).toBeVisible()
     await expect(page.getByTestId('price-team-monthly')).toBeHidden()
-    await expect(team.locator(`a[href="${signup}?plan=team&interval=yearly"]`)).toBeVisible()
-    await expect(team.locator(`a[href="${signup}?plan=team&interval=monthly"]`)).toBeAttached()
-    await expect(team.locator(`a[href="${signup}?plan=team&interval=monthly"]`)).toBeHidden()
+    await expect(team.locator(`a[href="${signup}?plan=team&interval=year"]`)).toBeVisible()
+    await expect(team.locator(`a[href="${signup}?plan=team&interval=month"]`)).toBeAttached()
+    await expect(team.locator(`a[href="${signup}?plan=team&interval=month"]`)).toBeHidden()
 
     const before = await teamCardBox(page)
     await page.getByRole('radio', { name: 'Monthly' }).check()
     await expect(page.getByTestId('price-team-monthly')).toBeVisible()
     await expect(page.getByTestId('price-team-yearly')).toBeHidden()
-    await expect(team.locator(`a[href="${signup}?plan=team&interval=monthly"]`)).toBeVisible()
+    await expect(team.locator(`a[href="${signup}?plan=team&interval=month"]`)).toBeVisible()
     expect(await teamCardBox(page)).toEqual(before)
   })
 })
