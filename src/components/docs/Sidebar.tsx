@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import Link from 'next/link'
 import type { Messages } from '@/i18n'
+import type { PageStatus } from '@/lib/docs/content'
 import { containsHref, type NavEntry } from '@/lib/docs/navigation'
 import { StatusBadge } from './StatusBadge'
 
@@ -9,6 +10,8 @@ interface TreeProps {
   readonly href: string
   readonly labels: Messages['docs']['status']
   readonly depth: number
+  /** The entries of a section heading: a plain list under it, not a folded folder. */
+  readonly flat?: boolean
 }
 
 function EntryLink({
@@ -22,7 +25,7 @@ function EntryLink({
   readonly title: string
   readonly target: string
   readonly href: string
-  readonly status: NavEntry['status']
+  readonly status: PageStatus
   readonly labels: Messages['docs']['status']
   readonly className: string
 }): React.JSX.Element {
@@ -40,13 +43,22 @@ function EntryLink({
 }
 
 /**
- * The sidebar tree. Top-level folders are sections with a heading (Stripe, Vercel); deeper folders fold, and open by
- * themselves down to the page being read. Plain HTML: no script to open or close a folder.
+ * The sidebar tree. meta.json's separators are section headings (PB-D1), and so are top-level folders outside any
+ * section (Stripe, Vercel); deeper folders fold, and open by themselves down to the page being read. Plain HTML: no
+ * script to open or close a folder.
  */
-export function SidebarTree({ entries, href, labels, depth }: TreeProps): React.JSX.Element {
+export function SidebarTree({ entries, href, labels, depth, flat = false }: TreeProps): React.JSX.Element {
   return (
-    <ul className={depth === 0 ? 'docs-nav__list' : 'docs-nav__list docs-nav__list--nested'}>
+    <ul className={depth === 0 || flat ? 'docs-nav__list' : 'docs-nav__list docs-nav__list--nested'}>
       {entries.map((entry) => {
+        if (entry.kind === 'section') {
+          return (
+            <li key={`section:${entry.title}`} className="docs-nav__section">
+              <span className="docs-nav__heading">{entry.title}</span>
+              <SidebarTree entries={entry.items} href={href} labels={labels} depth={depth + 1} flat />
+            </li>
+          )
+        }
         if (entry.kind === 'link') {
           return (
             <li key={entry.href}>

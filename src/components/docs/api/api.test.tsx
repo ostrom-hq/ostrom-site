@@ -162,16 +162,20 @@ describe('the API pages', () => {
     expect(screen.getByText(labels.notServed)).toBeInTheDocument()
   })
 
-  it('give the overview: base URL, servers, authentication, errors and resources', () => {
-    render(<ApiOverview api={api} messages={en} />)
+  it('give the overview in the site words: base URL, authentication, errors and resources', () => {
+    const { container } = render(<ApiOverview api={api} messages={en} />)
     expect(screen.getByText('Version 9.9.9')).toBeInTheDocument()
-    expect(screen.getByText('fixture')).toBeInTheDocument()
+    expect(screen.getByText(labels.intro)).toBeInTheDocument()
     for (const item of overviewToc(labels))
       expect(screen.getByRole('heading', { name: item.text })).toHaveAttribute('id', item.id)
-    expect(screen.getByText('https://localhost:4317/base')).toBeInTheDocument()
-    expect(screen.getByText('An Ostrom token', { exact: false, selector: 'li' })).toBeInTheDocument()
+    // Neither the contract's description, its servers, nor its scheme descriptions are shown.
+    expect(container).not.toHaveTextContent('fixture')
+    expect(container).not.toHaveTextContent('localhost')
+    expect(container).not.toHaveTextContent('An Ostrom token')
+    expect(screen.getByText('bearer', { selector: 'code' }).parentElement).toHaveTextContent('bearer · http bearer')
+    expect(labels.baseUrlBody).toContain('coming soon')
     expect(screen.getByText('400')).toHaveClass('api-status--4xx')
-    expect(linkTarget(screen.getByRole('link', { name: 'Gates' }))).toBe(linkTarget('/docs/api/gates/'))
+    expect(linkTarget(screen.getByRole('link', { name: 'Approvals' }))).toBe(linkTarget('/docs/api/approvals/'))
     expect(screen.getByText('3 endpoints')).toBeInTheDocument()
   })
 
@@ -185,13 +189,12 @@ describe('the API pages', () => {
       TEST_API_URL,
     )
     const { container } = render(<ApiOverview api={bare} messages={en} />)
-    expect(screen.queryByText(labels.servers)).toBeNull()
     expect(container.querySelectorAll('.docs-code')).toHaveLength(1)
   })
 
   it('list the operations of a tag, and every schema', () => {
     const { rerender } = render(<ApiTagPage tag={gates} messages={en} />)
-    expect(screen.getByRole('heading', { level: 1, name: 'Gates' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Approvals' })).toBeInTheDocument()
     expect(screen.getByText('Ask for a yes.')).toBeInTheDocument()
     expect(tagDescription(other, en)).toBe('The Other endpoints of the Ostrom API.')
     rerender(<ApiSchemasPage api={api} messages={en} />)

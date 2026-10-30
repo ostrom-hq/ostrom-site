@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { collapseWhitespace, truncate } from './text'
-import { SECTION_TEXT_LIMIT } from './markdown'
+import { SECTION_TEXT_LIMIT, type MarkdownLabels } from './markdown'
 import { renderPage } from './render'
 import { apiTagHref, docsRoutes, pageHref, type DocsSite } from './site'
 import type { SearchEntry, SearchIndex } from './searchIndex'
@@ -18,10 +18,10 @@ export {
 
 type Draft = Omit<SearchEntry, 'id'>
 
-/** Builds the index of every version; `copyLabel` only has to match the pages' so their rendering is reused. */
+/** Builds the index of every version; `markdown` only has to match the pages' so their rendering is reused. */
 export function buildSearchIndex(
   docs: DocsSite,
-  labels: { readonly copy: string; readonly apiTitle: string },
+  labels: { readonly markdown: MarkdownLabels; readonly apiTitle: string },
 ): SearchIndex {
   const drafts: Draft[] = []
   for (const { route } of docsRoutes(docs)) {
@@ -29,7 +29,7 @@ export function buildSearchIndex(
       const { page, version } = route
       const href = pageHref(version, page.slug)
       const title = page.frontmatter.title
-      const sections = renderPage(version, page, labels.copy).sections
+      const sections = renderPage(version, page, labels.markdown).sections
       // The text before the first heading belongs to the page entry itself, with the description.
       const preface = sections.filter((section) => section.id === null).map((section) => section.text)
       drafts.push({

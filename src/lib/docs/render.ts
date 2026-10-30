@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-import { renderMarkdown, type RenderedMarkdown } from './markdown'
+import type { Messages } from '@/i18n'
+import { renderMarkdown, type MarkdownLabels, type RenderedMarkdown } from './markdown'
 import { pageHref, type DocsVersion } from './site'
 import type { DocPage } from './content'
 
@@ -12,14 +13,19 @@ export function versionLinks(version: DocsVersion): (href: string) => string {
       : href
 }
 
+/** The words of the rendered pages, from the interface texts. */
+export function markdownLabels(text: Messages['docs']): MarkdownLabels {
+  return { copy: text.code.copy, output: text.code.output, ...text.callouts }
+}
+
 const rendered = new Map<string, RenderedMarkdown>()
 
 /** The HTML of a page, rendered once per build (the page and the search index both need it). */
-export function renderPage(version: DocsVersion, page: DocPage, copyLabel: string): RenderedMarkdown {
-  const key = `${pageHref(version, page.slug)}\n${copyLabel}`
+export function renderPage(version: DocsVersion, page: DocPage, labels: MarkdownLabels): RenderedMarkdown {
+  const key = `${pageHref(version, page.slug)}\n${JSON.stringify(labels)}`
   const known = rendered.get(key)
   if (known !== undefined) return known
-  const result = renderMarkdown(page.body, { copyLabel, rewriteHref: versionLinks(version) })
+  const result = renderMarkdown(page.body, { labels, rewriteHref: versionLinks(version) })
   rendered.set(key, result)
   return result
 }

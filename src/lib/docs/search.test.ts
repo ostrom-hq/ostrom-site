@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
-import { fixtureSite } from '@/test/docs'
+import { MARKDOWN_LABELS, fixtureSite } from '@/test/docs'
 import { buildSearchIndex, searchIndexSchema } from './search'
 import { createSearch, SEARCH_LIMIT } from './searchEngine'
 
-const index = buildSearchIndex(fixtureSite(), { copy: 'Copy', apiTitle: 'API reference' })
+const index = buildSearchIndex(fixtureSite(), { markdown: MARKDOWN_LABELS, apiTitle: 'API reference' })
 
 describe('search index', () => {
   it('has an entry per page, with its description and the text before the first heading', () => {
@@ -23,15 +23,15 @@ describe('search index', () => {
   })
 
   it('has an entry per API operation, in the latest version', () => {
-    const operation = index.entries.find((entry) => entry.href === '/docs/api/gates/#requestgate')
+    const operation = index.entries.find((entry) => entry.href === '/docs/api/approvals/#requestgate')
     expect(operation).toMatchObject({
       version: 'latest',
-      title: 'API reference · Gates',
+      title: 'API reference · Approvals',
       section: 'Request a gate. The agent waits for the `yes`.',
     })
     expect(operation?.text).toContain('POST /api/v1/gates')
     expect(operation?.text).toContain('wait')
-    expect(index.entries.find((entry) => entry.href === '/docs/api/gates/#get-apiv1gates')?.text).toBe(
+    expect(index.entries.find((entry) => entry.href === '/docs/api/approvals/#get-apiv1gates')?.text).toBe(
       'GET /api/v1/gates org wait',
     )
   })
@@ -55,7 +55,7 @@ describe('createSearch', () => {
   })
 
   it('finds API operations', () => {
-    expect(search('gate').some((hit) => hit.href === '/docs/api/gates/#requestgate')).toBe(true)
+    expect(search('gate').some((hit) => hit.href === '/docs/api/approvals/#requestgate')).toBe(true)
   })
 
   it('returns nothing for a blank query, and at most the limit', () => {

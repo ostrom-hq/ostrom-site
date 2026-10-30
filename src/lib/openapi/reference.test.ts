@@ -5,6 +5,7 @@ import { FIXTURE_CONTENT, MISSING_CONTENT, TEST_API_URL } from '@/test/docs'
 import { httpMethods, parseOpenApi } from './document'
 import {
   buildApiReference,
+  displayTag,
   isServed,
   readApiReference,
   schemaAnchor,
@@ -59,9 +60,30 @@ describe('the reference of the fixture', () => {
 
   it('groups operations by their first tag, declared tags first, untagged ones last', () => {
     expect(api?.tags.map((tag) => [tag.slug, tag.title, tag.description, tag.operations.length])).toEqual([
-      ['gates', 'Gates', 'Ask for a yes.', 3],
+      ['approvals', 'Approvals', 'Ask for a yes.', 3],
       ['other', 'Other', null, 1],
     ])
+  })
+
+  it('lists the gates tag as Approvals, with the approvals tag when the contract has both', () => {
+    const served = { responses: {}, 'x-ostrom-status': 'served' } as const
+    const both = buildApiReference(
+      {
+        openapi: '3.1.0',
+        info: { title: 'T', version: '1' },
+        tags: [{ name: 'approvals' }, { name: 'gates', description: 'Gate requests.' }, { name: 'gates' }],
+        paths: {
+          '/a': { get: { ...served, tags: ['approvals'] } },
+          '/g': { get: { ...served, tags: ['gates'] } },
+        },
+      },
+      'https://api.example.test',
+    )
+    expect(
+      both.tags.map((tag) => [tag.name, tag.slug, tag.title, tag.description, tag.operations.length]),
+    ).toEqual([['approvals', 'approvals', 'Approvals', 'Gate requests.', 2]])
+    expect(displayTag('gates')).toBe('approvals')
+    expect(displayTag('sessions')).toBe('sessions')
   })
 
   it('merges path parameters with the operation ones, the operation winning', () => {

@@ -3,6 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { join } from 'node:path'
 import { en } from '@/i18n/en'
 import { searchIndexSchema } from '@/lib/docs/search'
+import { OG_IMAGE } from '@/lib/seo'
 import { FIXTURE_CONTENT, MISSING_CONTENT, stubIntersectionObserver } from '@/test/docs'
 import DocsLayout from './layout'
 import DocsPage, { dynamicParams, generateMetadata, generateStaticParams } from './[[...slug]]/page'
@@ -40,7 +41,7 @@ describe('the docs route', () => {
     const slugs = generateStaticParams().map(({ slug }) => slug.join('/'))
     expect(slugs).toContain('')
     expect(slugs).toContain('v/v0.1/quickstart')
-    expect(slugs).toContain('api/gates')
+    expect(slugs).toContain('api/approvals')
     expect(slugs).toContain('api/schemas')
   })
 
@@ -63,7 +64,7 @@ describe('the docs route', () => {
     await page(['api'])
     expect(screen.getByRole('heading', { level: 2, name: en.docs.api.authentication })).toBeInTheDocument()
     cleanup()
-    await page(['api', 'gates'])
+    await page(['api', 'approvals'])
     expect(screen.getByRole('heading', { level: 2, name: 'Request a gate' })).toBeInTheDocument()
     cleanup()
     await page(['api', 'schemas'])
@@ -96,14 +97,15 @@ describe('the docs metadata', () => {
       title: { absolute: 'Introduction · Ostrom Docs' },
       description: 'What the fixture is.',
       alternates: { canonical: '/docs/' },
-      openGraph: { type: 'article', url: '/docs/' },
+      openGraph: { type: 'article', url: '/docs/', images: [{ ...OG_IMAGE, alt: 'Introduction · Ostrom Docs' }] },
+      twitter: { card: 'summary_large_image', images: [OG_IMAGE.url] },
     })
     expect((await generateMetadata(params(['v', 'v0.1']))).title).toEqual({
       absolute: 'Introduction (v0.1) · Ostrom Docs',
     })
     expect((await generateMetadata(params(['api']))).description).toBe(en.docs.api.description)
-    expect((await generateMetadata(params(['api', 'gates']))).title).toEqual({
-      absolute: 'Gates · API reference · Ostrom Docs',
+    expect((await generateMetadata(params(['api', 'approvals']))).title).toEqual({
+      absolute: 'Approvals · API reference · Ostrom Docs',
     })
     expect((await generateMetadata(params(['api', 'schemas']))).description).toBe(
       en.docs.api.schemasDescription,

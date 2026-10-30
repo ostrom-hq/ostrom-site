@@ -137,11 +137,13 @@
 }
 
 /* Sidebar. */
-.docs-sidebar__toggle {
+.docs-sidebar__toggle,
+.docs-sidebar__jump {
     width: 100%;
     justify-content: space-between;
 }
-.docs-sidebar__toggle::after {
+.docs-sidebar__toggle::after,
+.docs-sidebar__jump::after {
     content: '';
     border: 5px solid transparent;
     border-top-color: currentColor;
@@ -158,6 +160,22 @@
 .docs-sidebar[data-open='true'] .docs-nav {
     display: block;
 }
+/* Before the runtime runs (it starts after the first paint, scripts/lib/defer.ts, then marks
+   <html data-runtime="ready">), "Docs menu" is a link to the tree, which opens as the page's target: the tree is
+   reachable without a script. The link and the button have the same box, so swapping them shifts nothing (an open
+   tree folding when the runtime starts would shift the whole page, CLS). */
+.docs-sidebar__jump {
+    display: none;
+}
+html:not([data-runtime='ready']) .docs-sidebar__jump {
+    display: inline-flex;
+}
+html:not([data-runtime='ready']) .docs-sidebar__toggle {
+    display: none;
+}
+html:not([data-runtime='ready']) .docs-nav:target {
+    display: block;
+}
 @media (min-width: 900px) {
     .docs-sidebar {
         position: sticky;
@@ -168,7 +186,8 @@
         overscroll-behavior: contain;
         padding-right: var(--space-2);
     }
-    .docs-sidebar__toggle {
+    .docs-sidebar__toggle,
+    html:not([data-runtime='ready']) .docs-sidebar__jump {
         display: none;
     }
     .docs-nav {
@@ -379,6 +398,77 @@ a.docs-nav__heading[aria-current='page'] {
 }
 .docs-prose img {
     height: auto;
+}
+
+/* Callouts: GitHub alerts (PB-DP6), neutral surface, the kind told by its title and the info, amber or red edge —
+   never garnet (PB-C2). */
+.docs-callout {
+    margin: 0 0 var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--info);
+    border-radius: var(--radius-md);
+    background: var(--surface-sunken);
+    color: var(--text);
+}
+.docs-callout--warning {
+    border-left-color: var(--warning);
+}
+.docs-callout--caution {
+    border-left-color: var(--danger);
+}
+.docs-callout__title {
+    margin: 0 0 var(--space-1);
+    font-weight: 650;
+}
+.docs-callout > :last-child {
+    margin-bottom: 0;
+}
+
+/* Tabs (PB-DP3). Without a script: every panel, under its label. With it: a tab list, one panel shown. */
+.docs-tabs {
+    margin: 0 0 var(--space-5);
+}
+.docs-tabs__label {
+    margin: 0 0 var(--space-1);
+    font: 600 var(--fs-12) / 1.5 var(--font-mono);
+    letter-spacing: var(--label-tracking);
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.docs-tabs__panel > .docs-code {
+    margin-bottom: var(--space-3);
+}
+.docs-tabs[data-enhanced] .docs-tabs__panel > .docs-code {
+    margin-bottom: 0;
+    border-top-left-radius: 0;
+}
+.docs-tabs__panel[hidden] {
+    display: none;
+}
+.docs-tabs__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+}
+.docs-tabs__list [role='tab'] {
+    min-height: 32px;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    background: var(--surface);
+    color: var(--text-muted);
+    font: 600 var(--fs-12) / 1 var(--font-text);
+    cursor: pointer;
+}
+.docs-tabs__list [role='tab']:hover {
+    color: var(--text);
+}
+.docs-tabs__list [role='tab'][aria-selected='true'] {
+    color: var(--text);
+    background: var(--surface-sunken);
+    box-shadow: inset 0 -2px 0 var(--text);
 }
 
 /* Code blocks: bar (title, Copy) and the coloured block. */

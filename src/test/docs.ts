@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { join } from 'node:path'
 import { vi } from 'vitest'
+import { en } from '@/i18n/en'
+import { markdownLabels } from '@/lib/docs/render'
 import { readDocsSite, type DocsSite } from '@/lib/docs/site'
 
 /** The fixture content: two versions, nested folders, an OpenAPI description that touches every case. */
@@ -14,6 +16,9 @@ export function linkTarget(target: Element | string): string {
   const href = typeof target === 'string' ? target : (target.getAttribute('href') ?? '')
   return href.replace(/\/(?=#|$)/, '')
 }
+
+/** The words of the rendered pages, as the site shows them. */
+export const MARKDOWN_LABELS = markdownLabels(en.docs)
 
 export const TEST_API_URL = 'https://api.example.test'
 

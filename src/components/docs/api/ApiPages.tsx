@@ -2,11 +2,11 @@
 import Link from 'next/link'
 import type { Messages } from '@/i18n'
 import { codeBlockHtml } from '@/lib/docs/code'
-import { renderMarkdown, type TocItem } from '@/lib/docs/markdown'
+import type { TocItem } from '@/lib/docs/markdown'
 import { apiTagHref } from '@/lib/docs/site'
 import { fill } from '@/lib/docs/text'
 import { isPublished, type ApiReference, type ApiTag } from '@/lib/openapi/reference'
-import { DocArticle, Prose } from '../DocArticle'
+import { DocArticle } from '../DocArticle'
 import { OperationView } from './Operation'
 import { SchemaDetails } from './SchemaView'
 
@@ -20,7 +20,11 @@ export function overviewToc(labels: Messages['docs']['api']): TocItem[] {
   ]
 }
 
-/** `/docs/api/`: where the API is, how to authenticate, what an error looks like, and every resource. */
+/**
+ * `/docs/api/`: where the API is, how to authenticate, what an error looks like, and every resource. The words are the
+ * site's (en.ts), not the contract's: its description names internal repositories and its servers a local host, and
+ * neither Ostrom Cloud nor self-hosting has shipped (PB-W4).
+ */
 export function ApiOverview({
   api,
   messages,
@@ -54,12 +58,9 @@ export function ApiOverview({
       <p className="api-version">
         <span className="badge">{fill(text.version, { version: api.version })}</span>
       </p>
-      {api.description === null ? null : (
-        <Prose
-          html={renderMarkdown(api.description, { copyLabel: copy, rewriteHref: (href) => href }).html}
-        />
-      )}
+      {/* The site's own words: the contract's description and servers are written for its maintainers. */}
       <div className="docs-prose">
+        <p>{text.intro}</p>
         <h2 id="base-url">
           <a href="#base-url">{text.baseUrl}</a>
         </h2>
@@ -69,19 +70,6 @@ export function ApiOverview({
             __html: codeBlockHtml(api.baseUrl, { language: 'text', meta: null, copyLabel: copy }),
           }}
         />
-        {api.servers.length === 0 ? null : (
-          <>
-            <p>{text.servers}</p>
-            <ul>
-              {api.servers.map((server) => (
-                <li key={server.url}>
-                  <code>{server.url}</code>
-                  {server.description === null ? null : ` · ${server.description}`}
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
         <h2 id="authentication">
           <a href="#authentication">{text.authentication}</a>
         </h2>
@@ -91,7 +79,6 @@ export function ApiOverview({
             <li key={scheme.name}>
               <code>{scheme.name}</code> · {scheme.type}
               {scheme.scheme === null ? null : ` ${scheme.scheme}`}
-              {scheme.description === null ? null : ` · ${scheme.description}`}
             </li>
           ))}
         </ul>

@@ -39,10 +39,19 @@ export interface DocFolder {
   readonly slug: readonly string[]
   readonly title: string
   readonly index: DocPage | null
-  readonly children: readonly DocNode[]
+  /** How many children come before the index in the folder's order: where the sidebar lists it. */
+  readonly indexAt: number
+  readonly children: readonly DocEntry[]
+}
+
+/** A `"---Concepts---"` entry of `meta.json`: a heading of the sidebar that starts a group of pages (PB-D1). */
+export interface DocSeparator {
+  readonly kind: 'separator'
+  readonly title: string
 }
 
 export type DocNode = DocPage | DocFolder
+export type DocEntry = DocNode | DocSeparator
 
 /** Top-level names that would shadow generated routes: `/docs/api/` (API reference) and `/docs/v/` (versions). */
 export const RESERVED_NAMES: readonly string[] = ['api', 'v']
@@ -78,11 +87,22 @@ export function titleFromName(name: string): string {
 }
 
 /**
- * Reads a folder of pages. Order: the names of `meta.json`'s `pages`, then every other page or folder alphabetically,
- * so that a page missing from meta.json is shown rather than lost. A listed name with no file fails the build.
+ * A sidebar separator, as `docs-tools`' lint reads it: three dashes, a title that does not start with a dash, three
+ * dashes (`"---Concepts---"`). Anything else in `pages` is the name of a page or a folder.
  */
-const SEPARATOR = /^---.*---$/
+const SEPARATOR = /^---([^-].*)---$/
 
+/** The heading of a separator entry, or null when the entry names a page or a folder. */
+export function separatorTitle(entry: string): string | null {
+  const match = SEPARATOR.exec(entry)
+  return match === null ? null : captured(match, 1).trim()
+}
+
+/**
+ * Reads a folder of pages. Order: the names of `meta.json`'s `pages`, with its separators in place, then every other
+ * page or folder alphabetically, so that a page missing from meta.json is shown rather than lost. A listed name with
+ * no file fails the build.
+ */
 export function readFolder(dir: string, slug: readonly string[] = []): DocFolder {
   const meta = readMeta(dir)
   const entries = new Map<string, { readonly path: string; readonly folder: boolean }>()
@@ -91,36 +111,57 @@ export function readFolder(dir: string, slug: readonly string[] = []): DocFolder
     if (entry.isDirectory()) entries.set(entry.name, { path: join(dir, entry.name), folder: true })
     else if (page !== null) entries.set(captured(page, 1), { path: join(dir, entry.name), folder: false })
   }
-  // A `---Title---` entry is a sidebar separator (PB-D1), not a page: accepted, not rendered yet.
-  const listed = (meta.pages ?? []).filter((name) => !SEPARATOR.test(name))
+  const pages = meta.pages ?? []
+  const listed = pages.filter((name) => separatorTitle(name) === null)
   for (const name of listed) {
     if (!entries.has(name))
       throw problem(join(dir, 'meta.json'), `"${name}" is listed, but there is no ${name}.mdx or ${name}/`)
   }
-  const rank = (name: string): number => {
-    const position = listed.indexOf(name)
-    return position === -1 ? listed.length : position
-  }
-  const ordered = [...entries].sort(([a], [b]) => rank(a) - rank(b) || a.localeCompare(b))
+  // meta.json's order with its separators in place, a name listed twice once, then the unlisted names.
+  const sequence: (string | DocSeparator)[] = [
+    ...pages.map((name): string | DocSeparator => {
+      const title = separatorTitle(name)
+      return title === null ? name : { kind: 'separator', title }
+    }),
+    ...[...entries.keys()].filter((name) => !listed.includes(name)).sort((a, b) => a.localeCompare(b)),
+  ]
 
   let index: DocPage | null = null
-  const children: DocNode[] = []
-  for (const [name, entry] of ordered) {
-    if (slug.length === 0 && RESERVED_NAMES.includes(name)) {
+  let indexAt = 0
+  const seen = new Set<string>()
+  const children: DocEntry[] = []
+  for (const item of sequence) {
+    if (typeof item !== 'string') {
+      children.push(item)
+      continue
+    }
+    const entry = entries.get(item)
+    if (entry === undefined || seen.has(item)) continue
+    seen.add(item)
+    if (slug.length === 0 && RESERVED_NAMES.includes(item)) {
       throw problem(
         entry.path,
-        `"${name}" is reserved for a generated route of /docs/; rename the page or folder`,
+        `"${item}" is reserved for a generated route of /docs/; rename the page or folder`,
       )
     }
     if (entry.folder) {
-      children.push(readFolder(entry.path, [...slug, name]))
-    } else if (name === 'index') {
+      children.push(readFolder(entry.path, [...slug, item]))
+    } else if (item === 'index') {
       index = readPage(readFileSync(entry.path, 'utf8'), entry.path, slug)
+      // An index left out of meta.json comes first, before any separator.
+      indexAt = listed.includes(item) ? children.length : 0
     } else {
-      children.push(readPage(readFileSync(entry.path, 'utf8'), entry.path, [...slug, name]))
+      children.push(readPage(readFileSync(entry.path, 'utf8'), entry.path, [...slug, item]))
     }
   }
-  return { kind: 'folder', slug, title: meta.title ?? titleFromName(slug.at(-1) ?? 'docs'), index, children }
+  return {
+    kind: 'folder',
+    slug,
+    title: meta.title ?? titleFromName(slug.at(-1) ?? 'docs'),
+    index,
+    indexAt,
+    children,
+  }
 }
 
 /** Reads a version's pages, or null when its folder does not exist (the DOCS content is not merged yet). */

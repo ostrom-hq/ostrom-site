@@ -12,6 +12,7 @@ import { SearchButton } from './SearchButton'
 import { SidebarFrame } from './SidebarFrame'
 import { SidebarTree } from './Sidebar'
 import { TableOfContents } from './TableOfContents'
+import { TabsListener } from './TabsListener'
 import { VersionSelect } from './VersionSelect'
 
 interface DocsShellProps {
@@ -27,7 +28,7 @@ interface DocsShellProps {
 /**
  * The frame of every docs page (Stripe, Vercel, Supabase): a docs bar (search, version), the sidebar, the page with
  * its breadcrumbs and previous/next, and "On this page". Everything is rendered at build time; the only scripts are
- * the search button, the phone menu, the copy buttons and the reading marker of the table of contents.
+ * the search button, the phone menu, the copy buttons, the tabs and the reading marker of the table of contents.
  */
 export function DocsShell({
   messages,
@@ -76,6 +77,8 @@ export function DocsShell({
         <TableOfContents items={toc} label={text.nav.toc} />
       </div>
       <CopyListener labels={text.code} />
+      {/* Keyed by page: each page's tab sets are turned into tabs once its HTML is in place. */}
+      <TabsListener key={href} label={text.tabs.label} />
     </div>
   )
 }

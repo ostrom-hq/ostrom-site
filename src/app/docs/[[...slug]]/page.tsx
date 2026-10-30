@@ -14,10 +14,11 @@ import { DocsHome } from '@/components/docs/DocsHome'
 import { DocsShell } from '@/components/docs/DocsShell'
 import { getMessages, type Messages } from '@/i18n'
 import type { TocItem } from '@/lib/docs/markdown'
-import { renderPage } from '@/lib/docs/render'
+import { markdownLabels, renderPage } from '@/lib/docs/render'
 import { docsRoutes, findRoute, getDocsSite, type DocsRoute, type DocsSite } from '@/lib/docs/site'
 import { docsPath } from '@/lib/docs/sitemap'
 import { isPublished } from '@/lib/openapi/reference'
+import { OG_IMAGE } from '@/lib/seo'
 
 // Every page under /docs/ (guides of every version, and the generated API reference) is one route rendered at build
 // time; a slug that is not generated is a 404 of the static export.
@@ -88,8 +89,10 @@ export async function generateMetadata({ params }: DocsPageProps): Promise<Metad
       description,
       url,
       locale: 'en_US',
+      // Next.js replaces the root's openGraph and twitter objects, it does not merge them: the image comes back here.
+      images: [{ ...OG_IMAGE, alt: full }],
     },
-    twitter: { card: 'summary_large_image', title: full, description },
+    twitter: { card: 'summary_large_image', title: full, description, images: [OG_IMAGE.url] },
   }
 }
 
@@ -125,7 +128,7 @@ export default async function DocsPage({ params }: DocsPageProps): Promise<React
       )
     }
     const { frontmatter } = route.page
-    const rendered = renderPage(version, route.page, messages.docs.code.copy)
+    const rendered = renderPage(version, route.page, markdownLabels(messages.docs))
     return (
       <DocsShell messages={messages} docs={docs} version={version} href={href} toc={rendered.toc}>
         <DocArticle

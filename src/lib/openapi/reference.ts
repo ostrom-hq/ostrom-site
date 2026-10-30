@@ -104,6 +104,16 @@ export interface ApiReference {
 export const OPERATION_SCHEMA_DEPTH = 2
 const UNTAGGED = 'other'
 const TAG_TITLES: Readonly<Record<string, string>> = { mcp: 'MCP', github: 'GitHub', api: 'API' }
+/**
+ * Contract tags shown under the product's word (PB-W2b: a person approves a request, never a "gate"): their
+ * operations are listed on that tag's page, with its title and its URL.
+ */
+const TAG_ALIASES: Readonly<Record<string, string>> = { gates: 'approvals' }
+
+/** The tag an operation of the contract is listed under. */
+export function displayTag(name: string): string {
+  return TAG_ALIASES[name] ?? name
+}
 
 /** The page title of a tag: `sessions` → `Sessions`, with the product names spelled right. */
 export function tagTitle(name: string): string {
@@ -331,7 +341,7 @@ function buildTags(builder: Builder): BuiltTags {
       const operation = item[method]
       if (operation === undefined || !isServed(operation)) continue
       roots.push(operation, item.parameters)
-      const tag = operation.tags?.[0] ?? UNTAGGED
+      const tag = displayTag(operation.tags?.[0] ?? UNTAGGED)
       const slugger = sluggers.get(tag) ?? new GithubSlugger()
       sluggers.set(tag, slugger)
       const built = buildOperation(builder, path, method, operation, shared, slugger)
@@ -340,12 +350,17 @@ function buildTags(builder: Builder): BuiltTags {
     }
   }
   const declared = builder.document.tags ?? []
-  const declaredNames = declared.map((tag) => tag.name)
+  const declaredNames = [...new Set(declared.map((tag) => displayTag(tag.name)))]
   const names = [
     ...declaredNames,
     ...[...operations.keys()].filter((name) => !declaredNames.includes(name)).sort(),
   ]
-  const descriptions = new Map(declared.map((tag) => [tag.name, tag.description ?? null]))
+  // A tag and its alias share a page: the first description the contract gives either of them.
+  const descriptions = new Map<string, string>()
+  for (const tag of declared) {
+    const name = displayTag(tag.name)
+    if (tag.description !== undefined && !descriptions.has(name)) descriptions.set(name, tag.description)
+  }
   const slugger = new GithubSlugger()
   const tags = names.flatMap((name): ApiTag[] => {
     const list = operations.get(name)

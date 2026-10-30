@@ -12,7 +12,9 @@ interface SidebarFrameProps {
 
 /**
  * The sidebar's frame. On a phone it is folded behind a "Docs menu" button and folds again on the next page (it is
- * open for one path only); on a wide screen the button is hidden and the tree is always shown (docs.css).
+ * open for one path only); on a wide screen the button is hidden and the tree is always shown (docs.css). Until the
+ * runtime runs, a "Docs menu" link in the button's place opens the tree as the page's target, so it works without a
+ * script.
  */
 export function SidebarFrame({ label, menuLabel, children }: SidebarFrameProps): React.JSX.Element {
   const pathname = usePathname()
@@ -31,6 +33,9 @@ export function SidebarFrame({ label, menuLabel, children }: SidebarFrameProps):
       >
         {menuLabel}
       </button>
+      <a className="button button--small docs-sidebar__jump" href="#docs-sidebar-nav">
+        {menuLabel}
+      </a>
       <nav id="docs-sidebar-nav" aria-label={label} className="docs-nav">
         {children}
       </nav>

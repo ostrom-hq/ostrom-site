@@ -260,6 +260,15 @@ export const en = {
       copy: 'Copy',
       copied: 'Copied',
       failed: 'Copy failed',
+      output: 'Output',
+    },
+    callouts: {
+      note: 'Note',
+      warning: 'Warning',
+      caution: 'Caution',
+    },
+    tabs: {
+      label: 'Choose one',
     },
     versions: {
       label: 'Version',
@@ -293,13 +302,14 @@ export const en = {
       schemasDescription: 'Every object the Ostrom API sends or receives, with its fields.',
       tagDescription: 'The {tag} endpoints of the Ostrom API.',
       version: 'Version {version}',
+      intro:
+        'The HTTP API of the Ostrom server. This reference lists only the endpoints the server already answers, and it is generated from the API contract, so it cannot drift from it.',
       baseUrl: 'Base URL',
       baseUrlBody:
-        'Ostrom Cloud answers on the URL below. A self-hosted server serves the same API on its own host.',
-      servers: 'Servers in the contract',
+        'Ostrom Cloud will answer on the URL below, and a self-hosted server will serve the same API on its own host. Both are coming soon.',
       authentication: 'Authentication',
       authenticationBody:
-        'Send an Ostrom token (from the CLI, a browser session or a service key) in the Authorization header of every request. The examples read it from $OSTROM_TOKEN.',
+        'Every request sends an Ostrom token in its Authorization header. The examples read it from $OSTROM_TOKEN.',
       errors: 'Errors',
       errorsBody: 'Every refusal has the same JSON body. These status codes appear in the API:',
       resources: 'Resources',

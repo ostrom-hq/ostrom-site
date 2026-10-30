@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { getMessages } from '@/i18n'
+import { markdownLabels } from '@/lib/docs/render'
 import { buildSearchIndex } from '@/lib/docs/search'
 import { getDocsSite } from '@/lib/docs/site'
 
@@ -9,6 +10,9 @@ export const dynamic = 'force-static'
 export function GET(): Response {
   const messages = getMessages()
   return Response.json(
-    buildSearchIndex(getDocsSite(), { copy: messages.docs.code.copy, apiTitle: messages.docs.api.title }),
+    buildSearchIndex(getDocsSite(), {
+      markdown: markdownLabels(messages.docs),
+      apiTitle: messages.docs.api.title,
+    }),
   )
 }

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { devices } from '@playwright/test'
 import { expect, test } from './test'
 import { expectAccessible } from './a11y'
 
@@ -58,11 +59,8 @@ test('a code block copies its text and says so', async ({ page, context, browser
   // Located by its role in the block, not its name: the name changes to Copied.
   const button = block.locator('button[data-copy]')
   await expect(button).toHaveAccessibleName('Copy')
-  // The click works once the page is hydrated (the copy listener is a client effect): retry until it is.
-  await expect(async () => {
-    await button.click()
-    await expect(button).toHaveText('Copied', { timeout: 1000 })
-  }).toPass()
+  await button.click()
+  await expect(button).toHaveText('Copied')
   await expect(page.getByRole('status').filter({ hasText: 'Copied' })).toHaveCount(1)
   const copied = await page.evaluate(() => navigator.clipboard.readText())
   expect(copied).toBe(await block.locator('pre').innerText())
@@ -72,11 +70,8 @@ test('a code block copies its text and says so', async ({ page, context, browser
 test('the search opens with the keyboard and goes to a result', async ({ page }) => {
   await page.goto('/docs/')
   const dialog = page.getByRole('dialog', { name: 'Search the docs' })
-  // The shortcut works once the page is hydrated: retry until the dialog opens.
-  await expect(async () => {
-    await page.keyboard.press('ControlOrMeta+k')
-    await expect(dialog).toBeVisible({ timeout: 1000 })
-  }).toPass()
+  await page.keyboard.press('ControlOrMeta+k')
+  await expect(dialog).toBeVisible()
   const input = dialog.getByRole('combobox')
   await expect(input).toBeFocused()
   await input.fill('receipt format')
@@ -87,6 +82,49 @@ test('the search opens with the keyboard and goes to a result', async ({ page })
   await input.press('Enter')
   await expect(dialog).toBeHidden()
   await expect(page).toHaveURL(/\/docs\/receipts\//)
+})
+
+test('"/" opens the search too, but not while typing in it', async ({ page }) => {
+  await page.goto('/docs/')
+  const dialog = page.getByRole('dialog', { name: 'Search the docs' })
+  await page.keyboard.press('/')
+  await expect(dialog).toBeVisible()
+  const input = dialog.getByRole('combobox')
+  await expect(input).toBeFocused()
+  await input.press('/')
+  await expect(input).toHaveValue('/')
+})
+
+test('the sidebar is grouped under the headings of meta.json', async ({ page, isMobile }) => {
+  await page.goto('/docs/agents/')
+  if (isMobile) await page.getByRole('button', { name: 'Docs menu' }).click()
+  const sidebar = page.getByRole('navigation', { name: 'Docs', exact: true })
+  for (const heading of ['Get started', 'Concepts', 'Cloud', 'Reference', 'Help'])
+    await expect(sidebar.locator('.docs-nav__heading', { hasText: heading })).toBeVisible()
+  await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).not.toContainText('Concepts')
+})
+
+test('without a script, the docs menu still reaches the sidebar on a phone', async ({
+  browser,
+  baseURL,
+  isMobile,
+}) => {
+  test.skip(!isMobile, 'the menu folds the sidebar on a phone only')
+  // A context of its own: the page fixture waits for the runtime, which never runs here.
+  const context = await browser.newContext({
+    ...devices['Pixel 7'],
+    javaScriptEnabled: false,
+    ...(baseURL === undefined ? {} : { baseURL }),
+  })
+  const page = await context.newPage()
+  await page.goto('/docs/')
+  const nav = page.locator('#docs-sidebar-nav')
+  await expect(nav).toBeHidden()
+  await page.getByRole('link', { name: 'Docs menu' }).click()
+  await expect(nav).toBeVisible()
+  await nav.getByRole('link', { name: /Quickstart/ }).click()
+  await expect(page).toHaveURL(/\/docs\/quickstart\/$/)
+  await context.close()
 })
 
 test('the search button opens the same dialog, Escape closes it and focus stays inside', async ({ page }) => {

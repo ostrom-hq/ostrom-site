@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { en } from '@/i18n/en'
 import { buildSearchIndex, type SearchIndex } from '@/lib/docs/search'
 import { fill } from '@/lib/docs/text'
-import { fixtureSite, stubDialog } from '@/test/docs'
+import { MARKDOWN_LABELS, fixtureSite, stubDialog } from '@/test/docs'
 import { SearchButton } from './SearchButton'
 import SearchDialog, { fetchSearchIndex } from './SearchDialog'
 
@@ -11,7 +11,7 @@ const navigation = vi.hoisted(() => ({ push: vi.fn() }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: navigation.push }) }))
 
 const labels = en.docs.search
-const index = buildSearchIndex(fixtureSite(), { copy: 'Copy', apiTitle: 'API reference' })
+const index = buildSearchIndex(fixtureSite(), { markdown: MARKDOWN_LABELS, apiTitle: 'API reference' })
 
 beforeEach(() => {
   stubDialog()
@@ -166,5 +166,42 @@ describe('SearchButton', () => {
     expect(await screen.findByRole('dialog', { name: labels.dialog })).toBeInTheDocument()
     await screen.findByText(labels.empty)
     unmount()
+  })
+
+  it('opens with "/" outside a field, and not while typing or with a modifier', async () => {
+    vi.stubGlobal('fetch', () => Promise.resolve(Response.json(index)))
+    const { container } = render(
+      <div>
+        <input aria-label="field" />
+        <textarea aria-label="area" />
+        <select aria-label="choice" />
+        <div contentEditable aria-label="editor">
+          <span>inside</span>
+        </div>
+        <SearchButton labels={labels} version="latest" />
+      </div>,
+    )
+    for (const name of ['field', 'area', 'choice'])
+      fireEvent.keyDown(screen.getByLabelText(name), { key: '/' })
+    const editor = container.querySelector('[contenteditable]')
+    if (!(editor instanceof HTMLElement)) throw new Error('the editor is rendered')
+    Object.defineProperty(editor, 'isContentEditable', { value: true })
+    fireEvent.keyDown(editor, { key: '/' })
+    fireEvent.keyDown(screen.getByText('inside'), { key: '/' })
+    fireEvent.keyDown(window, { key: '/', ctrlKey: true })
+    fireEvent.keyDown(window, { key: '/', metaKey: true })
+    fireEvent.keyDown(window, { key: '/', altKey: true })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByRole('button', { name: labels.button })).toHaveAttribute(
+      'aria-keyshortcuts',
+      'Meta+K Control+K /',
+    )
+    fireEvent.keyDown(document, { key: '/' })
+    expect(await screen.findByRole('dialog', { name: labels.dialog })).toBeInTheDocument()
+    await screen.findByText(labels.empty)
+    fireEvent.click(screen.getByRole('button', { name: labels.closeLabel }))
+    fireEvent.keyDown(document.body, { key: '/' })
+    expect(await screen.findByRole('dialog', { name: labels.dialog })).toBeInTheDocument()
+    await screen.findByText(labels.empty)
   })
 })

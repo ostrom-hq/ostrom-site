@@ -119,7 +119,10 @@ export const API_SCHEMAS_HREF = `${API_BASE}/schemas/`
 /** Every page of a folder, in reading order: the folder's index first, then its children, depth first. */
 export function pagesOf(folder: DocFolder): DocPage[] {
   const pages = folder.index === null ? [] : [folder.index]
-  for (const child of folder.children) pages.push(...(child.kind === 'page' ? [child] : pagesOf(child)))
+  for (const child of folder.children) {
+    if (child.kind === 'page') pages.push(child)
+    else if (child.kind === 'folder') pages.push(...pagesOf(child))
+  }
   return pages
 }
 

@@ -2,7 +2,7 @@
 import type { SitemapEntry } from '@/lib/routes'
 import { docsRoutes, getDocsSite, type DocsSite } from './site'
 
-/** The URL path of a route slug under /docs/: `[]` → `/docs/`, `['api', 'gates']` → `/docs/api/gates/`. */
+/** The URL path of a route slug under /docs/: `[]` → `/docs/`, `['api', 'approvals']` → `/docs/api/approvals/`. */
 export function docsPath(slug: readonly string[]): string {
   return `${['/docs', ...slug].join('/')}/`
 }

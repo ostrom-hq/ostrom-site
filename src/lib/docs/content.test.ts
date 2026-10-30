@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { FIXTURE_CONTENT, MISSING_CONTENT } from '@/test/docs'
-import { readContent, readFolder, readPage, titleFromName, type DocNode } from './content'
+import { readContent, readFolder, readPage, separatorTitle, titleFromName, type DocEntry } from './content'
 
 const page = (title: string, extra = ''): string =>
   `---\ntitle: ${title}\ndescription: "About ${title}."\n${extra}---\n\nBody.\n`
@@ -17,7 +17,8 @@ function folderOf(files: Readonly<Record<string, string>>): string {
   return dir
 }
 
-const slugs = (nodes: readonly DocNode[]): string[] => nodes.map((node) => node.slug.join('/'))
+const slugs = (nodes: readonly DocEntry[]): string[] =>
+  nodes.map((node) => (node.kind === 'separator' ? `---${node.title}---` : node.slug.join('/')))
 
 describe('readFolder', () => {
   const root = readFolder(join(FIXTURE_CONTENT, 'docs'))
@@ -30,11 +31,32 @@ describe('readFolder', () => {
       status: 'partial',
     })
     expect(root.index?.slug).toEqual([])
-    expect(slugs(root.children)).toEqual(['quickstart', 'guides', 'alpha', 'zeta'])
+    expect(root.indexAt).toBe(0)
+    expect(slugs(root.children)).toEqual(['quickstart', '---Guides---', 'guides', 'alpha', 'zeta'])
+  })
+
+  it('keeps the separators of meta.json in place, and where the index is listed', () => {
+    const dir = folderOf({
+      'meta.json': JSON.stringify({
+        pages: ['---Get started---', 'index', 'b', '---Concepts---', 'a', 'a', '---Empty---'],
+      }),
+      'index.mdx': page('Home'),
+      'a.mdx': page('A'),
+      'b.mdx': page('B'),
+      'c.mdx': page('C'),
+    })
+    const folder = readFolder(dir)
+    expect(slugs(folder.children)).toEqual(['---Get started---', 'b', '---Concepts---', 'a', '---Empty---', 'c'])
+    expect(folder.indexAt).toBe(1)
+  })
+
+  it('puts an index left out of meta.json first', () => {
+    const dir = folderOf({ 'meta.json': '{"pages": ["---Pages---", "a"]}', 'index.mdx': page('Home'), 'a.mdx': page('A') })
+    expect(readFolder(dir).indexAt).toBe(0)
   })
 
   it('reads nested folders, titled by meta.json or by their name', () => {
-    const guides = root.children[1]
+    const guides = root.children[2]
     if (guides?.kind !== 'folder') throw new Error('guides should be a folder')
     expect(guides.title).toBe('Guides')
     expect(guides.index?.frontmatter.title).toBe('Guides')
@@ -47,7 +69,7 @@ describe('readFolder', () => {
   })
 
   it('defaults the status to available and reads .md pages too', () => {
-    const [, , alpha, zeta] = root.children
+    const [, , , alpha, zeta] = root.children
     expect(alpha?.kind === 'page' && alpha.frontmatter.status).toBe('available')
     expect(zeta?.kind === 'page' && zeta.body.trim()).toBe('Last.')
   })
@@ -80,6 +102,16 @@ describe('readFolder', () => {
 describe('readContent', () => {
   it('is null when the folder does not exist yet', () => {
     expect(readContent(MISSING_CONTENT)).toBeNull()
+  })
+})
+
+describe('separatorTitle', () => {
+  it('reads separators as docs-tools does: three dashes, a title, three dashes', () => {
+    expect(separatorTitle('---Concepts---')).toBe('Concepts')
+    expect(separatorTitle('---Get started---')).toBe('Get started')
+    expect(separatorTitle('------')).toBeNull()
+    expect(separatorTitle('----x---')).toBeNull()
+    expect(separatorTitle('concepts')).toBeNull()
   })
 })
 

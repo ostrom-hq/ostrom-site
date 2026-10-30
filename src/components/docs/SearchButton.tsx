@@ -9,6 +9,12 @@ import type { Messages } from '@/i18n'
 const SearchDialog = lazy(() => import('./SearchDialog'))
 
 const noSubscription = (): (() => void) => () => undefined
+
+/** Whether "/" is being typed into a field, where it is a character and not the search shortcut. */
+function typing(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  return target.isContentEditable || target.closest('input, textarea, select, [contenteditable]') !== null
+}
 const isApple = (): boolean => /Mac|iPhone|iPad/.test(navigator.userAgent)
 
 interface SearchButtonProps {
@@ -17,14 +23,20 @@ interface SearchButtonProps {
   readonly version: string
 }
 
-/** The search button of the docs bar; ⌘K or Ctrl+K opens the same dialog from anywhere in the docs. */
+/**
+ * The search button of the docs bar; ⌘K or Ctrl+K opens the same dialog from anywhere in the docs, and so does "/"
+ * outside a field (PB-D2).
+ */
 export function SearchButton({ labels, version }: SearchButtonProps): React.JSX.Element {
   const [open, setOpen] = useState(false)
   const apple = useSyncExternalStore(noSubscription, isApple, () => true)
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
-      if (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) {
+      const command = event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)
+      const slash =
+        event.key === '/' && !event.metaKey && !event.ctrlKey && !event.altKey && !typing(event.target)
+      if (command || slash) {
         event.preventDefault()
         setOpen(true)
       }
@@ -41,7 +53,7 @@ export function SearchButton({ labels, version }: SearchButtonProps): React.JSX.
         type="button"
         className="docs-search-button"
         aria-haspopup="dialog"
-        aria-keyshortcuts="Meta+K Control+K"
+        aria-keyshortcuts="Meta+K Control+K /"
         onClick={() => {
           setOpen(true)
         }}

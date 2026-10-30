@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { buildApiReference } from '@/lib/openapi/reference'
-import { FIXTURE_CONTENT, MISSING_CONTENT, TEST_API_URL, fixtureSite } from '@/test/docs'
+import { FIXTURE_CONTENT, MARKDOWN_LABELS, MISSING_CONTENT, TEST_API_URL, fixtureSite } from '@/test/docs'
 import { versionLinks, renderPage } from './render'
 import {
   contentDir,
@@ -84,7 +84,7 @@ describe('routes', () => {
       ['v/v0.1', 'page'],
       ['v/v0.1/quickstart', 'page'],
       ['api', 'api-overview'],
-      ['api/gates', 'api-tag'],
+      ['api/approvals', 'api-tag'],
       ['api/other', 'api-tag'],
       ['api/schemas', 'api-schemas'],
     ])
@@ -154,8 +154,8 @@ describe('versions', () => {
   it('renders a page once per build', () => {
     const page = archived.root?.index ?? null
     if (page === null) throw new Error('the archived version has an index')
-    const first = renderPage(archived, page, 'Copy')
-    expect(renderPage(archived, page, 'Copy')).toBe(first)
+    const first = renderPage(archived, page, MARKDOWN_LABELS)
+    expect(renderPage(archived, page, { ...MARKDOWN_LABELS })).toBe(first)
     expect(first.html).toContain('href="/docs/v/v0.1/quickstart"')
     expect(first.html).toContain('href="/docs/api/"')
   })
@@ -165,9 +165,9 @@ describe('sitemap entries', () => {
   it('publishes every docs route, the guides above the generated reference', () => {
     const entries = docsSitemapEntries(docs)
     expect(entries[0]).toEqual({ path: '/docs/', priority: 0.7, changeFrequency: 'weekly' })
-    expect(entries.find((entry) => entry.path === '/docs/api/gates/')?.priority).toBe(0.6)
+    expect(entries.find((entry) => entry.path === '/docs/api/approvals/')?.priority).toBe(0.6)
     expect(docsSitemapEntries(readDocsSite(MISSING_CONTENT))[0]?.priority).toBe(0.7)
-    expect(docsPath(['api', 'gates'])).toBe('/docs/api/gates/')
+    expect(docsPath(['api', 'approvals'])).toBe('/docs/api/approvals/')
   })
 
   it('reads the content of the build by default', () => {
