@@ -63,6 +63,10 @@ Ostrom's job is to match the first four and beat everyone on the fifth.
   security, engineering blog posts) and, on a marketing page, the element marked `data-audience="engineers"`. The
   jargon scan therefore covers the visible text of the marketing pages (home, pricing, company pages, non-engineering
   posts) outside that element.
+- **PB-W2b.** The words a person reads for the approval follow the product's lexicon (UX study of 30 October 2026):
+  a person "approves" or "sends back" a "request"; "gate" and "Yes, run it" never appear in text a user reads, on the
+  site, in the docs' task guides or in the console (the concept pages for engineers may name the mechanism). A refusal
+  always carries a reason.
 - **PB-W3.** No number without a source. Allowed on public pages: our own verified numbers (4 people, up to 20
   agents in parallel, 142 projects run by agents) and the research sentences listed as public in the value
   proposition, each with its short source in small type. Never an "X× better". A missing number is left out, not
@@ -107,12 +111,19 @@ The Signal brand sets the faces; the best sites set the discipline.
 ### 2.3 Colour
 
 - **PB-C1.** Every colour comes from `tokens.css`. No hex value in a component.
-- **PB-C2.** Garnet (`--signal`) means "a person is awaited" (`tokens.css`): it is the yes a person gives to an
-  agent, and nothing else. In the console it is the approve button, the one primary action of that screen. On public
-  pages it appears only where that button is shown, inside a product scene (`data-scene`): the landing's approval
-  scene, a docs screenshot. Every other action, "Start free", the header action, a plan's button, is the neutral
-  button (ink on paper, paper on ink); pricing marks the recommended plan by its card (border and label), not by
-  garnet. At most one garnet button per viewport. Amber is warning, red is error; garnet is never either.
+- **PB-C2.** Garnet (`--signal` and its `-text`, `-tint`, `-border` variants) is kept for one thing: the gesture of a
+  person approving an agent's work (decided 30 October 2026). It colours the approve button, and the "waiting for
+  your decision" state that leads to it, nowhere else. In the console that is the approve button of a request; on
+  public pages it appears only inside a product scene that shows that gesture (`data-scene`: the landing's approval
+  scene, a docs screenshot). The Ostrom mark keeps its garnet: it is the identity, not a colour of the page.
+  Everything else is neutral, in both themes:
+  - actions: "Start free", the header action, a plan's button, "Back to the home page", "Send invitations", every
+    form submit, use the neutral button (ink on paper, paper on ink);
+  - links are ink, underlined; eyebrows, step numbers, quote borders, text selection and badges use ink or grey;
+  - pricing marks the recommended plan by its card (a heavier ink border and a "Recommended" label), not by garnet.
+
+  At most one garnet button per viewport. Amber is warning, red is error; garnet is never either. The comment at the
+  top of each repository's `tokens.css` says the same.
 - **PB-C3.** Light and dark are both first class. The default follows the system; a three-way switch (System,
   Light, Dark) sits in the footer (Vercel does this) and is remembered; the stored choice is applied before the
   first paint (inline script in `<head>`, no flash). Linear ships dark only and Stripe light only: Ostrom ships
@@ -625,6 +636,7 @@ test in the site's suite; "Review" means the reviewer checks it by hand, with th
 |---|---|---|
 | PB-W1 | Marketing wording matches the locked proposition | Review against `proposition-de-valeur.md`; strings live in `src/i18n/en.ts` |
 | PB-W2 | No banned jargon on marketing pages outside `[data-audience="engineers"]` | CI: scan of the visible text nodes of the marketing routes |
+| PB-W2b | Approval lexicon: approve, send back, request; never "gate" or "Yes, run it" in user-facing text | CI: the same scan on the site, the docs' task guides and the console's message catalogue |
 | PB-W3 | Every number has a source or is ours and dated | Review |
 | PB-W4 | Nothing presented as available before it ships | Review; docs `status` front matter |
 | PB-W5, PB-W6 | Sentence-case titles, no "!" in headings, no "simply/just/easily" in instructions, no mixed languages | CI: scan of `h1`–`h3` and `<title>` for "!"; review |
@@ -633,7 +645,7 @@ test in the site's suite; "Review" means the reviewer checks it by hand, with th
 | PB-T3 | Long-form lines of 60–75 characters, never over 80 | e2e at 1 440 px: for every paragraph of 150 characters or more, count the characters of each rendered line (Range client rects); none over 80 |
 | PB-T4, PB-T5 | Tabular figures; uppercase only for eyebrows and table headers | e2e: computed `font-variant-numeric` on prices and table cells; review |
 | PB-C1 | No colour literal in components | CI: lint rule / grep for hex, `rgb(`, `hsl(` outside `tokens.css` |
-| PB-C2 | Garnet only on the approve button of a product scene, ≤ 1 per viewport | e2e on every route: no visible element with the `--signal` background outside `[data-scene]`, and ≤ 1 in each viewport-high slice |
+| PB-C2 | Garnet only for the approval gesture: the approve button and its waiting state, inside a product scene on public pages; ≤ 1 button per viewport | e2e on every route: no visible element whose background, text colour or border is a `--signal*` value outside `[data-scene]` and the Ostrom mark, and ≤ 1 garnet button in each viewport-high slice; same check on the console's screens outside the approve button |
 | PB-C3 | System default, three-way switch, no flash | e2e: load with stored "dark" and assert the first paint background |
 | PB-C4, PB-A1 | axe: 0 violations, light and dark, desktop and mobile | CI `e2e` (axe on every route in the sitemap and on the 404 page) |
 | PB-L1, PB-L3, PB-L4 | Grid, docs columns, sticky header 56–64 px | e2e: header height and stickiness; docs column count at 1 280, 1 024 and 390 px |
