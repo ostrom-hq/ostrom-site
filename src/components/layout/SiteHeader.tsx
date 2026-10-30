@@ -3,6 +3,7 @@ import { Logo } from '@/components/brand/Logo'
 import type { Messages } from '@/i18n'
 import { headerLinks, signinUrl, signupUrl } from '@/lib/navigation'
 import type { SiteConfig } from '@/lib/site'
+import { MobileMenu } from './MobileMenu'
 import { NavAnchor } from './NavAnchor'
 
 interface SiteHeaderProps {
@@ -34,8 +35,7 @@ export function SiteHeader({ messages, config }: SiteHeaderProps): React.JSX.Ele
           <a className="button button--signal button--small" href={signupUrl(config)}>
             {messages.nav.startFree}
           </a>
-          <details className="site-header__menu">
-            <summary className="button button--small">{messages.a11y.openMenu}</summary>
+          <MobileMenu label={messages.a11y.openMenu}>
             <nav aria-label={messages.a11y.mainNav}>
               <ul>
                 {links.map((link) => (
@@ -48,7 +48,7 @@ export function SiteHeader({ messages, config }: SiteHeaderProps): React.JSX.Ele
                 </li>
               </ul>
             </nav>
-          </details>
+          </MobileMenu>
         </div>
       </div>
     </header>

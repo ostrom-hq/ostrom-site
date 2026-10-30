@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { en } from '@/i18n/en'
 import { readSiteConfig } from '@/lib/site'
 import { THEME_STORAGE_KEY } from '@/lib/theme'
+import { MobileMenu, mounted } from './MobileMenu'
 import { NavAnchor } from './NavAnchor'
 import { SiteFooter } from './SiteFooter'
 import { SiteHeader } from './SiteHeader'
@@ -21,6 +22,56 @@ describe('SiteHeader', () => {
     const signIns = screen.getAllByRole('link', { name: en.nav.signIn })
     expect(signIns[0]).toHaveAttribute('href', 'https://app.ostrom.run/login')
     expect(screen.getAllByRole('navigation', { name: en.a11y.mainNav })).toHaveLength(2)
+  })
+})
+
+describe('MobileMenu', () => {
+  const setup = (): { details: HTMLDetailsElement; summary: HTMLElement } => {
+    const { container } = render(
+      <MobileMenu label="Menu">
+        <a href="#somewhere">Somewhere</a>
+        <span>Text</span>
+      </MobileMenu>,
+    )
+    const details = container.querySelector('details')
+    if (details === null) throw new Error('no menu')
+    return { details, summary: screen.getByText('Menu') }
+  }
+
+  it('closes on Escape and gives the focus back to its button', async () => {
+    const user = userEvent.setup()
+    const { details, summary } = setup()
+    await user.click(summary)
+    expect(details.open).toBe(true)
+    screen.getByRole('link', { name: 'Somewhere' }).focus()
+    await user.keyboard('{Escape}')
+    expect(details.open).toBe(false)
+    expect(summary).toHaveFocus()
+    await user.keyboard('{Escape}')
+    expect(details.open).toBe(false)
+  })
+
+  it('closes when a link is followed, not on other clicks', async () => {
+    const user = userEvent.setup()
+    const { details } = setup()
+    details.open = true
+    await user.click(screen.getByText('Text'))
+    expect(details.open).toBe(true)
+    await user.click(screen.getByRole('link', { name: 'Somewhere' }))
+    expect(details.open).toBe(false)
+  })
+
+  it('counts on a mounted element', () => {
+    expect(() => mounted({ current: null })).toThrow('not mounted')
+  })
+
+  it('ignores other keys', async () => {
+    const user = userEvent.setup()
+    const { details } = setup()
+    details.open = true
+    screen.getByRole('link', { name: 'Somewhere' }).focus()
+    await user.keyboard('a')
+    expect(details.open).toBe(true)
   })
 })
 

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { SiteFooter } from '@/components/layout/SiteFooter'
 import { SiteHeader } from '@/components/layout/SiteHeader'
 import { getMessages } from '@/i18n'
+import { indexingFor, OG_IMAGE } from '@/lib/seo'
 import { site } from '@/lib/site'
 import { THEME_BOOT_SCRIPT } from '@/lib/theme'
 import { archivo, azeret } from './fonts'
@@ -19,7 +20,8 @@ export const metadata: Metadata = {
   title: { default: messages.meta.title, template: `%s · ${messages.meta.siteName}` },
   description: messages.meta.description,
   applicationName: messages.meta.siteName,
-  alternates: { canonical: '/' },
+  // No canonical here: it would be inherited by every page that forgets its own. Each page declares it.
+  robots: indexingFor(site),
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
@@ -33,13 +35,14 @@ export const metadata: Metadata = {
     siteName: messages.meta.siteName,
     title: messages.meta.title,
     description: messages.meta.description,
-    url: '/',
     locale: 'en_US',
+    images: [{ ...OG_IMAGE, alt: messages.meta.title }],
   },
   twitter: {
     card: 'summary_large_image',
     title: messages.meta.title,
     description: messages.meta.description,
+    images: [OG_IMAGE.url],
   },
 }
 

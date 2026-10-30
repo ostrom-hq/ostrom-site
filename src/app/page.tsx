@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import {
   Approvals,
   FinalCta,
@@ -13,12 +14,17 @@ import {
   Why,
 } from '@/components/home/Sections'
 import { getMessages } from '@/i18n'
+import { homeJsonLd } from '@/lib/seo'
 import { site } from '@/lib/site'
 
+export const metadata: Metadata = { alternates: { canonical: '/' } }
+
 export default function HomePage(): React.JSX.Element {
-  const { home, approval } = getMessages()
+  const messages = getMessages()
+  const { home, approval } = messages
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: homeJsonLd(site, messages) }} />
       <Hero copy={home.hero} approval={approval} config={site} />
       <Vision copy={home.vision} />
       <Problem copy={home.problem} />
