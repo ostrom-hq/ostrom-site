@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { PageHead } from '@/components/content/PageHead'
+import { RepoName } from '@/components/content/RepoName'
 import { getMessages } from '@/i18n'
 import { site } from '@/lib/site'
 
@@ -32,9 +33,7 @@ export default function OpenSourcePage(): React.JSX.Element {
                 {openSource.repos.map((repo) => (
                   <tr key={repo.name}>
                     <th scope="row">
-                      <a className="mono" href={`${site.githubUrl}/${repo.name}`} rel="noopener">
-                        {repo.name}
-                      </a>
+                      <RepoName name={repo.name} config={site} />
                     </th>
                     <td>{repo.what}</td>
                     <td>{repo.license}</td>

@@ -7,6 +7,13 @@ describe('readSiteConfig', () => {
     expect(config.appUrl).toBe('https://app.ostrom.run')
     expect(config.apiUrl).toBe('https://api.ostrom.run')
     expect(config.contactEmail).toBe('hello@ostrom.run')
+    expect(config.launched).toBe(false)
+  })
+
+  it('stays private until the launch switch is set to 1', () => {
+    expect(readSiteConfig({ NEXT_PUBLIC_LAUNCHED: '0' }).launched).toBe(false)
+    expect(readSiteConfig({ NEXT_PUBLIC_LAUNCHED: '1' }).launched).toBe(true)
+    expect(() => readSiteConfig({ NEXT_PUBLIC_LAUNCHED: 'yes' })).toThrow()
   })
 
   it('takes the environment and drops trailing slashes', () => {

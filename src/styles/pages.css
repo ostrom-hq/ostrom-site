@@ -221,3 +221,12 @@
 [data-health='unreachable'] .status__dot {
     background: var(--danger);
 }
+
+.not-found__links {
+    margin-top: var(--space-6);
+}
+.not-found__links ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}

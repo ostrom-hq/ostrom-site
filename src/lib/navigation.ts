@@ -44,7 +44,7 @@ export function headerLinks(messages: Messages): readonly NavLink[] {
 
 export function footerColumns(messages: Messages, config: SiteConfig): readonly NavColumn[] {
   const links = messages.footer.links
-  return [
+  const columns: readonly NavColumn[] = [
     {
       title: messages.footer.columns.product,
       links: [
@@ -57,7 +57,10 @@ export function footerColumns(messages: Messages, config: SiteConfig): readonly 
     },
     {
       title: messages.footer.columns.developers,
-      links: [internal(links.openSource, '/open-source/'), external(links.github, config.githubUrl)],
+      links: [
+        internal(links.openSource, '/open-source/'),
+        ...(config.launched ? [external(links.github, config.githubUrl)] : []),
+      ],
     },
     {
       title: messages.footer.columns.company,
@@ -78,4 +81,5 @@ export function footerColumns(messages: Messages, config: SiteConfig): readonly 
       ],
     },
   ]
+  return columns.filter((column) => column.links.length > 0)
 }

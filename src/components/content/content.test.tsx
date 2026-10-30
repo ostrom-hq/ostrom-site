@@ -4,6 +4,8 @@ import { parseMarkdown } from '@/lib/markdown'
 import { Article } from './Article'
 import { Markdown } from './Markdown'
 import { PageHead } from './PageHead'
+import { RepoName } from './RepoName'
+import { readSiteConfig } from '@/lib/site'
 
 const SOURCE = [
   '## Title `code` **bold** *em*',
@@ -83,5 +85,20 @@ describe('PageHead', () => {
   it('leaves the lead out when there is none', () => {
     const { container } = render(<PageHead eyebrow="Blog" title="Posts" />)
     expect(container.querySelector('.lead')).toBeNull()
+  })
+})
+
+describe('RepoName', () => {
+  it('links the repository only after the launch', () => {
+    const { rerender } = render(
+      <RepoName name="ostrom-cli" config={readSiteConfig({ NEXT_PUBLIC_LAUNCHED: '1' })} />,
+    )
+    expect(screen.getByRole('link', { name: 'ostrom-cli' })).toHaveAttribute(
+      'href',
+      'https://github.com/ostrom-hq/ostrom-cli',
+    )
+    rerender(<RepoName name="ostrom-cli" config={readSiteConfig({})} />)
+    expect(screen.queryByRole('link')).toBeNull()
+    expect(screen.getByText('ostrom-cli')).toBeInTheDocument()
   })
 })

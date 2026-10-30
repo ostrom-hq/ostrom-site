@@ -32,7 +32,10 @@ test('the theme choice is remembered across pages', async ({ page }) => {
 test('robots.txt and the sitemap are published', async ({ request }) => {
   const robots = await request.get('/robots.txt')
   expect(robots.ok()).toBe(true)
-  expect(await robots.text()).toContain('Sitemap: https://ostrom.run/sitemap.xml')
+  const rules = await robots.text()
+  expect(rules).toContain('Sitemap: https://ostrom.run/sitemap.xml')
+  // Before Lyes's go (NEXT_PUBLIC_LAUNCHED unset), nothing is indexed.
+  expect(rules).toContain('Disallow: /')
   const sitemap = await request.get('/sitemap.xml')
   expect(sitemap.ok()).toBe(true)
   expect(await sitemap.text()).toContain('<loc>https://ostrom.run/</loc>')
@@ -49,6 +52,9 @@ test('the container answers its health probe and sends the security headers', as
   expect(headers['strict-transport-security']).toContain('max-age=31536000')
   expect(headers['x-content-type-options']).toBe('nosniff')
   expect(headers['content-security-policy']).toContain("frame-ancestors 'none'")
+  // The image built without the launch switch tells every crawler to stay away, on every answer.
+  expect(headers['x-robots-tag']).toBe('noindex, nofollow')
+  expect((await request.get('/og.png')).headers()['x-robots-tag']).toBe('noindex, nofollow')
   const asset = /\/_next\/static\/[^"]+\.js/.exec(await home.text())?.[0]
   expect(asset).toBeDefined()
   const cached = await request.get(asset ?? '/')

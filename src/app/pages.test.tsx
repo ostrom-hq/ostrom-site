@@ -85,10 +85,9 @@ describe('content pages', () => {
 
   it('lists each repository with its license', () => {
     render(<OpenSourcePage />)
-    expect(screen.getByRole('link', { name: 'ostrom-core' })).toHaveAttribute(
-      'href',
-      'https://github.com/ostrom-hq/ostrom-core',
-    )
+    // Not launched: the repositories are private, so their names are not links yet.
+    expect(screen.getByText('ostrom-core')).not.toHaveAttribute('href')
+    expect(screen.queryByRole('link', { name: 'ostrom-core' })).toBeNull()
     expect(screen.getAllByText('Apache 2.0')).toHaveLength(2)
     expect(screen.getAllByText('AGPL 3.0, ee/ commercial')).toHaveLength(3)
     expect(openSourceMetadata.title).toBe('Open source')
