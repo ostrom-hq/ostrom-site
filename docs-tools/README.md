@@ -14,7 +14,8 @@ CI checks it with docs-truth (`ostrom-core/tools/docs-truth`), on every page and
 option must be in the help of the binary built from ostrom-cli `main`, and each `OSTROM_` variable must be read by the
 server, the CLI or ostrom-core. Anything else is allowed only where its paragraph, list item, table row or a heading
 above it says "Coming soon", or on a `status: coming-soon` page. A page whose status is `partial` or `coming-soon`
-must say "Coming soon" in its text.
+must say "Coming soon" in its text. A sentence that calls checks or tests proven must say where they ran (the
+receipt's attestation: declared by the workstation, an isolated runner or CI).
 
 ## A page
 
