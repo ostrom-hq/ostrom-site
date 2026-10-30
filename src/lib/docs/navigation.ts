@@ -53,7 +53,7 @@ function folderEntries(version: DocsVersion, folder: DocFolder): NavEntry[] {
 
 /** The API reference as a sidebar group: overview, one entry per tag, the schemas. Latest version only. */
 export function apiGroup(api: ApiReference | null, labels: NavLabels): NavGroup {
-  const published = isPublished(api)
+  const published = api !== null && isPublished(api)
   const status = published ? 'available' : 'coming-soon'
   const items: NavEntry[] = [{ kind: 'link', title: labels.apiOverview, href: `${API_BASE}/`, status }]
   if (published) {

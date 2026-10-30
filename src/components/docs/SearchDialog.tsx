@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { Messages } from '@/i18n'
-import { SEARCH_INDEX_PATH, searchIndexSchema, type SearchIndex } from '@/lib/docs/search'
+import { SEARCH_INDEX_PATH, searchIndexSchema, type SearchIndex } from '@/lib/docs/searchIndex'
 import { createSearch, type SearchHit } from '@/lib/docs/searchEngine'
 import { fill } from '@/lib/docs/text'
 
@@ -131,9 +131,9 @@ export default function SearchDialog({
       <p className="docs-search__status" role="status">
         {status}
       </p>
-      <ul className="docs-search__results" id={listId} role="listbox" aria-label={labels.results}>
+      <div className="docs-search__results" id={listId} role="listbox" aria-label={labels.results}>
         {hits.map((hit, position) => (
-          <li
+          <div
             key={hit.href}
             id={`${listId}-${String(position)}`}
             role="option"
@@ -152,9 +152,9 @@ export default function SearchDialog({
           >
             <span className="docs-search__hit-title">{hit.section === '' ? hit.title : hit.section}</span>
             {hit.section === '' ? null : <span className="docs-search__hit-page">{hit.title}</span>}
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
       <p className="docs-search__hint" aria-hidden="true">
         {labels.hint}
       </p>

@@ -80,6 +80,8 @@ export function titleFromName(name: string): string {
  * Reads a folder of pages. Order: the names of `meta.json`'s `pages`, then every other page or folder alphabetically,
  * so that a page missing from meta.json is shown rather than lost. A listed name with no file fails the build.
  */
+const SEPARATOR = /^---.*---$/
+
 export function readFolder(dir: string, slug: readonly string[] = []): DocFolder {
   const meta = readMeta(dir)
   const entries = new Map<string, { readonly path: string; readonly folder: boolean }>()
@@ -88,7 +90,8 @@ export function readFolder(dir: string, slug: readonly string[] = []): DocFolder
     if (entry.isDirectory()) entries.set(entry.name, { path: join(dir, entry.name), folder: true })
     else if (page !== null) entries.set(captured(page, 1), { path: join(dir, entry.name), folder: false })
   }
-  const listed = meta.pages ?? []
+  // A `---Title---` entry is a sidebar separator (PB-D1), not a page: accepted, not rendered yet.
+  const listed = (meta.pages ?? []).filter((name) => !SEPARATOR.test(name))
   for (const name of listed) {
     if (!entries.has(name))
       throw problem(join(dir, 'meta.json'), `"${name}" is listed, but there is no ${name}.mdx or ${name}/`)

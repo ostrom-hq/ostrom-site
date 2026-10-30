@@ -28,7 +28,7 @@ export function ApiOverview({
   readonly messages: Messages
 }): React.JSX.Element {
   const text = messages.docs.api
-  if (!isPublished(api)) {
+  if (api === null || !isPublished(api)) {
     return (
       <DocArticle
         title={text.title}

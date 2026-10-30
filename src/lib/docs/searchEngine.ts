@@ -1,6 +1,6 @@
 import MiniSearch from 'minisearch'
 import { z } from 'zod'
-import type { SearchEntry } from './search'
+import type { SearchEntry } from './searchIndex'
 
 // The search itself, in the browser. This module (and MiniSearch) is loaded only with the search dialog.
 

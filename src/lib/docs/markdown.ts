@@ -94,7 +94,7 @@ export function renderMarkdown(markdown: string, options: MarkdownOptions): Rend
     }
     const title = collapseWhitespace(toString(node))
     const id = slugger.slug(title)
-    node.properties['id'] = id
+    node.properties = { ...node.properties, id }
     node.children = [
       { type: 'element', tagName: 'a', properties: { href: `#${id}` }, children: node.children },
     ]
@@ -110,8 +110,9 @@ export function renderMarkdown(markdown: string, options: MarkdownOptions): Rend
   close()
 
   eachElement(tree.children, (node) => {
-    const href = node.properties['href']
-    if (node.tagName === 'a' && typeof href === 'string') node.properties['href'] = options.rewriteHref(href)
+    const { href } = node.properties
+    if (node.tagName === 'a' && typeof href === 'string')
+      node.properties = { ...node.properties, href: options.rewriteHref(href) }
   })
 
   return { html: toHtml(tree), toc, sections }

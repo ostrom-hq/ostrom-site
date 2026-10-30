@@ -415,9 +415,9 @@ export function buildApiReference(document: OpenApiDocument, baseUrl: string): A
   return buildReference(document, baseUrl)
 }
 
-/** Whether the reference has anything to show: a snapshot, and at least one operation the server serves. */
-export function isPublished(api: ApiReference | null): api is ApiReference {
-  return api !== null && api.tags.length > 0
+/** Whether the reference has anything to show: at least one operation the server serves. */
+export function isPublished(api: ApiReference): boolean {
+  return api.tags.length > 0
 }
 
 /** Reads and builds the reference, or null when the snapshot is not in the repository yet. */

@@ -50,11 +50,12 @@ function describe(route: DocsRoute, docs: DocsSite, messages: Messages): Descrip
     case 'api-overview':
       return {
         title: text.api.title,
-        description: isPublished(docs.api)
-          ? text.api.description
-          : docs.api === null
+        description:
+          docs.api === null
             ? text.api.missing
-            : text.api.notServed,
+            : isPublished(docs.api)
+              ? text.api.description
+              : text.api.notServed,
       }
     case 'api-tag':
       return {
@@ -102,7 +103,7 @@ function apiToc(route: DocsRoute, docs: DocsSite, messages: Messages): TocItem[]
   if (route.kind === 'api-schemas' && docs.api !== null) {
     return docs.api.schemas.map((schema) => ({ id: schema.anchor, text: schema.name, depth: 2 as const }))
   }
-  return isPublished(docs.api) ? overviewToc(messages.docs.api) : []
+  return docs.api !== null && isPublished(docs.api) ? overviewToc(messages.docs.api) : []
 }
 
 export default async function DocsPage({ params }: DocsPageProps): Promise<React.JSX.Element> {

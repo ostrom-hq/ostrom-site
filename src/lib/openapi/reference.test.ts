@@ -218,7 +218,7 @@ describe('names', () => {
     )
     const reference = buildApiReference(real, TEST_API_URL)
     expect(reference.tags.flatMap((tag) => tag.operations)).toHaveLength(
-      served.filter((operation) => operation !== undefined && isServed(operation)).length,
+      served.filter((operation) => isServed(operation)).length,
     )
   })
 })

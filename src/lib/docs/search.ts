@@ -1,28 +1,19 @@
-import { z } from 'zod'
 import { collapseWhitespace, truncate } from './text'
 import { SECTION_TEXT_LIMIT } from './markdown'
 import { renderPage } from './render'
 import { apiTagHref, docsRoutes, pageHref, type DocsSite } from './site'
+import type { SearchEntry, SearchIndex } from './searchIndex'
 
 // The search index: one entry per section of every page (and per operation of the API reference), built at build
 // time into /docs/search-index.json. The dialog fetches it only when someone opens it.
 
-export const searchEntrySchema = z.object({
-  id: z.number().int(),
-  version: z.string(),
-  href: z.string(),
-  title: z.string(),
-  section: z.string(),
-  text: z.string(),
-})
-
-export type SearchEntry = z.infer<typeof searchEntrySchema>
-
-export const searchIndexSchema = z.object({ entries: z.array(searchEntrySchema) })
-
-export type SearchIndex = z.infer<typeof searchIndexSchema>
-
-export const SEARCH_INDEX_PATH = '/docs/search-index.json'
+export {
+  SEARCH_INDEX_PATH,
+  searchEntrySchema,
+  searchIndexSchema,
+  type SearchEntry,
+  type SearchIndex,
+} from './searchIndex'
 
 type Draft = Omit<SearchEntry, 'id'>
 
