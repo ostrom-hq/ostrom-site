@@ -2,11 +2,15 @@ import type { Metadata, MetadataRoute } from 'next'
 import type { Messages } from '@/i18n'
 import { absoluteUrl, type SiteConfig } from './site'
 
-/** robots.txt: everything open after the launch, everything closed before it. */
+/**
+ * robots.txt: crawling stays open, before the launch too. Before it, every page and file says noindex (meta tag and
+ * X-Robots-Tag): a crawler has to read the page to see that, and a page closed by robots.txt can still be listed,
+ * without a snippet, if something links to it. The sitemap is announced only after the launch.
+ */
 export function robotsFor(config: SiteConfig): MetadataRoute.Robots {
   return {
-    rules: config.launched ? { userAgent: '*', allow: '/' } : { userAgent: '*', disallow: '/' },
-    sitemap: absoluteUrl('/sitemap.xml', config),
+    rules: { userAgent: '*', allow: '/' },
+    ...(config.launched ? { sitemap: absoluteUrl('/sitemap.xml', config) } : {}),
   }
 }
 

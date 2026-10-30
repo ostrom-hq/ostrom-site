@@ -1,5 +1,6 @@
 import {
   applyTheme,
+  browserStorage,
   parseTheme,
   readTheme,
   THEME_BOOT_SCRIPT,
@@ -72,6 +73,20 @@ describe('theme', () => {
     expect(root.dataset['theme']).toBe('light')
     applyTheme(root, blocked, 'system')
     expect(root.dataset['theme']).toBeUndefined()
+  })
+
+  it('reaches localStorage at each call, and survives a context where reading it throws', () => {
+    applyTheme(document.documentElement, browserStorage, 'dark')
+    expect(readTheme(browserStorage)).toBe('dark')
+    applyTheme(document.documentElement, browserStorage, 'system')
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBeNull()
+    const blocked = vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+      throw new DOMException('The operation is insecure.', 'SecurityError')
+    })
+    expect(readTheme(browserStorage)).toBe('system')
+    applyTheme(document.documentElement, browserStorage, 'light')
+    expect(document.documentElement.dataset['theme']).toBe('light')
+    blocked.mockRestore()
   })
 
   it('boots the remembered theme before the first paint', () => {
