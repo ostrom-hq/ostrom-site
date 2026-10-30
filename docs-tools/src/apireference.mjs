@@ -78,6 +78,25 @@ function schemaSection(name, schema) {
     return lines
 }
 
+/** Names of the component schemas a value refers to, directly or through other schemas and components. */
+export function referencedSchemas(spec, value, found = new Set()) {
+    if (Array.isArray(value)) {
+        for (const item of value) referencedSchemas(spec, item, found)
+        return found
+    }
+    if (value === null || typeof value !== "object") return found
+    if (typeof value.$ref === "string") {
+        const name = refName(value.$ref)
+        if (value.$ref.startsWith("#/components/schemas/")) {
+            if (found.has(name)) return found
+            found.add(name)
+        }
+        referencedSchemas(spec, resolve(spec, {$ref: value.$ref}), found)
+    }
+    for (const [key, child] of Object.entries(value)) if (key !== "$ref") referencedSchemas(spec, child, found)
+    return found
+}
+
 /** True for an operation the server serves: the contract marks it `x-ostrom-server: implemented`. */
 export function isImplemented(operation) {
     return operation["x-ostrom-server"] === "implemented"
@@ -91,10 +110,12 @@ export function generateApiReference(spec) {
     const tagNames = (spec.tags ?? []).map((tag) => tag.name)
     const groups = new Map(tagNames.map((name) => [name, []]))
     const untagged = []
+    const used = new Set()
     for (const [path, item] of Object.entries(spec.paths ?? {})) {
         for (const method of METHODS) {
             const operation = item[method]
             if (operation === undefined || !isImplemented(operation)) continue
+            referencedSchemas(spec, [item.parameters ?? [], operation], used)
             const section = operationSection(spec, path, method, operation, item.parameters ?? [])
             const tag = operation.tags?.[0]
             if (tag !== undefined && !groups.has(tag)) groups.set(tag, [])
@@ -124,7 +145,7 @@ export function generateApiReference(spec) {
         lines.push(...section)
     }
     if (untagged.length > 0) lines.push("## Other endpoints", "", ...untagged)
-    const schemas = Object.entries(spec.components?.schemas ?? {})
+    const schemas = Object.entries(spec.components?.schemas ?? {}).filter(([name]) => used.has(name))
     if (schemas.length > 0) {
         lines.push("## Schemas", "")
         for (const [name, schema] of schemas) lines.push(...schemaSection(name, schema))

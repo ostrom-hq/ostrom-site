@@ -38,7 +38,8 @@ components:
         both: {allOf: [{$ref: '#/components/schemas/Error'}]}
         count: {type: [integer, "null"], description: "Up to {n} <items>"}
         any: {anyOf: [{type: string}, {type: number}]}
-    Error: {type: object, properties: {code: {type: string}}}
+    Error: {type: object, properties: {code: {type: string}, cause: {$ref: '#/components/schemas/Error'}}}
+    Unused: {type: string}
     Ids: {type: array, items: {type: string}}
 paths:
   /gates/{id}:
@@ -130,6 +131,7 @@ test("the page: tags in order, parameters, bodies, responses, schemas, and it li
         "Type: string array",
     ]) {
         assert.equal(text.includes("PATCH"), false)
+        assert.equal(text.includes("### Unused"), false, "a schema no listed operation uses is left out")
         assert.ok(text.includes(expected), expected)
     }
 })
