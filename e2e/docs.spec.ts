@@ -100,7 +100,7 @@ test('the sidebar is grouped under the headings of meta.json', async ({ page, is
   if (isMobile) await page.getByRole('button', { name: 'Docs menu' }).click()
   const sidebar = page.getByRole('navigation', { name: 'Docs', exact: true })
   for (const heading of ['Get started', 'Concepts', 'Cloud', 'Reference', 'Help'])
-    await expect(sidebar.locator('.docs-nav__heading').getByText(heading, { exact: true })).toBeVisible()
+    await expect(sidebar.locator('.docs-nav__heading', { hasText: new RegExp(`^${heading}$`) })).toBeVisible()
   await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).not.toContainText('Concepts')
 })
 
