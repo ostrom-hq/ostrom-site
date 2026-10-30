@@ -34,7 +34,10 @@ describe('extract', () => {
 describe('checkLinks', () => {
   it('passes a consistent site and ignores external, mail and data links', () => {
     const files = new Map([
-      ['index.html', '<a href="/pricing/#plans">p</a><a href="#top">t</a><div id="top"></div><a href="https://github.com">g</a><a href="mailto:a@b">m</a><img src="data:image/png;base64,x"><a href="">e</a><link href="/favicon.svg">'],
+      [
+        'index.html',
+        '<a href="/pricing/#plans">p</a><a href="#top">t</a><div id="top"></div><a href="https://github.com">g</a><a href="mailto:a@b">m</a><img src="data:image/png;base64,x"><a href="">e</a><link href="/favicon.svg">',
+      ],
       ['pricing/index.html', '<section id="plans"></section><a href="../">home</a>'],
       ['favicon.svg', ''],
     ])
@@ -43,7 +46,10 @@ describe('checkLinks', () => {
 
   it('reports a missing page and a missing anchor', () => {
     const files = new Map([
-      ['index.html', '<a href="/blog/">b</a><a href="/pricing/#nope">p</a><a href="https://ostrom.run/gone">abs</a>'],
+      [
+        'index.html',
+        '<a href="/blog/">b</a><a href="/pricing/#nope">p</a><a href="https://ostrom.run/gone">abs</a>',
+      ],
       ['pricing/index.html', '<section id="plans"></section>'],
     ])
     expect(checkLinks(files, origin)).toEqual([

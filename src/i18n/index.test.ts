@@ -21,7 +21,17 @@ describe('i18n', () => {
 
   it('keeps the words the pitch forbids out of the marketing texts', () => {
     const marketing = JSON.stringify(en.home).toLowerCase()
-    for (const word of ['harness', 'control plane', 'mcp', 'hooks', 'git blame', 'skills', 'platform', 'guardrails', 'nobody']) {
+    for (const word of [
+      'harness',
+      'control plane',
+      'mcp',
+      'hooks',
+      'git blame',
+      'skills',
+      'platform',
+      'guardrails',
+      'nobody',
+    ]) {
       expect(marketing).not.toContain(word)
     }
   })

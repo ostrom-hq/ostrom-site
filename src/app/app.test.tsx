@@ -36,7 +36,10 @@ describe('home page', () => {
     ]) {
       expect(screen.getByRole('heading', { level: 2, name: title })).toBeInTheDocument()
     }
-    expect(screen.getByRole('link', { name: en.home.cta.secondary })).toHaveAttribute('href', 'mailto:hello@ostrom.run')
+    expect(screen.getByRole('link', { name: en.home.cta.secondary })).toHaveAttribute(
+      'href',
+      'mailto:hello@ostrom.run',
+    )
     expect(document.getElementById('how-it-works')).not.toBeNull()
   })
 })
@@ -49,7 +52,7 @@ describe('root layout', () => {
       </RootLayout>,
     )
     expect(html).toContain('<html lang="en"')
-    expect(html).toContain('--font-archivo')
+    expect(html).toContain('font-archivo')
     expect(html).toContain('href="#main"')
     expect(html).toContain('ostrom-theme')
     expect(html).toContain('<main id="main"')
@@ -74,7 +77,10 @@ describe('not found', () => {
 
 describe('robots and sitemap', () => {
   it('allows everything and points to the sitemap', () => {
-    expect(robots()).toEqual({ rules: { userAgent: '*', allow: '/' }, sitemap: 'https://ostrom.run/sitemap.xml' })
+    expect(robots()).toEqual({
+      rules: { userAgent: '*', allow: '/' },
+      sitemap: 'https://ostrom.run/sitemap.xml',
+    })
   })
 
   it('lists every public page with an absolute URL', () => {

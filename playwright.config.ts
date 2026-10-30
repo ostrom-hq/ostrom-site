@@ -17,6 +17,12 @@ export default defineConfig({
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
   ],
   ...(external === undefined
-    ? { webServer: { command: 'node scripts/serve.ts out 3100', url: 'http://localhost:3100/healthz', reuseExistingServer: true } }
+    ? {
+        webServer: {
+          command: 'node scripts/serve.ts out 3100',
+          url: 'http://localhost:3100/healthz',
+          reuseExistingServer: true,
+        },
+      }
     : {}),
 })

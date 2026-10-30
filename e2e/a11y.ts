@@ -9,7 +9,10 @@ export async function expectAccessible(page: Page): Promise<void> {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
       .analyze()
     expect(
-      results.violations.map((violation) => `${scheme}: ${violation.id} ${violation.nodes.map((node) => node.target.join(' ')).join(', ')}`),
+      results.violations.map(
+        (violation) =>
+          `${scheme}: ${violation.id} ${violation.nodes.map((node) => node.target.join(' ')).join(', ')}`,
+      ),
     ).toEqual([])
   }
 }
