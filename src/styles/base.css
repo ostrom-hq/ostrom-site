@@ -139,8 +139,11 @@ hr {
 }
 .section {
     padding-block: var(--space-9);
-    /* A section out of view is neither laid out, painted nor animated (the motifs loop): on a slow phone the main
-       thread is free for the first screen. The size is remembered once the section has been shown. */
+}
+/* On the long home page, a section out of view is neither laid out, painted nor animated (the motifs loop): on a slow
+   phone the main thread is free for the first screen. The size is remembered once the section has been shown. Not on
+   the short pages: there the placeholder size would move the footer in view when the real size arrives (CLS). */
+#main:has(> .hero) > .section {
     content-visibility: auto;
     contain-intrinsic-size: auto 800px;
 }
