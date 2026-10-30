@@ -139,6 +139,10 @@ hr {
 }
 .section {
     padding-block: var(--space-9);
+    /* A section out of view is neither laid out, painted nor animated (the motifs loop): on a slow phone the main
+       thread is free for the first screen. The size is remembered once the section has been shown. */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 800px;
 }
 .section--tight {
     padding-block: var(--space-7);
