@@ -3,7 +3,7 @@ import assert from "node:assert/strict"
 import {spawnSync} from "node:child_process"
 import {fileURLToPath} from "node:url"
 import {test} from "node:test"
-import {main} from "../src/cli.mjs"
+import {USAGE, main} from "../src/cli.mjs"
 import {FENCE, page, tree} from "./helpers.mjs"
 
 function capture(argv, env = process.env) {
@@ -17,7 +17,7 @@ const clean = () => tree({"meta.json": '{"title": "Docs", "pages": ["index"]}', 
 
 test("usage on a bad command", () => {
     assert.deepEqual(capture([]).code, 2)
-    assert.deepEqual(capture(["build", "x"]).err, ["usage: docs-tools lint <docs-dir> | docs-tools run <docs-dir> [--strict]"])
+    assert.deepEqual(capture(["build", "x"]).err, [USAGE])
 })
 
 test("unknown flags and missing folders are refused", () => {
@@ -25,7 +25,7 @@ test("unknown flags and missing folders are refused", () => {
     assert.equal(capture(["lint", clean(), "--strict"]).code, 2)
     assert.equal(capture(["run", clean(), clean()]).code, 2)
     assert.equal(capture(["run", "--strict", clean()]).code, 0, "flags may come before the folder")
-    assert.deepEqual(capture(["run", "--strict"]).err, ["usage: docs-tools lint <docs-dir> | docs-tools run <docs-dir> [--strict]"])
+    assert.deepEqual(capture(["run", "--strict"]).err, [USAGE])
     assert.deepEqual(capture(["lint", "/nonexistent/docs"]), {code: 2, out: [], err: ["not a folder: /nonexistent/docs"]})
     const file = tree({"a.mdx": ""})
     assert.deepEqual(capture(["run", `${file}/a.mdx`]).err, [`not a folder: ${file}/a.mdx`])
