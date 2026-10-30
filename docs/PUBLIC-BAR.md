@@ -96,10 +96,11 @@ The Signal brand sets the faces; the best sites set the discipline.
   Measured: Bun's landing, blog and docs set their headings in Archivo 800 too (68 px, −0.02 em). The 125 % width
   is what keeps Ostrom from looking like Bun: never ship the display face at normal width, and check that the
   `wdth` axis is really in the subset file (a subset without it silently falls back to 100 %).
-- **PB-T3.** Long-form text (landing sections, docs, blog, changelog, legal) is set in a column whose maximum width
-  gives 60 to 75 characters per line (`--measure: 64ch` for prose, 72 ch in docs; `ch` taken in the text face at its
-  normal width). Short texts (card blurbs, captions, table cells) are free. Measured on Biome's landing: paragraphs
-  1 080 px wide — exactly what not to do.
+- **PB-T3.** Long-form text (landing sections, docs, blog, changelog, legal, FAQ answers) holds 60 to 75
+  characters per rendered line, and never more than 80. The rule is in characters, not in `ch` (one `ch` is the
+  width of "0", wider than an average letter): tune `--measure` until the rendered lines fit. Short texts (card
+  blurbs, captions, table cells) are free. Measured on Biome's landing: paragraphs 1 080 px wide; on Ostrom's
+  pricing page (30 October build), FAQ answers at 107 characters per line.
 - **PB-T4.** Numbers in prices, tables, receipts and benchmarks use `font-variant-numeric: tabular-nums`.
 - **PB-T5.** Uppercase labels only for eyebrows and table headers, with `--label-tracking` (0.08 em).
 
@@ -108,9 +109,10 @@ The Signal brand sets the faces; the best sites set the discipline.
 - **PB-C1.** Every colour comes from `tokens.css`. No hex value in a component.
 - **PB-C2.** Garnet (`--signal`) means "a person is awaited": the gate, the approve button, the one primary action
   of a screen (`tokens.css`). At most one garnet button per viewport, everywhere, site included. Every other action
-  uses the neutral button (ink on paper, paper on ink). In practice: on a page whose first screen has its own
-  primary action (the landing hero), the header's action is neutral; on pricing, only the recommended plan's action
-  is garnet; in the console, only the approve button. Amber is warning, red is error; garnet is never either.
+  uses the neutral button (ink on paper, paper on ink). In practice: on the landing, the first screen's garnet is
+  the approve button of the approval scene (the product saying what garnet means), so "Start free" in the header and
+  in the hero are ink buttons; on other pages whose first screen has its own primary action, the header's action is
+  neutral; on pricing, only the recommended plan's action is garnet; in the console, only the approve button. Amber is warning, red is error; garnet is never either.
 - **PB-C3.** Light and dark are both first class. The default follows the system; a three-way switch (System,
   Light, Dark) sits in the footer (Vercel does this) and is remembered; the stored choice is applied before the
   first paint (inline script in `<head>`, no flash). Linear ships dark only and Stripe light only: Ostrom ships
@@ -133,20 +135,24 @@ The Signal brand sets the faces; the best sites set the discipline.
 - **PB-M1.** Motion explains a change of state; it never delays reading. The signature motion is the diaphragm:
   closed while an agent proposes, opening (`--dur-open` 820 ms, `--ease-open`) on a person's yes. It is used for
   that meaning only.
-- **PB-M2.** Only `transform` and `opacity` animate. No animation moves layout, so CLS stays 0.
+- **PB-M2.** Nothing that moves layout animates (no `width`, `height`, `top`, `left`, `margin`, `padding`), so
+  CLS stays 0. Movement uses `transform` and `opacity`; hover, focus and theme changes may also transition `color`,
+  `background-color`, `border-color`, `outline-color` and `box-shadow`.
 - **PB-M3.** `prefers-reduced-motion: reduce` shows the final frame of every animation, and auto-playing scenes
   stop. A scene that loops has a pause control (WCAG 2.2.2).
 - **PB-M4.** No scroll-jacking, no parallax on text, no cursor effects.
 
 ### 2.6 Performance
 
-Budgets, checked by Lighthouse CI on the static build (mobile profile) and by the weight check in CI:
+Budgets, checked by Lighthouse CI on the static build, on the throttled mobile profile and on the desktop profile:
 
-| Page | Lighthouse perf | LCP (mobile, simulated) | CLS | JS shipped (gzip) | Total weight first load |
+| Page | Lighthouse perf | LCP mobile (simulated) / desktop | CLS | JS shipped (gzip) | Total weight first load |
 |---|---|---|---|---|---|
-| Landing | ≥ 95 | ≤ 1.8 s | ≤ 0.01 | ≤ 150 KB | ≤ 600 KB (video excluded, lazy) |
-| Docs page | ≥ 95 | ≤ 1.5 s | ≤ 0.01 | ≤ 200 KB (search index lazy) | ≤ 450 KB |
-| Pricing, changelog, blog | ≥ 95 | ≤ 1.8 s | ≤ 0.01 | ≤ 150 KB | ≤ 600 KB |
+| Landing | ≥ 95 | ≤ 2.5 s / ≤ 1.8 s | ≤ 0.01 | ≤ 150 KB | ≤ 600 KB (video excluded, lazy) |
+| Docs page | ≥ 95 | ≤ 2.5 s / ≤ 1.5 s | ≤ 0.01 | ≤ 200 KB (search index lazy) | ≤ 450 KB |
+| Pricing, changelog, blog | ≥ 95 | ≤ 2.5 s / ≤ 1.8 s | ≤ 0.01 | ≤ 150 KB | ≤ 600 KB |
+
+(2.5 s is the "good" threshold of Core Web Vitals under Lighthouse's simulated slow 4G.)
 
 Why these numbers: the React and Next.js runtime alone is about 100 KB gzip, so 150 KB leaves room for the page's
 own islands and nothing else. Measured on the 17 reference landings (mobile, cold cache, bytes on the wire,
@@ -155,10 +161,11 @@ appendix): JavaScript from almost none to 3.9 MB, total weight from 0.3 to 7.4 M
 Bun (0.4 MB of JavaScript, 0.7 MB in total) and Fumadocs (0.6 MB, 1.3 MB). Those are the models: a static site has
 no reason to come near the others, and being several times lighter is an easy, visible lead.
 
-- **PB-P1.** The pages above meet their budget, and a pull request that crosses one fails CI: `lhci` asserts the
-  scores, `largest-contentful-paint`, `cumulative-layout-shift`, `total-byte-weight` and the script size on the
-  mobile profile. (The scaffold's `lighthouserc.cjs` asserts the four category scores at 0.95 only; the budget
-  assertions and accessibility, best practices and SEO at 1 are to be added by SITE.)
+- **PB-P1.** The pages above meet their budget, and a pull request that crosses one fails CI. `lhci` already
+  asserts the four category scores (≥ 0.95), `largest-contentful-paint`, `cumulative-layout-shift` and
+  `total-byte-weight` (600 KB for every page). Still to add: accessibility, best practices and SEO at 1, a script
+  size assertion (`resource-summary:script:size`), and the docs budgets through an `assertMatrix` entry matching
+  `/docs/`.
 - **PB-P2.** Images: AVIF or WebP with a PNG/JPEG fallback only where needed, explicit `width` and `height`,
   `loading="lazy"` below the first screen, `fetchpriority="high"` on the LCP image. The static export sets
   `images.unoptimized`, which turns Next.js's image optimisation off: a build step (a `sharp` script run before
@@ -173,8 +180,8 @@ no reason to come near the others, and being several times lighter is an easy, v
 
 ### 2.7 Accessibility
 
-- **PB-A1.** axe (WCAG 2.0/2.1/2.2 A and AA) reports zero violations on every public page, in both themes. It runs
-  in the Playwright e2e suite. Measured: every reference landing we could test had at least one serious finding
+- **PB-A1.** axe (WCAG 2.0/2.1/2.2 A and AA) reports zero violations on every public page, in both themes, on
+  desktop and mobile: every route of the sitemap plus the 404 page. It runs in the Playwright e2e suite. Measured: every reference landing we could test had at least one serious finding
   (Linear: contrast, unnamed button and link; Vercel: `meta-viewport` blocking zoom; Notion: missing ARIA
   attribute, malformed lists). This is where Ostrom is better than all of them.
 - **PB-A2.** A "Skip to content" link is the first focusable element (Linear, Stripe docs, Vercel have one).
@@ -202,7 +209,7 @@ no reason to come near the others, and being several times lighter is an easy, v
   on docs, `BlogPosting` on posts.
 - **PB-S6.** `sitemap.xml`, `robots.txt`, RSS (or Atom) for the changelog and the blog, `/.well-known/security.txt`.
 - **PB-S7.** Until Lyes gives the go, every response of every deployed environment carries `X-Robots-Tag: noindex,
-  nofollow`, and `robots.txt` lets crawlers in (a crawler kept out by `Disallow` never sees the header and can still
+  nofollow` (HTML, Markdown and feeds alike), and `robots.txt` lets crawlers in (a crawler kept out by `Disallow` never sees the header and can still
   list the bare URL) but names no sitemap. The switch to indexable is one setting (`indexable`), flipped on launch
   day, and tested both ways on the header.
 
@@ -215,10 +222,13 @@ and Fumadocs out of the box). For a product that runs AI agents, this is not opt
   generated at build time.
 - **PB-AI2.** Every docs page is also served as Markdown at its path without the trailing slash plus `.md`
   (`/docs/receipts/format/` → `/docs/receipts/format.md`; the docs home → `/docs.md`), written by the postbuild step
-  next to the HTML and served by nginx as `text/markdown; charset=utf-8` with `X-Robots-Tag: noindex` and a
-  `Link: <…/docs/receipts/format/>; rel="canonical"` header, so the HTML page stays the one indexed. The page has a
+  next to the HTML and served by nginx as `text/markdown; charset=utf-8` with a
+  `Link: <…/docs/receipts/format/>; rel="canonical"` header, so the HTML page stays the one indexed (the same holds
+  for `llms.txt` and `llms-full.txt`). The page has a
   "Copy page" button (Markdown to clipboard) with "Open in ChatGPT" and "Open in Claude" next to it.
-- **PB-AI3.** Code blocks in the Markdown output keep their language and their `test` meta stripped.
+- **PB-AI3.** Code blocks in the Markdown output keep their language; their test meta (`test`, `notest`,
+  `requires`, `exit`) and tab meta (`tab`, `group`) are stripped, and a tab set keeps each block under a line naming
+  its tab.
 
 ---
 
@@ -282,9 +292,10 @@ benchmark chart is the argument), PostHog (personality and full transparency, at
 - **PB-LD1.** First screen, in this order: eyebrow ("AI moves fast. Stay in control."), H1 "Agents propose. Your
   team decides.", the two sentences, one primary and one secondary action, and the approval scene (an agent's
   push waits; the right person sees the diff and says yes; the diaphragm opens; a receipt appears). The scene is
-  the product, drawn from real console components, not an illustration.
-- **PB-LD2.** Within the next screen: "Every agent change, signed." with a real receipt (verifiable: link to the
-  receipt format page and to a downloadable example).
+  the product, drawn from real console components, not an illustration, and labelled "Example". Its approve button
+  is the only garnet of the first screen (PB-C2).
+- **PB-LD2.** Within the next screens: "Every agent change, signed." with a real receipt, linked to the receipt
+  format page (`/docs/receipts/format/`) and to a downloadable example that the docs' verify snippet accepts.
 - **PB-LD3.** Proof: our own operation ("4 people, up to 20 agents in parallel, 142 projects run by agents"), with
   the date of the count. Customer logos only with written permission; no logo wall before then.
 - **PB-LD4.** See / Steer / Prove as three sections, each with one product scene and one link to its docs.
@@ -407,9 +418,12 @@ quickstart shifts its layout while loading (CLS 0.199), a rare miss.
   Blocks marked `test` run in CI (already in the docs contract); a block that cannot be tested says why
   (`notest="…"`).
 - **PB-DP3.** Choices are tabs that persist across pages and visits: operating system (macOS, Linux, Windows),
-  agent (Claude Code, Codex), package manager when relevant. The docs stay plain Markdown (no JSX): a tab set is
+  agent (Claude Code, Codex), package manager when relevant. The docs stay plain Markdown in their `.mdx` files
+  (front matter, no import, no JSX): a tab set is
   consecutive code blocks with the same `group` and their own `tab` in the meta (`sh tab="macOS" group="os"`), which
   the site renders as Fumadocs `Tabs` with `groupId` and `persist`, and GitHub shows as plain blocks.
+  `docs-tools`' lint, which rejects unknown block attributes today, learns `tab` and `group` in the same pull
+  request as the first tabbed page (and checks that a group's blocks are consecutive).
 - **PB-DP4.** The quickstart: prerequisites first, then at most six numbered steps, each one action with its command
   and the output you should see, and it ends on a visible success (a receipt you can verify, a yes in the console).
   The time it takes is stated in the description and is true when measured on a clean machine.
@@ -609,18 +623,18 @@ test in the site's suite; "Review" means the reviewer checks it by hand, with th
 | PB-W5, PB-W6 | Sentence-case titles, no "!" in headings, no "simply/just/easily" in instructions, no mixed languages | CI: scan of `h1`–`h3` and `<title>` for "!"; review |
 | PB-T1 | Two families, self-hosted woff2, no Google Fonts request | e2e: no request to `fonts.googleapis.com` or `fonts.gstatic.com`; ≤ 2 font files loaded on an English page |
 | PB-T2 | Display face at 125 % width, 800, −0.03 em | e2e: computed `font-stretch` of `h1` is 125 % and its weight 800; unit test: the Archivo file has a `wdth` axis reaching 125 |
-| PB-T3 | Long-form columns give 60–75 characters per line | e2e at 1 440 px: computed `max-width` of the prose containers (`.prose`, docs article) between 60 ch and 75 ch |
+| PB-T3 | Long-form lines of 60–75 characters, never over 80 | e2e at 1 440 px: for every paragraph of 150 characters or more, count the characters of each rendered line (Range client rects); none over 80 |
 | PB-T4, PB-T5 | Tabular figures; uppercase only for eyebrows and table headers | e2e: computed `font-variant-numeric` on prices and table cells; review |
 | PB-C1 | No colour literal in components | CI: lint rule / grep for hex, `rgb(`, `hsl(` outside `tokens.css` |
 | PB-C2 | ≤ 1 garnet button per viewport | e2e: count visible elements with the `--signal` background in each viewport-high slice of every route |
 | PB-C3 | System default, three-way switch, no flash | e2e: load with stored "dark" and assert the first paint background |
-| PB-C4, PB-A1 | axe: 0 violations, light and dark, desktop and mobile | CI `e2e` (axe on every route in the sitemap) |
+| PB-C4, PB-A1 | axe: 0 violations, light and dark, desktop and mobile | CI `e2e` (axe on every route in the sitemap and on the 404 page) |
 | PB-L1, PB-L3, PB-L4 | Grid, docs columns, sticky header 56–64 px | e2e: header height and stickiness; docs column count at 1 280, 1 024 and 390 px |
-| PB-L2 | No horizontal scroll at 320 px | e2e: `scrollWidth ≤ innerWidth` at 320 px on every route |
+| PB-L2 | No horizontal scroll at 320 px | e2e: `scrollWidth ≤ innerWidth` at 320 px on every route and the 404 page |
 | PB-M1, PB-M4 | Motion only to explain; no scroll-jacking or parallax | Review with a screen recording |
-| PB-M2 | Only `transform` and `opacity` animate | CI: grep of `transition`/`@keyframes` properties in the CSS; CLS budget |
+| PB-M2 | No layout property animates | CI: grep of `transition`/`@keyframes` for `width`, `height`, `top`, `left`, `margin`, `padding`, `all`; CLS budget |
 | PB-M3 | Reduced motion shows the final frame | e2e with `reducedMotion: 'reduce'` |
-| PB-P1 | Lighthouse budgets | CI `lighthouse` (lhci assertions: perf ≥ 0.95, a11y = 1, best practices = 1, SEO = 1, LCP, CLS, total byte weight, script size; budget assertions to add) |
+| PB-P1 | Lighthouse budgets | CI `lighthouse` (in place: scores ≥ 0.95, LCP, CLS, total byte weight; to add: a11y, best practices and SEO = 1, script size, docs budgets by `assertMatrix`) |
 | PB-P2, PB-P3 | Images optimised at build, sized, lazy below the fold; video rules | CI: postbuild check of image formats, sizes and `width`/`height`; review |
 | PB-P4 | No third-party request before `load`, no cookie banner | e2e: request log until `load` contains only `ostrom.run` |
 | PB-P5 | Long cache on fingerprinted assets, revalidated HTML, compression | e2e against the nginx container: response headers |
@@ -630,7 +644,7 @@ test in the site's suite; "Review" means the reviewer checks it by hand, with th
 | PB-A5 | Zoom allowed | e2e: viewport meta has no `maximum-scale` / `user-scalable=no` |
 | PB-A6, PB-A7 | SVG hidden or titled; one `h1`, no skipped level | e2e: heading outline and SVG attributes on every route |
 | PB-S1–S6 | Title, description length, canonical per page, OG, JSON-LD, sitemap, RSS, security.txt | CI: metadata test over every built page |
-| PB-S7 | `noindex` until the go | e2e against the nginx container: `X-Robots-Tag` present with `indexable` off, absent with it on; no sitemap line while off |
+| PB-S7, PB-AI2 | `noindex` until the go; `.md` copies canonical to their page | e2e against the nginx container: `X-Robots-Tag` on HTML, Markdown and feeds with `indexable` off, absent with it on; no sitemap line while off; `Link: rel="canonical"` on `.md` |
 | PB-AI1–AI3 | `llms.txt`, `llms-full.txt`, `.md` per docs page with its headers, Copy page | CI: postbuild check that each docs route has its `.md`; e2e on the headers |
 | PB-H1, PB-H4, PB-H5 | Header and footer contents, links only to pages that exist | e2e: header link count; CI `links` |
 | PB-H2, PB-OS4 | No link to a private repository before the go | CI: built HTML scan for `github.com/ostrom-hq` while `reposPublic` is off |
@@ -642,7 +656,7 @@ test in the site's suite; "Review" means the reviewer checks it by hand, with th
 | PB-D3, PB-D4 | Docs home layout, status badges | e2e: a `coming-soon` page shows its badge |
 | PB-DP1 | Feedback, edit link (once public), last updated, prev/next | e2e on one docs page |
 | PB-DP2 | Copy on every block, `test` blocks run | CI `docs-test` |
-| PB-DP3 | Persisted tabs | e2e: choose Windows, open another page, Windows is selected |
+| PB-DP3 | Persisted tabs | e2e: choose Windows, open another page, Windows is selected; CI `docs-lint` knows `tab`/`group` |
 | PB-DP4, PB-DP4b | Quickstart ≤ 6 steps, timed on a clean machine, agent prompt block | Review; timing recorded in the PR |
 | PB-DP5–DP7 | Install page contents, callout kinds, concept links | Review; CI `docs-lint` (alert types, to add) |
 | PB-R1–R3 | References generated, not hand-written | CI: regenerate and diff |
