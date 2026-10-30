@@ -21,8 +21,17 @@ describe('navigation', () => {
     expect(signinUrl(config)).toBe('https://app.example.test/login')
   })
 
-  it('lists internal header links', () => {
+  it('lists internal header links, the docs among them', () => {
     expect(headerLinks(en).every((link) => !link.external)).toBe(true)
+    expect(headerLinks(en).map((link) => link.href)).toContain('/docs/')
+  })
+
+  it('links the docs and the API reference from the footer', () => {
+    const links = footerColumns(en, readSiteConfig({})).flatMap((column) => column.links)
+    expect(links.filter((link) => link.href.startsWith('/docs/')).map((link) => link.label)).toEqual([
+      en.footer.links.docs,
+      en.footer.links.api,
+    ])
   })
 
   it('marks links that leave the site as external', () => {
