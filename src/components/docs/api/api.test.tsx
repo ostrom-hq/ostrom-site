@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import { en } from '@/i18n/en'
 import { buildApiReference, type ApiOperation, type ApiReference } from '@/lib/openapi/reference'
 import { resolveSchema, type SchemaNode } from '@/lib/openapi/schema'
-import { TEST_API_URL, fixtureSite } from '@/test/docs'
+import { TEST_API_URL, fixtureSite, linkTarget } from '@/test/docs'
 import { ApiOverview, ApiSchemasPage, ApiTagPage, overviewToc, tagDescription } from './ApiPages'
 import { InlineText, splitSummary } from './InlineText'
 import { MethodBadge, OperationView } from './Operation'
@@ -47,14 +47,8 @@ describe('TypeText', () => {
       </>,
     )
     expect(container).toHaveTextContent('array of stringstring or integerGateNode')
-    expect(screen.getByRole('link', { name: 'Gate' })).toHaveAttribute(
-      'href',
-      '/docs/api/schemas/#schema-gate',
-    )
-    expect(screen.getByRole('link', { name: 'Node' })).toHaveAttribute(
-      'href',
-      '/docs/api/schemas/#schema-node',
-    )
+    expect(linkTarget(screen.getByRole('link', { name: 'Gate' }))).toBe(linkTarget('/docs/api/schemas/#schema-gate'))
+    expect(linkTarget(screen.getByRole('link', { name: 'Node' }))).toBe(linkTarget('/docs/api/schemas/#schema-node'))
   })
 })
 
@@ -114,7 +108,7 @@ describe('OperationView', () => {
   it('shows an endpoint: route, parameters, body, responses, curl and response', () => {
     render(<OperationView operation={operation('requestgate')} labels={labels} copyLabel="Copy" />)
     const section = screen.getByRole('region', { name: 'Request a gate' })
-    expect(within(section).getByText('POST')).toHaveClass('api-method--post')
+    expect(within(section).getByText('POST', { selector: '.api-method' })).toHaveClass('api-method--post')
     expect(within(section).getByText('The agent waits for the', { exact: false })).toBeInTheDocument()
     expect(within(section).getByText('Seconds to wait')).toBeInTheDocument()
     expect(within(section).getByRole('heading', { name: labels.body })).toBeInTheDocument()
@@ -174,9 +168,9 @@ describe('the API pages', () => {
     for (const item of overviewToc(labels))
       expect(screen.getByRole('heading', { name: item.text })).toHaveAttribute('id', item.id)
     expect(screen.getByText('https://localhost:4317/base')).toBeInTheDocument()
-    expect(screen.getByText('An Ostrom token', { exact: false })).toBeInTheDocument()
+    expect(screen.getByText('An Ostrom token', { exact: false, selector: 'li' })).toBeInTheDocument()
     expect(screen.getByText('400')).toHaveClass('api-status--4xx')
-    expect(screen.getByRole('link', { name: 'Gates' })).toHaveAttribute('href', '/docs/api/gates/')
+    expect(linkTarget(screen.getByRole('link', { name: 'Gates' }))).toBe(linkTarget('/docs/api/gates/'))
     expect(screen.getByText('3 endpoints')).toBeInTheDocument()
   })
 

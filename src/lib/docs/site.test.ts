@@ -106,7 +106,7 @@ describe('routes', () => {
       {
         openapi: '3.1.0',
         info: { title: 'T', version: '1' },
-        paths: { '/a': { get: { tags: ['schemas'], responses: {} } } },
+        paths: { '/a': { get: { tags: ['schemas'], responses: {}, 'x-ostrom-status': 'served' } } },
       },
       TEST_API_URL,
     )

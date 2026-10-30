@@ -8,6 +8,12 @@ export const FIXTURE_CONTENT = join(process.cwd(), 'src', 'test', 'fixtures', 'c
 /** A content folder that does not exist: a checkout before the DOCS content is merged. */
 export const MISSING_CONTENT = join(process.cwd(), 'src', 'test', 'fixtures', 'missing')
 
+/** The target of a link, without the trailing slash Next.js drops outside a build with `trailingSlash`. */
+export function linkTarget(target: Element | string): string {
+  const href = typeof target === 'string' ? target : (target.getAttribute('href') ?? '')
+  return href.replace(/\/(?=#|$)/, '')
+}
+
 export const TEST_API_URL = 'https://api.example.test'
 
 export function fixtureSite(): DocsSite {

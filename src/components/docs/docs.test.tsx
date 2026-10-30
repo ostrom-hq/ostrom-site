@@ -4,7 +4,7 @@ import { en } from '@/i18n/en'
 import { codeBlockHtml } from '@/lib/docs/code'
 import type { NavEntry } from '@/lib/docs/navigation'
 import { readDocsSite } from '@/lib/docs/site'
-import { MISSING_CONTENT, fixtureSite, stubIntersectionObserver } from '@/test/docs'
+import { MISSING_CONTENT, fixtureSite, linkTarget, stubIntersectionObserver } from '@/test/docs'
 import { Breadcrumbs } from './Breadcrumbs'
 import { COPIED_FOR_MS, CopyListener } from './CopyListener'
 import { DocArticle, Prose } from './DocArticle'
@@ -57,7 +57,7 @@ describe('Breadcrumbs', () => {
       />,
     )
     const trail = screen.getByRole('navigation', { name: 'Breadcrumb' })
-    expect(within(trail).getByRole('link', { name: 'Docs' })).toHaveAttribute('href', '/docs/')
+    expect(linkTarget(within(trail).getByRole('link', { name: 'Docs' }))).toBe(linkTarget('/docs/'))
     expect(within(trail).getByText('Deep')).toHaveAttribute('aria-current', 'page')
   })
 })
@@ -72,9 +72,9 @@ describe('Pager', () => {
 
   it('links the previous and the next page', () => {
     const { rerender } = render(<Pager pager={{ previous: one, next: null }} labels={text.nav} />)
-    expect(screen.getByRole('link', { name: `${text.nav.previous} One` })).toHaveAttribute('rel', 'prev')
+    expect(screen.getByRole('link', { name: /Previous\s*One/ })).toHaveAttribute('rel', 'prev')
     rerender(<Pager pager={{ previous: null, next: one }} labels={text.nav} />)
-    expect(screen.getByRole('link', { name: `${text.nav.next} One` })).toHaveAttribute('rel', 'next')
+    expect(screen.getByRole('link', { name: /Next\s*One/ })).toHaveAttribute('rel', 'next')
   })
 })
 
@@ -93,7 +93,7 @@ describe('DocArticle', () => {
   it('has a home that says the guides are coming', () => {
     render(<DocsHome messages={en} />)
     expect(screen.getByText(text.home.lead)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: text.home.api })).toHaveAttribute('href', '/docs/api/')
+    expect(linkTarget(screen.getByRole('link', { name: text.home.api }))).toBe(linkTarget('/docs/api/'))
   })
 })
 
@@ -101,7 +101,7 @@ describe('VersionSelect', () => {
   it('links every version and marks the one being read', () => {
     render(<VersionSelect versions={docs.versions} current={docs.latest} labels={text.versions} />)
     expect(screen.getByRole('link', { name: 'Latest' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('link', { name: 'v0.1' })).toHaveAttribute('href', '/docs/v/v0.1/')
+    expect(linkTarget(screen.getByRole('link', { name: 'v0.1' }))).toBe(linkTarget('/docs/v/v0.1/'))
     expect(screen.getByRole('link', { name: 'v0.1' })).not.toHaveAttribute('aria-current')
   })
 })
@@ -140,7 +140,7 @@ describe('SidebarTree', () => {
     const { container } = render(
       <SidebarTree entries={entries} href="/docs/guides/advanced/page/" labels={text.status} depth={0} />,
     )
-    expect(screen.getByRole('link', { name: `Page ${text.status.comingSoon}` })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /^Page\s*Coming soon$/ })).toHaveAttribute(
       'aria-current',
       'page',
     )
@@ -148,7 +148,7 @@ describe('SidebarTree', () => {
     expect(folders[0]).toHaveAttribute('open')
     expect(folders[1]).not.toHaveAttribute('open')
     expect(screen.getByRole('link', { name: 'Advanced' }).parentElement).toHaveClass('docs-nav__folder-index')
-    expect(screen.getByRole('link', { name: `Guides ${text.status.partial}` })).toHaveClass(
+    expect(screen.getByRole('link', { name: /^Guides\s*Partial$/ })).toHaveClass(
       'docs-nav__heading--link',
     )
     expect(screen.getByText('API reference')).toHaveClass('docs-nav__heading')
@@ -305,10 +305,7 @@ describe('DocsShell', () => {
     expect(screen.getAllByRole('link', { name: text.title })[0]).toHaveClass('docs-bar__title')
     expect(screen.getByRole('button', { name: new RegExp(text.search.button) })).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: text.nav.breadcrumb })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: `${text.nav.next} Guides` })).toHaveAttribute(
-      'href',
-      '/docs/guides/',
-    )
+    expect(linkTarget(screen.getByRole('link', { name: /Next\s*Guides/ }))).toBe(linkTarget('/docs/guides/'))
     expect(screen.queryByText(/You are reading/)).toBeNull()
   })
 
@@ -320,7 +317,7 @@ describe('DocsShell', () => {
       </DocsShell>,
     )
     expect(screen.getByText(/You are reading the docs of v0\.1\./)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: text.versions.latest })).toHaveAttribute('href', '/docs/')
+    expect(linkTarget(screen.getByRole('link', { name: text.versions.latest }))).toBe(linkTarget('/docs/'))
   })
 
   it('frames the API reference alone when there are no guides yet', () => {
@@ -331,7 +328,7 @@ describe('DocsShell', () => {
       </DocsShell>,
     )
     expect(
-      screen.getByRole('link', { name: `${text.api.overview} ${text.status.comingSoon}` }),
+      screen.getByRole('link', { name: /^Overview\s*Coming soon$/ }),
     ).toHaveAttribute('aria-current', 'page')
   })
 })

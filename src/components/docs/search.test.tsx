@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { en } from '@/i18n/en'
 import { buildSearchIndex, type SearchIndex } from '@/lib/docs/search'
+import { fill } from '@/lib/docs/text'
 import { fixtureSite, stubDialog } from '@/test/docs'
 import { SearchButton } from './SearchButton'
 import SearchDialog, { fetchSearchIndex } from './SearchDialog'
@@ -77,7 +78,7 @@ describe('SearchDialog', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/results/)
     expect(input()).toHaveAttribute('aria-expanded', 'true')
     fireEvent.change(input(), { target: { value: 'zzzzqqq' } })
-    expect(screen.getByRole('status')).toHaveTextContent('No results for "zzzzqqq"')
+    expect(screen.getByRole('status')).toHaveTextContent(fill(labels.noResults, { query: 'zzzzqqq' }))
     expect(input()).not.toHaveAttribute('aria-activedescendant')
   })
 
