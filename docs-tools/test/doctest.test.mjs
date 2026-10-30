@@ -55,11 +55,15 @@ test("requirements: skipped locally, failed in strict mode, met when the variabl
     const body = `${FENCE}sh test requires="ostrom, server"\nostrom\n${FENCE}`
     assert.deepEqual(statuses(runPage(page(body), {env: {PATH: process.env.PATH}})), [[6, "skip"]])
     assert.deepEqual(statuses(runPage(page(body), {env: {PATH: process.env.PATH}, strict: true})), [[6, "fail"]])
-    const bin = tree({"ostrom-fake": "#!/bin/sh\necho fake\n"})
-    chmodSync(join(bin, "ostrom-fake"), 0o755)
-    const env = {PATH: process.env.PATH, OSTROM_BIN: relative(process.cwd(), join(bin, "ostrom-fake")), OSTROM_URL: "http://127.0.0.1:1"}
+    const bin = tree({"ostrom": "#!/bin/sh\necho fake\n", "other": ""})
+    chmodSync(join(bin, "ostrom"), 0o755)
+    const env = {PATH: process.env.PATH, OSTROM_BIN: relative(process.cwd(), join(bin, "ostrom")), OSTROM_URL: "http://127.0.0.1:1"}
     const [result] = runPage(page(body), {env})
     assert.deepEqual([result.status, result.stdout], ["pass", "fake\n"])
+    const misnamed = runPage(page(body), {env: {...env, OSTROM_BIN: join(bin, "other")}, strict: true})
+    assert.equal(misnamed[0].message, "requires ostrom (OSTROM_BIN must name a file called ostrom)")
+    const noPath = runPage(page(`${FENCE}sh test requires="ostrom"\nostrom\n${FENCE}`), {env: {OSTROM_BIN: join(bin, "ostrom")}})
+    assert.equal(noPath[0].status, "fail", "bash itself is not found without PATH")
 })
 
 test("missingRequirement names what is missing", () => {

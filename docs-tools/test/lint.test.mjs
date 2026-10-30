@@ -58,11 +58,14 @@ test("code block problems", () => {
     ].join("\n")
     assert.deepEqual(messages(lintPage(page(`${FENCE}sh test timeout="9"\n${FENCE}`), new Set())), ["unknown code block attribute: timeout"])
     assert.deepEqual(messages(lintPage(page(`${FENCE}sh test exit="1" exit="2"\n${FENCE}`), new Set())), ["code block attribute repeated: exit"])
-    assert.deepEqual(messages(lintPage(page(`${FENCE}sh test exit="one"\n${FENCE}`), new Set())), ['exit needs a number: exit="1"'])
+    assert.deepEqual(messages(lintPage(page(`${FENCE}sh test exit="one"\n${FENCE}`), new Set())), ['exit needs a number from 0 to 255: exit="1"'])
+    assert.deepEqual(messages(lintPage(page(`${FENCE}sh test exit="300"\n${FENCE}`), new Set())), ['exit needs a number from 0 to 255: exit="1"'])
     assert.deepEqual(messages(lintPage(page(`${FENCE}sh test exit requires\n${FENCE}`), new Set())), [
-        'exit needs a number: exit="1"',
-        'requires needs a value: requires="ostrom"',
+        'exit needs a number from 0 to 255: exit="1"',
+        'requires takes ostrom or server, not ""',
     ])
+    assert.deepEqual(messages(lintPage(page(`${FENCE}sh test requires="ostrom, ostrum"\n${FENCE}`), new Set())), ['requires takes ostrom or server, not "ostrum"'])
+    assert.deepEqual(messages(lintPage(page(`${FENCE}sh test constructor="x"\n${FENCE}`), new Set())), ["unknown code block attribute: constructor"])
     assert.deepEqual(messages(lintPage(page(`${FENCE}text notest="x" exit="1" requires="server"\n${FENCE}`), new Set())), ["requires and exit go on a test block"])
     assert.deepEqual(lintPage(page(`${FENCE}sh test exit="2" requires="server"\n${FENCE}`), new Set()), [])
     assert.deepEqual(lintPage(page(body), new Set()), [

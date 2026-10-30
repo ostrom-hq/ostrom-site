@@ -92,57 +92,63 @@ ed25519;kid=KEY_ID;sha256=DIGEST;sig=SIGNATURE
 A receipt is valid when all of these hold, checked in this order:
 
 1. it is a JSON object with a `signature` string;
-2. the signature field has its four parts and the algorithm is `ed25519`;
+2. the signature field is exactly `ALGORITHM;kid=KEY_ID;sha256=DIGEST;sig=SIGNATURE`, each part once and in this order, and the algorithm is `ed25519`;
 3. the public key you trust is an Ed25519 key, and the `kid` is its id;
 4. the SHA-256 of the signed bytes equals `sha256`;
-5. `sig` decodes to 64 bytes and is a valid Ed25519 signature of the signed bytes under that key.
+5. `sig` is the standard base64 of 64 bytes, and those bytes are a valid Ed25519 signature of the signed bytes under that key.
 
-This verifier does exactly that, with Node.js 24 or later and nothing else. Save it as `verify-receipt.mjs`:
+This verifier does exactly that, with Node.js 24 or later and nothing else. It is two files. The first is the canonical form, save it as `canonical.mjs`:
 
-```js file="verify-receipt.mjs"
-import {createHash, createPublicKey, verify} from "node:crypto"
-import {readFileSync} from "node:fs"
-
+```js file="canonical.mjs"
 // The canonical form of receipt format v1.
-function canonical(value) {
+export function canonical(value) {
     if (value === null || typeof value !== "object") return JSON.stringify(value)
     if (Array.isArray(value)) return "[" + value.map((item) => (item === undefined ? "null" : canonical(item))).join(",") + "]"
     const keys = Object.keys(value).filter((key) => value[key] !== undefined).sort()
     return "{" + keys.map((key) => JSON.stringify(key) + ":" + canonical(value[key])).join(",") + "}"
 }
+```
+
+The second is the check itself, save it as `verify-receipt.mjs`:
+
+```js file="verify-receipt.mjs"
+import {createHash, createPublicKey, verify} from "node:crypto"
+import {readFileSync} from "node:fs"
+import {canonical} from "./canonical.mjs"
+
+// The signature field, exactly: algorithm, then kid, sha256 and sig, once each, in this order.
+const FIELD = /^([^;]*);kid=([0-9a-f]{16});sha256=([0-9a-f]{64});sig=([A-Za-z0-9+/]{86}==)$/
 
 function check(receipt, publicKeyPem) {
-    if (receipt === null || typeof receipt !== "object" || Array.isArray(receipt)) return "not a receipt"
+    if (receipt === null || typeof receipt !== "object" || Array.isArray(receipt)) return {problem: "not a receipt"}
     const {signature, ...body} = receipt
-    if (typeof signature !== "string") return "missing signature"
-    const [algorithm, ...parts] = signature.split(";")
-    const field = Object.fromEntries(parts.map((part) => [part.slice(0, part.indexOf("=")), part.slice(part.indexOf("=") + 1)]))
-    if (!field.kid || !field.sha256 || !field.sig) return "malformed signature"
-    if (algorithm !== "ed25519") return "unknown algorithm"
+    if (typeof signature !== "string") return {problem: "missing signature"}
+    const field = FIELD.exec(signature)
+    if (field === null) return {problem: "malformed signature"}
+    const [, algorithm, fieldKid, sha256, sig] = field
+    if (algorithm !== "ed25519") return {problem: "unknown algorithm"}
     let key
     try {
         key = createPublicKey(publicKeyPem)
     } catch {
-        return "unreadable key"
+        return {problem: "unreadable key"}
     }
-    if (key.asymmetricKeyType !== "ed25519") return "unreadable key"
+    if (key.asymmetricKeyType !== "ed25519") return {problem: "unreadable key"}
     const kid = createHash("sha256").update(key.export({type: "spki", format: "der"})).digest("hex").slice(0, 16)
-    if (field.kid !== kid) return "unknown key"
+    if (fieldKid !== kid) return {problem: "unknown key"}
     const signed = Buffer.from(canonical(body), "utf8")
-    if (createHash("sha256").update(signed).digest("hex") !== field.sha256) return "digest mismatch"
-    // Standard base64 with padding, nothing else: Node's decoder alone would skip stray characters.
-    const sig = Buffer.from(field.sig, "base64")
-    if (sig.length !== 64 || sig.toString("base64") !== field.sig) return "malformed signature"
-    if (!verify(null, signed, key, sig)) return "bad signature"
-    return undefined
+    if (createHash("sha256").update(signed).digest("hex") !== sha256) return {problem: "digest mismatch"}
+    // Re-encoding must give the same text: one signature, one spelling.
+    const signatureBytes = Buffer.from(sig, "base64")
+    if (signatureBytes.toString("base64") !== sig) return {problem: "malformed signature"}
+    if (!verify(null, signed, key, signatureBytes)) return {problem: "bad signature"}
+    return {kid}
 }
 
 const [receiptPath, keyPath] = process.argv.slice(2)
 const receipt = JSON.parse(readFileSync(receiptPath, "utf8"))
-const publicKeyPem = readFileSync(keyPath, "utf8")
-const problem = check(receipt, publicKeyPem)
+const {problem, kid} = check(receipt, readFileSync(keyPath, "utf8"))
 if (problem === undefined) {
-    const kid = createHash("sha256").update(createPublicKey(publicKeyPem).export({type: "spki", format: "der"})).digest("hex").slice(0, 16)
     console.log("valid: " + receipt.id + ", signed by key " + kid)
 } else {
     console.log("invalid: " + problem)
@@ -194,9 +200,7 @@ The canonical form the verifier signs is the one shown above:
 
 ```js test
 import {readFileSync} from "node:fs"
-const canonical = (value) => value === null || typeof value !== "object" ? JSON.stringify(value)
-    : Array.isArray(value) ? "[" + value.map((item) => (item === undefined ? "null" : canonical(item))).join(",") + "]"
-    : "{" + Object.keys(value).filter((key) => value[key] !== undefined).sort().map((key) => JSON.stringify(key) + ":" + canonical(value[key])).join(",") + "}"
+import {canonical} from "./canonical.mjs"
 const {signature, ...body} = JSON.parse(readFileSync("receipt.json", "utf8"))
 console.log(canonical(body))
 ```

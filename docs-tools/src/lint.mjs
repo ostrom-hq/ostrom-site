@@ -9,6 +9,7 @@ export const STATUSES = ["available", "partial", "coming-soon"]
 export const RUNNERS = ["sh", "js"]
 const ROLES = ["test", "notest", "file", "output"]
 const ATTRIBUTES = [...ROLES, "requires", "exit"]
+const REQUIREMENT_NAMES = ["ostrom", "server"]
 
 /** Lists the folders, pages (`.mdx`) and navigation files (`meta.json`) under a root, sorted. */
 export function walk(root) {
@@ -71,8 +72,11 @@ function lintBlock(block, previous, add) {
     for (const name of Object.keys(block.meta)) if (!ATTRIBUTES.includes(name)) add(block.line, `unknown code block attribute: ${name}`)
     for (const name of block.duplicates) add(block.line, `code block attribute repeated: ${name}`)
     if (("requires" in block.meta || "exit" in block.meta) && !("test" in block.meta)) add(block.line, "requires and exit go on a test block")
-    if ("exit" in block.meta && !/^\d{1,3}$/.test(String(block.meta.exit))) add(block.line, "exit needs a number: exit=\"1\"")
-    if ("requires" in block.meta && typeof block.meta.requires !== "string") add(block.line, "requires needs a value: requires=\"ostrom\"")
+    if ("exit" in block.meta && !(/^\d{1,3}$/.test(String(block.meta.exit)) && Number(block.meta.exit) <= 255)) add(block.line, "exit needs a number from 0 to 255: exit=\"1\"")
+    if ("requires" in block.meta) {
+        const names = typeof block.meta.requires === "string" ? block.meta.requires.split(",").map((name) => name.trim()) : [""]
+        for (const name of names) if (!REQUIREMENT_NAMES.includes(name)) add(block.line, `requires takes ${REQUIREMENT_NAMES.join(" or ")}, not "${name}"`)
+    }
     const roles = ROLES.filter((role) => role in block.meta)
     if (roles.length !== 1) {
         add(block.line, "code block needs exactly one of: test, notest=\"why\", file=\"name\", output")

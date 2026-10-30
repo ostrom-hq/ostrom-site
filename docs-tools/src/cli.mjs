@@ -7,9 +7,11 @@ const USAGE = "usage: docs-tools lint <docs-dir> | docs-tools run <docs-dir> [--
 
 /** Runs a command; returns the exit code. `out` and `err` receive whole lines. */
 export function main(argv, {out, err, env}) {
-    const [command, root, ...flags] = argv
+    const [command, ...rest] = argv
+    const flags = rest.filter((arg) => arg.startsWith("-"))
+    const [root, ...extra] = rest.filter((arg) => !arg.startsWith("-"))
     const allowed = command === "run" ? ["--strict"] : []
-    if (root === undefined || !["lint", "run"].includes(command) || flags.some((flag) => !allowed.includes(flag))) {
+    if (root === undefined || extra.length > 0 || !["lint", "run"].includes(command) || flags.some((flag) => !allowed.includes(flag))) {
         err(USAGE)
         return 2
     }

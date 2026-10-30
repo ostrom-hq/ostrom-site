@@ -39,7 +39,7 @@ export function parseMeta(text) {
     let end = 0
     for (const match of text.matchAll(pattern)) {
         leftover.push(text.slice(end, match.index))
-        if (match[1] in meta) duplicates.push(match[1])
+        if (Object.hasOwn(meta, match[1])) duplicates.push(match[1])
         meta[match[1]] = match[2] === undefined ? true : match[2].replace(/\\(.)/g, "$1")
         end = match.index + match[0].length
     }

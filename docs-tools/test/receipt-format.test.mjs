@@ -7,6 +7,7 @@ import {mkdtempSync, readFileSync, writeFileSync} from "node:fs"
 import {tmpdir} from "node:os"
 import {join} from "node:path"
 import {test} from "node:test"
+import {pathToFileURL} from "node:url"
 import {extractCodeBlocks, parseFrontmatter} from "../src/markdown.mjs"
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8")
@@ -14,10 +15,11 @@ const vectors = JSON.parse(read("../vectors/receipts.json"))
 const key = JSON.parse(read("../vectors/key.json"))
 const canonicalCases = JSON.parse(read("../vectors/canonical.json"))
 const {body} = parseFrontmatter(read("../../content/docs/receipts/format.mdx"))
-const verifier = extractCodeBlocks(body).find((block) => block.meta.file === "verify-receipt.mjs").code
+const pageFile = (name) => extractCodeBlocks(body).find((block) => block.meta.file === name).code
 
 const folder = mkdtempSync(join(tmpdir(), "receipt-format-"))
-writeFileSync(join(folder, "verify-receipt.mjs"), verifier)
+writeFileSync(join(folder, "canonical.mjs"), pageFile("canonical.mjs"))
+writeFileSync(join(folder, "verify-receipt.mjs"), pageFile("verify-receipt.mjs"))
 writeFileSync(join(folder, "key.pem"), key.publicKeySpkiPem)
 
 function verify(receipt) {
@@ -40,15 +42,26 @@ test("the page's verifier refuses a signature that is not strict base64", () => 
     }
 })
 
-test("the page's verifier reads the fields by name, in any order", () => {
+test("the page's verifier accepts one spelling of the signature field: no part added, repeated or moved", () => {
     const [{receipt}] = vectors.receipts
     const [algorithm, kid, sha256, sig] = receipt.signature.split(";")
-    assert.equal(verify({...receipt, signature: [algorithm, sig, sha256, kid].join(";")}).stdout, `valid: ${receipt.id}, signed by key ${key.kid}\n`)
+    for (const parts of [[algorithm, sig, sha256, kid], [algorithm, kid, sha256, sig, "extra=1"], [algorithm, kid, kid, sha256, sig], [algorithm, sha256, sig]]) {
+        assert.equal(verify({...receipt, signature: parts.join(";")}).stdout, "invalid: malformed signature\n")
+    }
+    assert.equal(verify({...receipt, signature: ["rsa", kid, sha256, sig].join(";")}).stdout, "invalid: unknown algorithm\n")
 })
 
-test("the page's canonical form gives the vector bytes for every case", () => {
-    const source = verifier.slice(verifier.indexOf("function canonical"), verifier.indexOf("\n}\n", verifier.indexOf("function canonical")) + 2)
-    const canonical = new Function(`${source}; return canonical`)()
+test("the page's verifier refuses a base64 signature with non-zero padding bits", () => {
+    const [{receipt}] = vectors.receipts
+    // The last character before "==" carries 2 bits of the signature and 4 bits that must be zero.
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    const last = receipt.signature.at(-3)
+    const dirty = alphabet[alphabet.indexOf(last) + 1]
+    assert.equal(verify({...receipt, signature: `${receipt.signature.slice(0, -3)}${dirty}==`}).stdout, "invalid: malformed signature\n")
+})
+
+test("the page's canonical form gives the vector bytes for every case", async () => {
+    const {canonical} = await import(pathToFileURL(join(folder, "canonical.mjs")).href)
     for (const vectorCase of canonicalCases.cases) {
         const text = canonical(JSON.parse(vectorCase.inputJson))
         assert.equal(text, vectorCase.canonical, vectorCase.name)

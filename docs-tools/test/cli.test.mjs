@@ -23,6 +23,9 @@ test("usage on a bad command", () => {
 test("unknown flags and missing folders are refused", () => {
     assert.equal(capture(["run", clean(), "--strcit"]).code, 2)
     assert.equal(capture(["lint", clean(), "--strict"]).code, 2)
+    assert.equal(capture(["run", clean(), clean()]).code, 2)
+    assert.equal(capture(["run", "--strict", clean()]).code, 0, "flags may come before the folder")
+    assert.deepEqual(capture(["run", "--strict"]).err, ["usage: docs-tools lint <docs-dir> | docs-tools run <docs-dir> [--strict]"])
     assert.deepEqual(capture(["lint", "/nonexistent/docs"]), {code: 2, out: [], err: ["not a folder: /nonexistent/docs"]})
     const file = tree({"a.mdx": ""})
     assert.deepEqual(capture(["run", `${file}/a.mdx`]).err, [`not a folder: ${file}/a.mdx`])

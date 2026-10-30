@@ -12,7 +12,7 @@ A verifier following [receipt format v1](/docs/receipts/format#verify-a-receipt-
 |---|---|---|
 | not a receipt | the document is not a JSON object | check that you passed the receipt itself, not a list or a wrapper around it |
 | missing signature | there is no `signature` string | the receipt was never signed, or the field was removed |
-| malformed signature | the field lacks `kid`, `sha256` or `sig`, or `sig` does not decode to 64 bytes | the field was cut or edited; get the receipt again from its source |
+| malformed signature | the field is not exactly `ed25519;kid=…;sha256=…;sig=…` (a part missing, repeated, added or moved), or `sig` is not the standard base64 of 64 bytes | the field was cut or edited; get the receipt again from its source |
 | unknown algorithm | the field does not start with `ed25519` | the receipt uses a format this verifier does not know |
 | unreadable key | the key you gave is not an Ed25519 public key in PEM form | pass the instance's public key, `-----BEGIN PUBLIC KEY-----` included |
 | unknown key | the `kid` is not the id of the key you gave | use the public key of the instance that signed the receipt |
