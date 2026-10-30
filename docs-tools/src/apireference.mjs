@@ -177,11 +177,11 @@ export function generateApiReference(spec) {
     const lines = [
         "---",
         "title: API reference",
-        'description: "Every endpoint of the Ostrom API, generated from its OpenAPI description."',
+        'description: "The endpoints the Ostrom server serves, generated from its OpenAPI description."',
         "status: available",
         "---",
         "",
-        `Generated from the OpenAPI description of the Ostrom API, version \`${cell(spec.info?.version)}\`. Do not edit this page by hand; run \`docs-tools api-reference\`.`,
+        `Generated from the OpenAPI description of the Ostrom API, version \`${cell(spec.info?.version)}\`. It lists only the operations the server implements; the description also plans others, which appear here when they ship. Do not edit this page by hand; run \`docs-tools api-reference\`.`,
         "",
     ]
     const servers = (spec.servers ?? []).map((server) => `\`${server.url}\``)
