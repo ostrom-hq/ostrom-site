@@ -78,7 +78,8 @@ export const en = {
     },
     vision: {
       eyebrow: 'The shift',
-      title: 'Soon every company will have more AI agents than employees. Ostrom is how people stay in charge.',
+      title:
+        'Soon every company will have more AI agents than employees. Ostrom is how people stay in charge.',
       body: 'We already live there.',
       stats: [
         { value: '4', label: 'people' },

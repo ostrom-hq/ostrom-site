@@ -35,7 +35,11 @@ export const metadata: Metadata = {
     url: '/',
     locale: 'en_US',
   },
-  twitter: { card: 'summary_large_image', title: messages.meta.title, description: messages.meta.description },
+  twitter: {
+    card: 'summary_large_image',
+    title: messages.meta.title,
+    description: messages.meta.description,
+  },
 }
 
 export const viewport: Viewport = {

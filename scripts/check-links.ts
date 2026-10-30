@@ -8,7 +8,10 @@ const files = new Map<string, string>()
 for (const entry of readdirSync(root, { recursive: true, withFileTypes: true })) {
   if (!entry.isFile()) continue
   const path = join(entry.parentPath, entry.name)
-  files.set(relative(root, path).replace(/\\/g, '/'), path.endsWith('.html') ? readFileSync(path, 'utf8') : '')
+  files.set(
+    relative(root, path).replace(/\\/g, '/'),
+    path.endsWith('.html') ? readFileSync(path, 'utf8') : '',
+  )
 }
 const broken = checkLinks(files, 'https://ostrom.run')
 const pages = [...files.keys()].filter((file) => file.endsWith('.html')).length

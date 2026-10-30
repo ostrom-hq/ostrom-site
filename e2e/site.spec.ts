@@ -39,7 +39,10 @@ test('robots.txt and the sitemap are published', async ({ request }) => {
 })
 
 test('the container answers its health probe and sends the security headers', async ({ request }) => {
-  test.skip(process.env['PLAYWRIGHT_BASE_URL'] === undefined, 'headers come from nginx, in the Docker image only')
+  test.skip(
+    process.env['PLAYWRIGHT_BASE_URL'] === undefined,
+    'headers come from nginx, in the Docker image only',
+  )
   expect((await request.get('/healthz')).ok()).toBe(true)
   const home = await request.get('/')
   const headers = home.headers()

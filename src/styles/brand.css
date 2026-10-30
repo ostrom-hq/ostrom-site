@@ -1,81 +1,323 @@
 /* Brand motion, from research/brand/identity/motion (iris.css, converge.css). Only transform and opacity move. */
-.o-iris { display: block; width: 100%; height: auto; overflow: visible; color: var(--signal, #8E1B3A); }
-.o-iris .o-cuts, .o-iris .o-hole, .o-iris .o-dot { transform-box: view-box; transform-origin: 32px 32px; }
-.o-iris .o-cuts { transform: rotate(0deg); transition: transform var(--dur-open, 780ms) var(--ease-open, cubic-bezier(.22,1,.36,1)); }
-.o-iris .o-hole { transform: scale(1); transition: transform var(--dur-open, 780ms) var(--ease-open, cubic-bezier(.22,1,.36,1)); }
+.o-iris {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    color: var(--signal, #8e1b3a);
+}
+.o-iris .o-cuts,
+.o-iris .o-hole,
+.o-iris .o-dot {
+    transform-box: view-box;
+    transform-origin: 32px 32px;
+}
+.o-iris .o-cuts {
+    transform: rotate(0deg);
+    transition: transform var(--dur-open, 780ms) var(--ease-open, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.o-iris .o-hole {
+    transform: scale(1);
+    transition: transform var(--dur-open, 780ms) var(--ease-open, cubic-bezier(0.22, 1, 0.36, 1));
+}
 
 /* fermé */
-[data-state="waiting"] > .o-iris .o-cuts, .o-iris[data-state="waiting"] .o-cuts,
-[data-state="declined"] > .o-iris .o-cuts, .o-iris[data-state="declined"] .o-cuts { transform: rotate(36deg); }
-[data-state="waiting"] > .o-iris .o-hole, .o-iris[data-state="waiting"] .o-hole,
-[data-state="declined"] > .o-iris .o-hole, .o-iris[data-state="declined"] .o-hole { transform: scale(.001); }
+[data-state='waiting'] > .o-iris .o-cuts,
+.o-iris[data-state='waiting'] .o-cuts,
+[data-state='declined'] > .o-iris .o-cuts,
+.o-iris[data-state='declined'] .o-cuts {
+    transform: rotate(36deg);
+}
+[data-state='waiting'] > .o-iris .o-hole,
+.o-iris[data-state='waiting'] .o-hole,
+[data-state='declined'] > .o-iris .o-hole,
+.o-iris[data-state='declined'] .o-hole {
+    transform: scale(0.001);
+}
 /* nouvelle attente : se referme posément (jetons --dur-close / --ease-close de brand/mark) */
-[data-state="waiting"] > .o-iris .o-cuts, .o-iris[data-state="waiting"] .o-cuts,
-[data-state="waiting"] > .o-iris .o-hole, .o-iris[data-state="waiting"] .o-hole {
-  transition-duration: var(--dur-close, 560ms); transition-timing-function: var(--ease-close, cubic-bezier(.55,0,.35,1));
+[data-state='waiting'] > .o-iris .o-cuts,
+.o-iris[data-state='waiting'] .o-cuts,
+[data-state='waiting'] > .o-iris .o-hole,
+.o-iris[data-state='waiting'] .o-hole {
+    transition-duration: var(--dur-close, 560ms);
+    transition-timing-function: var(--ease-close, cubic-bezier(0.55, 0, 0.35, 1));
 }
 /* refus : la même durée, mais un coup sec (ease-snap) */
-[data-state="declined"] > .o-iris .o-cuts, .o-iris[data-state="declined"] .o-cuts,
-[data-state="declined"] > .o-iris .o-hole, .o-iris[data-state="declined"] .o-hole {
-  transition-duration: var(--dur-close, 560ms); transition-timing-function: var(--ease-snap, cubic-bezier(.2,.9,.1,1));
+[data-state='declined'] > .o-iris .o-cuts,
+.o-iris[data-state='declined'] .o-cuts,
+[data-state='declined'] > .o-iris .o-hole,
+.o-iris[data-state='declined'] .o-hole {
+    transition-duration: var(--dur-close, 560ms);
+    transition-timing-function: var(--ease-snap, cubic-bezier(0.2, 0.9, 0.1, 1));
 }
 
 /* l'attente respire : les lames tournent de ±2,5°, le point grossit de 6 %, sur 2,4 s, sans fin */
-@keyframes o-iris-breathe { 0%, 100% { transform: rotate(36deg); } 50% { transform: rotate(38.5deg); } }
-@keyframes o-iris-dot { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
-[data-state="waiting"] > .o-iris .o-cuts, .o-iris[data-state="waiting"] .o-cuts {
-  animation: o-iris-breathe var(--dur-ambient, 2400ms) var(--ease-machine, cubic-bezier(.37,0,.63,1)) var(--dur-close, 560ms) infinite;
+@keyframes o-iris-breathe {
+    0%,
+    100% {
+        transform: rotate(36deg);
+    }
+    50% {
+        transform: rotate(38.5deg);
+    }
 }
-[data-state="waiting"] > .o-iris .o-dot, .o-iris[data-state="waiting"] .o-dot {
-  animation: o-iris-dot var(--dur-ambient, 2400ms) var(--ease-machine, cubic-bezier(.37,0,.63,1)) var(--dur-close, 560ms) infinite;
+@keyframes o-iris-dot {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.06);
+    }
+}
+[data-state='waiting'] > .o-iris .o-cuts,
+.o-iris[data-state='waiting'] .o-cuts {
+    animation: o-iris-breathe var(--dur-ambient, 2400ms) var(--ease-machine, cubic-bezier(0.37, 0, 0.63, 1))
+        var(--dur-close, 560ms) infinite;
+}
+[data-state='waiting'] > .o-iris .o-dot,
+.o-iris[data-state='waiting'] .o-dot {
+    animation: o-iris-dot var(--dur-ambient, 2400ms) var(--ease-machine, cubic-bezier(0.37, 0, 0.63, 1))
+        var(--dur-close, 560ms) infinite;
 }
 
 /* le cycle de démonstration : fermé, oui, ouvert, refermé (7,2 s). Pour la marque, pas pour l'interface. */
 @keyframes o-iris-cycle-cuts {
-  0%, 30% { transform: rotate(36deg); }
-  33% { transform: rotate(38deg); }               /* la main sur le levier : 2° de tension */
-  45%, 78% { transform: rotate(0deg); }
-  90%, 100% { transform: rotate(36deg); }
+    0%,
+    30% {
+        transform: rotate(36deg);
+    }
+    33% {
+        transform: rotate(38deg);
+    } /* la main sur le levier : 2° de tension */
+    45%,
+    78% {
+        transform: rotate(0deg);
+    }
+    90%,
+    100% {
+        transform: rotate(36deg);
+    }
 }
 @keyframes o-iris-cycle-hole {
-  0%, 31% { transform: scale(.001); }
-  45%, 78% { transform: scale(1); }
-  90%, 100% { transform: scale(.001); }
+    0%,
+    31% {
+        transform: scale(0.001);
+    }
+    45%,
+    78% {
+        transform: scale(1);
+    }
+    90%,
+    100% {
+        transform: scale(0.001);
+    }
 }
-.o-iris.is-cycle .o-cuts { transition: none; animation: o-iris-cycle-cuts 7.2s var(--ease-gate, cubic-bezier(.76,0,.24,1)) infinite; }
-.o-iris.is-cycle .o-hole { transition: none; animation: o-iris-cycle-hole 7.2s var(--ease-gate, cubic-bezier(.76,0,.24,1)) infinite; }
+.o-iris.is-cycle .o-cuts {
+    transition: none;
+    animation: o-iris-cycle-cuts 7.2s var(--ease-gate, cubic-bezier(0.76, 0, 0.24, 1)) infinite;
+}
+.o-iris.is-cycle .o-hole {
+    transition: none;
+    animation: o-iris-cycle-hole 7.2s var(--ease-gate, cubic-bezier(0.76, 0, 0.24, 1)) infinite;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .o-iris .o-cuts, .o-iris .o-hole, .o-iris .o-dot { animation: none !important; transition-duration: 1ms !important; }
-  .o-iris.is-cycle .o-cuts { transform: rotate(0deg); }
-  .o-iris.is-cycle .o-hole { transform: scale(1); }
+    .o-iris .o-cuts,
+    .o-iris .o-hole,
+    .o-iris .o-dot {
+        animation: none !important;
+        transition-duration: 1ms !important;
+    }
+    .o-iris.is-cycle .o-cuts {
+        transform: rotate(0deg);
+    }
+    .o-iris.is-cycle .o-hole {
+        transform: scale(1);
+    }
 }
-.o-converge { width: 100%; height: auto; overflow: visible; color: var(--text); --loop: 6s; }
-.o-converge .o-thread { stroke: var(--text-subtle); stroke-opacity: .6; fill: none; }
-.o-converge .o-lab { fill: var(--text-muted); font: 500 13px var(--font-mono); letter-spacing: .02em; }
-.o-converge .o-out { stroke: var(--text); }
-.o-converge .o-sig { fill: var(--signal); }
-.o-converge .o-sigt { fill: var(--text); font: 600 13px var(--font-mono); }
-.o-converge .o-clip { transform-box: fill-box; transform-origin: 0 50%; transform: scaleX(1); animation: o-cv-draw var(--loop) var(--ease-out, cubic-bezier(.16,1,.3,1)) infinite both; }
-.o-converge .o-c2 { animation-delay: .08s; } .o-converge .o-c3 { animation-delay: .16s; } .o-converge .o-c4 { animation-delay: .24s; }
-@keyframes o-cv-draw { 0% { transform: scaleX(0); } 16%, 100% { transform: scaleX(1); } }
-.o-converge .o-labs { animation: o-cv-lab var(--loop) linear infinite both; }
-@keyframes o-cv-lab { 0% { opacity: 0; } 8%, 88% { opacity: 1; } 96%, 100% { opacity: 0; } }
-.o-converge .o-cv-all { animation: o-cv-all var(--loop) linear infinite both; }
-@keyframes o-cv-all { 0% { opacity: 0; } 4%, 88% { opacity: 1; } 96%, 100% { opacity: 0; } }
-.o-converge .o-exitclip { transform-box: fill-box; transform-origin: 0 50%; animation: o-cv-exit var(--loop) var(--ease-out, cubic-bezier(.16,1,.3,1)) infinite both; }
-@keyframes o-cv-exit { 0%, 34% { transform: scaleX(0); } 48%, 100% { transform: scaleX(1); } }
-.o-converge .o-bead { animation: o-cv-bead var(--loop) var(--ease-gate, cubic-bezier(.76,0,.24,1)) infinite both; }
-@keyframes o-cv-bead { 0%, 40% { transform: translateX(0); opacity: 0; } 43% { opacity: 1; } 60%, 88% { transform: translateX(var(--exit, 200px)); opacity: 1; } 96%, 100% { transform: translateX(var(--exit, 200px)); opacity: 0; } }
-.o-converge .o-done { animation: o-cv-done var(--loop) var(--ease-out, cubic-bezier(.16,1,.3,1)) infinite both; }
-@keyframes o-cv-done { 0%, 58% { opacity: 0; transform: translateX(-6px); } 66%, 88% { opacity: 1; transform: translateX(0); } 96%, 100% { opacity: 0; } }
-.o-converge .o-iris .o-cuts { transition: none; animation: o-cv-cuts var(--loop) var(--ease-gate, cubic-bezier(.76,0,.24,1)) infinite both; }
-.o-converge .o-iris .o-hole { transition: none; animation: o-cv-hole var(--loop) var(--ease-gate, cubic-bezier(.76,0,.24,1)) infinite both; }
-@keyframes o-cv-cuts { 0%, 18% { transform: rotate(36deg); } 36%, 100% { transform: rotate(0deg); } }
-@keyframes o-cv-hole { 0%, 19% { transform: scale(.001); } 36%, 100% { transform: scale(1); } }
+.o-converge {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    color: var(--text);
+    --loop: 6s;
+}
+.o-converge .o-thread {
+    stroke: var(--text-subtle);
+    stroke-opacity: 0.6;
+    fill: none;
+}
+.o-converge .o-lab {
+    fill: var(--text-muted);
+    font: 500 13px var(--font-mono);
+    letter-spacing: 0.02em;
+}
+.o-converge .o-out {
+    stroke: var(--text);
+}
+.o-converge .o-sig {
+    fill: var(--signal);
+}
+.o-converge .o-sigt {
+    fill: var(--text);
+    font: 600 13px var(--font-mono);
+}
+.o-converge .o-clip {
+    transform-box: fill-box;
+    transform-origin: 0 50%;
+    transform: scaleX(1);
+    animation: o-cv-draw var(--loop) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)) infinite both;
+}
+.o-converge .o-c2 {
+    animation-delay: 0.08s;
+}
+.o-converge .o-c3 {
+    animation-delay: 0.16s;
+}
+.o-converge .o-c4 {
+    animation-delay: 0.24s;
+}
+@keyframes o-cv-draw {
+    0% {
+        transform: scaleX(0);
+    }
+    16%,
+    100% {
+        transform: scaleX(1);
+    }
+}
+.o-converge .o-labs {
+    animation: o-cv-lab var(--loop) linear infinite both;
+}
+@keyframes o-cv-lab {
+    0% {
+        opacity: 0;
+    }
+    8%,
+    88% {
+        opacity: 1;
+    }
+    96%,
+    100% {
+        opacity: 0;
+    }
+}
+.o-converge .o-cv-all {
+    animation: o-cv-all var(--loop) linear infinite both;
+}
+@keyframes o-cv-all {
+    0% {
+        opacity: 0;
+    }
+    4%,
+    88% {
+        opacity: 1;
+    }
+    96%,
+    100% {
+        opacity: 0;
+    }
+}
+.o-converge .o-exitclip {
+    transform-box: fill-box;
+    transform-origin: 0 50%;
+    animation: o-cv-exit var(--loop) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)) infinite both;
+}
+@keyframes o-cv-exit {
+    0%,
+    34% {
+        transform: scaleX(0);
+    }
+    48%,
+    100% {
+        transform: scaleX(1);
+    }
+}
+.o-converge .o-bead {
+    animation: o-cv-bead var(--loop) var(--ease-gate, cubic-bezier(0.76, 0, 0.24, 1)) infinite both;
+}
+@keyframes o-cv-bead {
+    0%,
+    40% {
+        transform: translateX(0);
+        opacity: 0;
+    }
+    43% {
+        opacity: 1;
+    }
+    60%,
+    88% {
+        transform: translateX(var(--exit, 200px));
+        opacity: 1;
+    }
+    96%,
+    100% {
+        transform: translateX(var(--exit, 200px));
+        opacity: 0;
+    }
+}
+.o-converge .o-done {
+    animation: o-cv-done var(--loop) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)) infinite both;
+}
+@keyframes o-cv-done {
+    0%,
+    58% {
+        opacity: 0;
+        transform: translateX(-6px);
+    }
+    66%,
+    88% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    96%,
+    100% {
+        opacity: 0;
+    }
+}
+.o-converge .o-iris .o-cuts {
+    transition: none;
+    animation: o-cv-cuts var(--loop) var(--ease-gate, cubic-bezier(0.76, 0, 0.24, 1)) infinite both;
+}
+.o-converge .o-iris .o-hole {
+    transition: none;
+    animation: o-cv-hole var(--loop) var(--ease-gate, cubic-bezier(0.76, 0, 0.24, 1)) infinite both;
+}
+@keyframes o-cv-cuts {
+    0%,
+    18% {
+        transform: rotate(36deg);
+    }
+    36%,
+    100% {
+        transform: rotate(0deg);
+    }
+}
+@keyframes o-cv-hole {
+    0%,
+    19% {
+        transform: scale(0.001);
+    }
+    36%,
+    100% {
+        transform: scale(1);
+    }
+}
 @media (prefers-reduced-motion: reduce) {
-  .o-converge * { animation: none !important; }
-  .o-converge .o-iris .o-cuts { transform: rotate(0deg); } .o-converge .o-iris .o-hole { transform: scale(1); }
-  .o-converge .o-bead { transform: translateX(var(--exit, 200px)); }
+    .o-converge * {
+        animation: none !important;
+    }
+    .o-converge .o-iris .o-cuts {
+        transform: rotate(0deg);
+    }
+    .o-converge .o-iris .o-hole {
+        transform: scale(1);
+    }
+    .o-converge .o-bead {
+        transform: translateX(var(--exit, 200px));
+    }
 }
-.o-converge .o-bead { --exit: 176px; }
+.o-converge .o-bead {
+    --exit: 176px;
+}

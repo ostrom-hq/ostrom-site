@@ -16,11 +16,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}', 'scripts/lib/**/*.ts'],
-      exclude: [
-        '**/*.test.{ts,tsx}',
-        'src/test/**',
-        '**/*.d.ts',
-      ],
+      exclude: ['**/*.test.{ts,tsx}', 'src/test/**', '**/*.d.ts'],
       reporter: ['text', 'json-summary', 'html', 'lcov'],
       thresholds: { lines: 100, branches: 100, functions: 100, statements: 100 },
     },
