@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { z } from 'zod'
+import { z } from './zod'
 
 /** The visitor's choice about analytics. Nothing is measured unless it is `granted`. */
 export type Consent = 'granted' | 'denied' | 'unset'

@@ -4,7 +4,7 @@
 // from the container at run time (/site-config.json, written by nginx from OSTROM_POSTHOG_API_KEY and
 // OSTROM_POSTHOG_HOST), so the image the tests ran is the image that ships.
 import type { PostHog } from 'posthog-js'
-import { z } from 'zod'
+import { z } from './zod'
 import type { Consent } from './consent'
 import { at } from './markdown'
 

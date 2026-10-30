@@ -2,7 +2,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'yaml'
-import { z } from 'zod'
+import { z } from './zod'
 import { group, parseMarkdown, type Block } from './markdown'
 
 /** Root of the Markdown content, next to the app. */
