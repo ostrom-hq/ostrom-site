@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Lighthouse CI: every page of the sitemap, against the container on localhost:8080. 95 is the floor in each
-// category; LHCI_PRESET=desktop audits the desktop profile, mobile otherwise. The audited image is built with
+// category; LIGHTHOUSE_PROFILE=desktop audits the desktop profile, mobile otherwise. The audited image is built with
 // NEXT_PUBLIC_LAUNCHED=1: Lighthouse checks the site as it will be once launched (indexable).
 const { readFileSync, existsSync } = require('node:fs')
 const { execSync } = require('node:child_process')
@@ -14,7 +14,7 @@ function sitemapUrls() {
   )
 }
 
-const desktop = process.env.LHCI_PRESET === 'desktop'
+const desktop = process.env.LIGHTHOUSE_PROFILE === 'desktop'
 const floor = ['error', { minScore: 0.95 }]
 
 module.exports = {
