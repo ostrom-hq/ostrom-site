@@ -45,10 +45,24 @@ missing. `exit` and `requires` go on `test` blocks only.
 The verifier of `receipts/format.mdx` is also run on every receipt and canonical-form case of the format's test vectors
 (`docs-tools/vectors/`, frozen), by `docs-tools/test/receipt-format.test.mjs`.
 
+## Generated references
+
+The CLI and API references are generated, never written by hand, so they cannot describe a command or an endpoint
+that does not exist:
+
+```sh notest="needs the binary and ostrom-core"
+node bin/docs-tools.mjs cli-reference path/to/ostrom ../content/docs/reference/cli.mdx
+node bin/docs-tools.mjs api-reference ../../ostrom-core/api/openapi.yaml ../content/docs/reference/api.mdx
+```
+
+The CLI reference puts each `ostrom ... --help` in a `requires="ostrom"` test block followed by its output, so
+`docs-test` reruns it against the real binary.
+
 ## Check locally
 
 ```sh notest="needs this repository"
 cd docs-tools
+npm ci
 npm test              # the tooling's own tests, 100 % coverage
 npm run lint:docs     # frontmatter, blocks, prose, links, navigation
 npm run test:docs     # run every tested block
