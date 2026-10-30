@@ -52,12 +52,12 @@ describe('PricingTable', () => {
   it('gives Team and Business one real link per interval, Free its plan only, Enterprise a contact', () => {
     render(<PricingTable copy={copy} config={config} />)
     expect(hrefs(copy.plans.team.cta)).toEqual([
-      'https://app.ostrom.run/signup?plan=team&interval=yearly',
-      'https://app.ostrom.run/signup?plan=team&interval=monthly',
+      'https://app.ostrom.run/signup?plan=team&interval=year',
+      'https://app.ostrom.run/signup?plan=team&interval=month',
     ])
     expect(hrefs(copy.plans.business.cta)).toEqual([
-      'https://app.ostrom.run/signup?plan=business&interval=yearly',
-      'https://app.ostrom.run/signup?plan=business&interval=monthly',
+      'https://app.ostrom.run/signup?plan=business&interval=year',
+      'https://app.ostrom.run/signup?plan=business&interval=month',
     ])
     expect(hrefs(copy.plans.free.cta)).toEqual(['https://app.ostrom.run/signup?plan=free'])
     expect(hrefs(copy.plans.enterprise.cta)).toEqual(['mailto:hello@ostrom.run?subject=Ostrom%20Enterprise'])
@@ -70,7 +70,7 @@ describe('PricingTable', () => {
     expect(html).toMatch(/<input type="radio" id="interval-yearly"[^>]* checked=""/)
     expect(html).not.toMatch(/id="interval-monthly"[^>]*checked/)
     for (const plan of ['team', 'business']) {
-      for (const interval of ['yearly', 'monthly']) {
+      for (const interval of ['year', 'month']) {
         expect(html).toContain(`href="https://app.ostrom.run/signup?plan=${plan}&amp;interval=${interval}"`)
       }
     }
