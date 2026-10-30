@@ -44,6 +44,7 @@ paths:
   /gates/{id}:
     parameters: [{$ref: '#/components/parameters/GateId'}]
     get:
+      x-ostrom-server: implemented
       tags: [gates]
       summary: One gate.
       description: |
@@ -54,13 +55,19 @@ paths:
         '200': {description: The gate., content: {application/json: {schema: {$ref: '#/components/schemas/Gate'}}}}
         '404': {$ref: '#/components/responses/NotFound'}
     post:
+      x-ostrom-server: implemented
       tags: [extra]
       requestBody: {content: {text/plain: {schema: {type: string}}}}
       responses: {'204': {description: Done.}}
   /health:
     get:
+      x-ostrom-server: implemented
       responses: {'200': {description: OK}}
+    patch:
+      x-ostrom-server: planned
+      responses: {'200': {description: Planned}}
     delete:
+      x-ostrom-server: implemented
       requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Ids'}}}}
 `
 
@@ -122,6 +129,7 @@ test("the page: tags in order, parameters, bodies, responses, schemas, and it li
         "| `any` | string or number | no |  |",
         "Type: string array",
     ]) {
+        assert.equal(text.includes("PATCH"), false)
         assert.ok(text.includes(expected), expected)
     }
 })
@@ -130,7 +138,8 @@ test("an empty description still gives a page", () => {
     const text = generateApiReference({})
     assert.deepEqual(lintPage(text, new Set()), [])
     assert.equal(text.includes("## Schemas"), false)
-    assert.equal(generateApiReference({paths: {"/x": {get: {}}}}).includes("| Status | Description | Body |"), true)
+    assert.equal(generateApiReference({paths: {"/x": {get: {"x-ostrom-server": "implemented"}}}}).includes("| Status | Description | Body |"), true)
+    assert.equal(generateApiReference({paths: {"/x": {get: {}}}}).includes("/x"), false, "an operation the server does not serve is left out")
 })
 
 test("api-reference: unreadable file", () => {

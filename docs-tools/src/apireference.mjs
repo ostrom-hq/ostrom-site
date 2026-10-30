@@ -78,7 +78,15 @@ function schemaSection(name, schema) {
     return lines
 }
 
-/** The whole reference page, endpoints grouped by tag in the description's order, then the schemas. */
+/** True for an operation the server serves: the contract marks it `x-ostrom-server: implemented`. */
+export function isImplemented(operation) {
+    return operation["x-ostrom-server"] === "implemented"
+}
+
+/**
+ * The whole reference page, endpoints grouped by tag in the description's order, then the schemas they use.
+ * Only operations the server implements are listed; the contract also describes planned ones.
+ */
 export function generateApiReference(spec) {
     const tagNames = (spec.tags ?? []).map((tag) => tag.name)
     const groups = new Map(tagNames.map((name) => [name, []]))
@@ -86,7 +94,7 @@ export function generateApiReference(spec) {
     for (const [path, item] of Object.entries(spec.paths ?? {})) {
         for (const method of METHODS) {
             const operation = item[method]
-            if (operation === undefined) continue
+            if (operation === undefined || !isImplemented(operation)) continue
             const section = operationSection(spec, path, method, operation, item.parameters ?? [])
             const tag = operation.tags?.[0]
             if (tag !== undefined && !groups.has(tag)) groups.set(tag, [])
