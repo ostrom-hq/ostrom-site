@@ -43,7 +43,7 @@ describe('content pages', () => {
     render(await LegalPage({ params }))
     expect(screen.getByRole('heading', { level: 1, name: 'Legal notice' })).toBeInTheDocument()
     expect(screen.getByRole('note')).toHaveTextContent('à valider')
-    expect(screen.getByText(/933 169 278/)).toBeInTheDocument()
+    expect(screen.getByText(/under number 933 169 278/)).toBeInTheDocument()
     expect(await legalMetadata({ params })).toMatchObject({
       robots: { index: false },
       alternates: { canonical: '/legal/imprint/' },

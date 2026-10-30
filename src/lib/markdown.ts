@@ -111,7 +111,9 @@ export function parseMarkdown(source: string): Block[] {
       const marks = group(heading, 1).length
       const text = group(heading, 2).trim()
       const level = marks === 2 ? 2 : marks === 3 ? 3 : 4
-      blocks.push({ kind: 'heading', level, id: uniqueId(text), children: parseInline(text) })
+      const children = parseInline(text)
+      // The anchor comes from the words shown, never from a link's address or the Markdown marks.
+      blocks.push({ kind: 'heading', level, id: uniqueId(plainText(children)), children })
       index += 1
       continue
     }
