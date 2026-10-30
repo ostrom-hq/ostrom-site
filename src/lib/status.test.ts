@@ -9,7 +9,10 @@ const answer =
   (init: ResponseInit & { readonly opaque?: boolean }): Fetcher =>
   () =>
     Promise.resolve(
-      init.opaque === true ? Object.assign(new Response(null), { type: 'opaque' }) : new Response(null, init),
+      init.opaque === true
+        ? // `type` is a read-only getter of Response: an own property shadows it.
+          Object.defineProperty(new Response(null), 'type', { value: 'opaque' })
+        : new Response(null, init),
     )
 
 describe('status', () => {
