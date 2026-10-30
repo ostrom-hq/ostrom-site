@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { defineConfig, devices } from '@playwright/test'
 
 // CI runs the suite against the Docker image (PLAYWRIGHT_BASE_URL=http://localhost:8080). Locally, without it, the

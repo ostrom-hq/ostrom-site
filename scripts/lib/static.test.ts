@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { answer, contentType } from './static'
 
 describe('static server', () => {

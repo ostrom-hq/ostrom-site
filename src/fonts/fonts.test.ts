@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { en } from '@/i18n/en'
 
 // The characters kept in archivo-latin.woff2 by scripts/fonts/subset-archivo.py: a text outside them would fall back

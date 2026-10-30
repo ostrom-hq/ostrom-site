@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // ESLint flat config from ostrom-core docs/conventions/eslint.config.js (CONVENTIONS.md section 13.2), plus Next.js
 // and jsx-a11y. ESLint stays on 9.x: eslint-plugin-jsx-a11y 6.10 does not accept ESLint 10 yet.
 import js from '@eslint/js'

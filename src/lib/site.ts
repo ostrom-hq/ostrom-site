@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { z } from 'zod'
 
 /** Where the site and the product live. Read once, at build time, from the public environment. */
