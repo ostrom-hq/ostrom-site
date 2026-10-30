@@ -32,7 +32,7 @@ jobs:
     env:
       # The ostrom-core commit the docs are checked against: its api/contract/served-routes.txt (what the server serves)
       # and tools/docs-truth. Move it forward by pull request; the run warns when served-routes.txt moved on main.
-      CORE_REF: 0ce4b9e9115fc13b838e055e96b5017bd7d583dd
+      CORE_REF: 5e4f5d55eac8fc7ecc87d3c106ac8532a10cb118
       CORE_KEY_SET: ${{ secrets.DEPLOY_KEY_CORE != '' }}
       SERVER_KEY_SET: ${{ secrets.DEPLOY_KEY_SERVER != '' }}
       CLI_KEYS_SET: ${{ secrets.DEPLOY_KEY_E2E != '' && secrets.DEPLOY_KEY_CLI != '' && secrets.DEPLOY_KEY_CORE != '' }}
