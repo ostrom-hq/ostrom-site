@@ -1,0 +1,167 @@
+# CI of ostrom-site: ONE job `ci` on pull requests (organisation rule, JOURNAL 30/10 03:10: the runners are scarce),
+# the required check on main. Cheapest first: types, lint, unit tests, the docs tooling, the static build, then the
+# image under Playwright and Lighthouse. Publishing the image is a separate job, on main only.
+name: CI
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+# One run per workflow and ref; a new push cancels the previous run, except on main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  ci:
+    name: ci
+    # A draft pull request runs no CI: mark it ready when you want it.
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      # No dependency cache: this workflow publishes the image on main, and a cache written by a pull request could
+      # poison it (zizmor, cache-poisoning). The install takes under a minute.
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version-file: .nvmrc, package-manager-cache: false }
+      - run: pnpm install --frozen-lockfile
+      - run: .github/scripts/run.sh typecheck pnpm typecheck
+      - run: .github/scripts/run.sh lint pnpm lint
+      - run: .github/scripts/run.sh format pnpm format:check
+      - name: Unit and component tests, 100 % thresholds
+        run: .github/scripts/run.sh coverage pnpm test:coverage
+      - name: Coverage summary
+        if: always()
+        run: |
+          node -e 'const t=require("./coverage/coverage-summary.json").total;const r=["lines","branches","functions","statements"].map(k=>`| ${k} | ${t[k].pct} % (${t[k].covered}/${t[k].total}) |`).join("\n");require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY,`### Vitest coverage\n\n| Metric | Value |\n|---|---|\n${r}\n`)' || true
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with: { name: coverage, path: coverage/, if-no-files-found: ignore, retention-days: 7 }
+
+      # The docs tooling and content run in their own workflow (docs.yml, owned by DOCS: contract and real CLI).
+
+      # The static export, its links, and the two images: the production one (ostrom.run URLs) and the Lighthouse
+      # one (URLs on localhost, launched, so canonical links point at the audited host).
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version-file: .nvmrc, package-manager-cache: false }
+      - run: .github/scripts/run.sh build pnpm build
+      - name: Internal links and anchors
+        run: .github/scripts/run.sh links pnpm links
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Production image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          tags: ostrom-site:ci
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Lighthouse image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          tags: ostrom-site:lighthouse
+          load: true
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=http://localhost:8080
+            NEXT_PUBLIC_APP_URL=http://localhost:8080
+            NEXT_PUBLIC_API_URL=http://localhost:8080
+            NEXT_PUBLIC_LAUNCHED=1
+          cache-from: type=gha
+
+      - name: Start the production image
+        run: |
+          docker run -d --name site -p 8080:8080 ostrom-site:ci
+          for i in $(seq 1 30); do curl -fsS http://localhost:8080/healthz && break; sleep 1; done
+          curl -fsS http://localhost:8080/healthz
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Playwright, desktop and mobile, against the container
+        env: { PLAYWRIGHT_BASE_URL: 'http://localhost:8080' }
+        run: .github/scripts/run.sh e2e pnpm e2e
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          { name: playwright-report, path: playwright-report/, if-no-files-found: ignore, retention-days: 7 }
+
+      - name: Start the Lighthouse image
+        run: |
+          docker rm -f site
+          docker run -d --name site -p 8080:8080 ostrom-site:lighthouse
+          for i in $(seq 1 30); do curl -fsS http://localhost:8080/healthz && break; sleep 1; done
+          curl -fsS http://localhost:8080/healthz
+      - name: Lighthouse, mobile, every page of the sitemap, 95 minimum in each category
+        run: .github/scripts/run.sh lighthouse pnpm exec lhci autorun --config=lighthouserc.cjs
+      - name: Lighthouse, desktop
+        env: { LIGHTHOUSE_PROFILE: desktop } # not LHCI_*: lhci reads those as its own options
+        run: .github/scripts/run.sh lighthouse pnpm exec lhci autorun --config=lighthouserc.cjs
+      # Above all when an assertion fails: the reports say why.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with: { name: lighthouse, path: lighthouse-reports/, if-no-files-found: ignore, retention-days: 7 }
+
+      # On main, the exact image the tests ran against goes to the publish job.
+      - name: Save the production image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: docker save ostrom-site:ci -o "$RUNNER_TEMP/site-image.tar"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with: { name: images, path: '${{ runner.temp }}/site-image.tar', retention-days: 2 }
+
+  publish:
+    name: publish
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: ci
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: { name: images, path: '${{ runner.temp }}' }
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with: { registry: ghcr.io, username: '${{ github.actor }}', password: '${{ secrets.GITHUB_TOKEN }}' }
+      - name: Push ghcr.io/ostrom-hq/ostrom-site (sha and main), the exact image the tests ran against
+        run: |
+          docker load -i "$RUNNER_TEMP/site-image.tar"
+          for tag in "$GITHUB_SHA" main; do
+            docker tag ostrom-site:ci "ghcr.io/ostrom-hq/ostrom-site:$tag"
+            docker push "ghcr.io/ostrom-hq/ostrom-site:$tag"
+          done
+          echo "Image: ghcr.io/ostrom-hq/ostrom-site:$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      # The same build with Lyes's go switched on (indexable, repository links): DEPLOY moves to this tag at the launch.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build the launched image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          load: true
+          build-args: NEXT_PUBLIC_LAUNCHED=1
+          tags: ostrom-site:launched
+          cache-from: type=gha
+      # Lighthouse audited this build on localhost URLs; this one has the real ones: it starts, answers, is indexable.
+      - name: Smoke test of the launched image
+        run: |
+          docker run -d --name launched -p 8080:8080 ostrom-site:launched
+          for i in $(seq 1 30); do curl -fsS http://localhost:8080/healthz && break; sleep 1; done
+          curl -fsS http://localhost:8080/healthz
+          headers=$(curl -fsSI http://localhost:8080/)
+          if grep -qi '^x-robots-tag' <<<"$headers"; then echo "::error::the launched image still asks not to be indexed"; exit 1; fi
+          curl -fsS http://localhost:8080/robots.txt | grep -q '^Sitemap: https://ostrom.run/sitemap.xml'
+          curl -fsS http://localhost:8080/ | grep -q 'https://github.com/ostrom-hq'
+      - name: Push ghcr.io/ostrom-hq/ostrom-site (launched-sha and launched)
+        run: |
+          for tag in "launched-$GITHUB_SHA" launched; do
+            docker tag ostrom-site:launched "ghcr.io/ostrom-hq/ostrom-site:$tag"
+            docker push "ghcr.io/ostrom-hq/ostrom-site:$tag"
+          done

@@ -1,0 +1,43 @@
+// SPDX-License-Identifier: Apache-2.0
+import type { Metadata } from 'next'
+import {
+  Approvals,
+  FinalCta,
+  Hero,
+  HowItWorks,
+  Motif,
+  OpenSource,
+  Pillars,
+  Problem,
+  Receipt,
+  ThirdOption,
+  Vision,
+  Why,
+} from '@/components/home/Sections'
+import { getMessages } from '@/i18n'
+import { homeJsonLd } from '@/lib/seo'
+import { site } from '@/lib/site'
+
+export const metadata: Metadata = { alternates: { canonical: '/' } }
+
+export default function HomePage(): React.JSX.Element {
+  const messages = getMessages()
+  const { home, approval } = messages
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: homeJsonLd(site, messages) }} />
+      <Hero copy={home.hero} approval={approval} config={site} />
+      <Vision copy={home.vision} />
+      <Problem copy={home.problem} />
+      <ThirdOption copy={home.third} />
+      <HowItWorks copy={home.how} />
+      <Pillars copy={home.pillars} />
+      <Receipt copy={home.receipt} />
+      <Approvals copy={home.approvals} />
+      <Motif copy={home.motif} />
+      <OpenSource copy={home.open} />
+      <Why copy={home.why} />
+      <FinalCta copy={home.cta} config={site} />
+    </>
+  )
+}

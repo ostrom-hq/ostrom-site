@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+coverage
+playwright-report
+test-results
+.lighthouseci
+next-env.d.ts
+*.tsbuildinfo
+.DS_Store
+.env*.local
+.metadata_never_index
+lighthouse-reports
