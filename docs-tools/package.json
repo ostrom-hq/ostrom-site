@@ -8,6 +8,6 @@
   "scripts": {
     "lint:docs": "node bin/docs-tools.mjs lint ../content/docs",
     "test:docs": "node bin/docs-tools.mjs run ../content/docs",
-    "test": "node --test --experimental-test-coverage --test-coverage-include='src/**' --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 test/"
+    "test": "node --test --experimental-test-coverage --test-coverage-include='src/**' --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 'test/*.test.mjs'"
   }
 }
