@@ -46,18 +46,7 @@ jobs:
         if: always()
         with: { name: coverage, path: coverage/, if-no-files-found: ignore, retention-days: 7 }
 
-      # The docs tooling and content (owned by DOCS, its own npm project).
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with: { node-version: 24, package-manager-cache: false }
-      - name: Docs tooling, unit tests at 100 %
-        working-directory: docs-tools
-        run: npm ci && npm test
-      - name: Docs, frontmatter, code blocks, MDX-safe prose, links, navigation
-        working-directory: docs-tools
-        run: npm run lint:docs
-      - name: Docs, every tested code block (strict, a missing binary or server fails)
-        working-directory: docs-tools
-        run: node bin/docs-tools.mjs run ../content/docs --strict
+      # The docs tooling and content run in their own workflow (docs.yml, owned by DOCS: contract and real CLI).
 
       # The static export, its links, and the two images: the production one (ostrom.run URLs) and the Lighthouse
       # one (URLs on localhost, launched, so canonical links point at the audited host).

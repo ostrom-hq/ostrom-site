@@ -1,0 +1,111 @@
+# CI of the documentation tooling and content: ONE job `ci` on pull requests (JOURNAL 03:10, the organisation's runners
+# are scarce), the required check on main. Cheapest first: unit tests at 100 %, lint of the docs, tested code blocks.
+name: Docs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+    tags: ["[0-9]*"]
+  workflow_dispatch:
+
+# One run per workflow and ref; a new push cancels the previous run, except on main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: docs-tools
+
+jobs:
+  ci:
+    name: ci
+    # A draft pull request runs no CI: mark it ready when you want it.
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CORE_KEY_SET: ${{ secrets.DEPLOY_KEY_CORE != '' }}
+      CLI_KEYS_SET: ${{ secrets.DEPLOY_KEY_E2E != '' && secrets.DEPLOY_KEY_CLI != '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: docs-tools/package-lock.json
+      - run: npm ci
+      - name: Unit tests of the docs tooling, 100 % lines, branches and functions
+        run: npm test
+      - name: Frontmatter, code blocks, MDX-safe prose, links, navigation
+        run: npm run lint:docs
+      # The API reference lists the operations the contract marks implemented. Until ostrom-core is public, reading it
+      # needs the org's read-only deploy key, which pull requests from forks do not get.
+      - name: Checkout ostrom-core (the API contract)
+        if: env.CORE_KEY_SET == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ostrom-hq/ostrom-core
+          ssh-key: ${{ secrets.DEPLOY_KEY_CORE }}
+          path: .ostrom/core
+          persist-credentials: false
+      - name: The API reference matches the contract
+        if: env.CORE_KEY_SET == 'true'
+        run: |
+          set -o pipefail
+          page=../content/docs/reference/api.mdx
+          node bin/docs-tools.mjs api-reference ../.ostrom/core/api/openapi.yaml "$RUNNER_TEMP/api.mdx" | tee "$RUNNER_TEMP/api.log"
+          if grep -q '^status: available' "$page"; then
+            diff -u "$page" "$RUNNER_TEMP/api.mdx"
+          elif ! grep -q '(0 of ' "$RUNNER_TEMP/api.log"; then
+            echo "::warning title=API reference::the contract marks operations implemented: run docs-tools api-reference and commit content/docs/reference/api.mdx"
+          fi
+      # A block marked requires="ostrom" runs against the real binary, built from ostrom-cli main by the bench's
+      # action (cached by commit). Built only when a page needs it.
+      - name: Pages that need the real CLI
+        id: needs
+        run: |
+          if ! grep -rq 'requires="[^"]*ostrom' ../content/docs; then
+            echo "cli=false" >> "$GITHUB_OUTPUT"
+          elif [ "$CLI_KEYS_SET" = "true" ]; then
+            echo "cli=true" >> "$GITHUB_OUTPUT"
+          else
+            # A fork's pull request gets no secrets: the blocks that need the binary are skipped here, and run on main.
+            echo "cli=false" >> "$GITHUB_OUTPUT"
+            echo "strict=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=docs-test::no deploy keys: blocks that need the real ostrom are skipped"
+          fi
+      - name: Checkout ostrom-e2e (the bench's CLI action)
+        if: steps.needs.outputs.cli == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ostrom-hq/ostrom-e2e
+          ssh-key: ${{ secrets.DEPLOY_KEY_E2E }}
+          path: .ostrom/e2e
+          persist-credentials: false
+      - name: Real ostrom CLI
+        if: steps.needs.outputs.cli == 'true'
+        id: cli
+        uses: ./.ostrom/e2e/.github/actions/cli
+        with:
+          deploy-key: ${{ secrets.DEPLOY_KEY_CLI }}
+      - name: Run every tested code block (strict, a missing binary or server fails)
+        env:
+          OSTROM_BIN: ${{ steps.cli.outputs.bin }}
+          STRICT: ${{ steps.needs.outputs.strict != 'false' && 'yes' || '' }}
+        run: node bin/docs-tools.mjs run ../content/docs ${STRICT:+--strict}
+      - name: The CLI reference matches the binary's help
+        if: steps.needs.outputs.cli == 'true'
+        env:
+          OSTROM_BIN: ${{ steps.cli.outputs.bin }}
+        run: |
+          page=../content/docs/reference/cli.mdx
+          if grep -q '^status: available' "$page"; then
+            node bin/docs-tools.mjs cli-reference "$OSTROM_BIN" "$RUNNER_TEMP/cli.mdx"
+            diff -u "$page" "$RUNNER_TEMP/cli.mdx"
+          fi
