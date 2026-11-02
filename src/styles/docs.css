@@ -773,6 +773,28 @@ a.docs-nav__heading[aria-current='page'] {
 .api-method--delete {
     border-left-color: var(--danger);
 }
+/* The details of an operation or a schema: loaded when the toggle opens (ApiDataListener). */
+.api-more {
+    margin-top: var(--space-4);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+.api-more > summary {
+    cursor: pointer;
+    padding: var(--space-3) 0;
+    font-size: var(--fs-14);
+    font-weight: 600;
+}
+.api-more[open] > summary {
+    border-bottom: 1px solid var(--border);
+}
+.api-more__body {
+    padding-block: var(--space-4);
+}
+.api-more__body > .api-op__grid > .api-op__doc > h3:first-child {
+    margin-top: 0;
+}
 .api-op__grid {
     display: grid;
     gap: var(--space-5);

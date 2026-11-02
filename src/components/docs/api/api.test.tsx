@@ -2,21 +2,24 @@
 import { render, screen, within } from '@testing-library/react'
 import { en } from '@/i18n/en'
 import { buildApiReference, type ApiOperation, type ApiReference } from '@/lib/openapi/reference'
-import { resolveSchema, type SchemaNode } from '@/lib/openapi/schema'
 import { TEST_API_URL, fixtureSite, linkTarget } from '@/test/docs'
-import { ApiOverview, ApiSchemasPage, ApiTagPage, overviewToc, tagDescription } from './ApiPages'
+import {
+  ApiMore,
+  ApiOverview,
+  ApiSchemasPage,
+  ApiTagPage,
+  MethodBadge,
+  OperationSummary,
+  overviewToc,
+  tagDescription,
+} from './ApiPages'
 import { InlineText, splitSummary } from './InlineText'
-import { MethodBadge, OperationView } from './Operation'
-import { FieldHead, SchemaDetails, TypeText } from './SchemaView'
 
 const labels = en.docs.api
 const api = fixtureSite().api
 if (api === null) throw new Error('the fixture has an API description')
 const [gates, other] = api.tags
 if (gates === undefined || other === undefined) throw new Error('the fixture has two tags')
-
-const node = (schema: Parameters<typeof resolveSchema>[0]): SchemaNode =>
-  resolveSchema(schema, { schemas: {}, maxDepth: 2 })
 
 function operation(anchor: string): ApiOperation {
   const found = api?.tags.flatMap((tag) => tag.operations).find((candidate) => candidate.anchor === anchor)
@@ -37,101 +40,25 @@ describe('InlineText', () => {
   })
 })
 
-describe('TypeText', () => {
-  it('names types, and links named schemas to the Schemas page', () => {
-    const { container } = render(
-      <>
-        <TypeText node={node({ type: 'array', items: { type: 'string' } })} />
-        <TypeText node={node({ oneOf: [{ type: 'string' }, { type: 'integer' }] })} />
-        <TypeText node={{ ...node({ type: 'object' }), name: 'Gate' }} />
-        <TypeText node={{ kind: 'link', target: 'Node', name: null, description: null, nullable: false }} />
-      </>,
-    )
-    expect(container).toHaveTextContent('array of stringstring or integerGateNode')
-    expect(linkTarget(screen.getByRole('link', { name: 'Gate' }))).toBe(linkTarget('/docs/api/schemas/#schema-gate'))
-    expect(linkTarget(screen.getByRole('link', { name: 'Node' }))).toBe(linkTarget('/docs/api/schemas/#schema-node'))
-  })
-})
-
-describe('SchemaDetails', () => {
-  it('shows the description, the values, the default and the other keys', () => {
-    render(
-      <>
-        <SchemaDetails
-          node={node({ type: 'string', description: 'A `mode`', enum: ['a', 'b'], default: 'a' })}
-          labels={labels}
-          folded={false}
-        />
-        <SchemaDetails
-          node={node({ type: 'object', additionalProperties: { type: 'string' } })}
-          labels={labels}
-          folded={false}
-        />
-      </>,
-    )
-    expect(screen.getByText(labels.values)).toHaveTextContent('One of: a, b')
-    expect(screen.getByText(labels.defaultValue, { exact: false })).toHaveTextContent('Default: a')
-    expect(screen.getByText(labels.additional, { exact: false })).toHaveTextContent('Any other key: string')
-  })
-
-  it('folds nested fields and opens the top level', () => {
-    const object = node({
-      type: 'object',
-      properties: { outer: { type: 'object', properties: { inner: { type: 'string' } } } },
-      required: ['outer'],
-    })
-    const { container } = render(<SchemaDetails node={object} labels={labels} folded={false} />)
-    expect(container.querySelectorAll('details')).toHaveLength(1)
-    expect(screen.getByText('Show 1 fields')).toBeInTheDocument()
-    expect(screen.getByText(labels.required)).toBeInTheDocument()
-  })
-
-  it('heads a field with its type and flags', () => {
-    render(
-      <>
-        <FieldHead
-          name="a"
-          node={{ ...node({ type: 'string' }), nullable: true }}
-          required={false}
-          deprecated
-          labels={labels}
-          location="query"
-        />
-        <FieldHead name="b" node={null} required deprecated={false} labels={labels} />
-      </>,
-    )
-    expect(screen.getByText('a').parentElement).toHaveTextContent('astringquerynullabledeprecated')
-    expect(screen.getByText('b').parentElement).toHaveTextContent('brequired')
-  })
-})
-
-describe('OperationView', () => {
-  it('shows an endpoint: route, parameters, body, responses, curl and response', () => {
-    render(<OperationView operation={operation('requestgate')} labels={labels} copyLabel="Copy" />)
+describe('an operation on its tag page', () => {
+  it('shows the route and what it does, and its details behind a toggle that loads them', () => {
+    render(<OperationSummary operation={operation('requestgate')} src="/data.json" labels={labels} />)
     const section = screen.getByRole('region', { name: 'Request a gate' })
     expect(within(section).getByText('POST', { selector: '.api-method' })).toHaveClass('api-method--post')
     expect(within(section).getByText('The agent waits for the', { exact: false })).toBeInTheDocument()
-    expect(within(section).getByText('Seconds to wait')).toBeInTheDocument()
-    expect(within(section).getByRole('heading', { name: labels.body })).toBeInTheDocument()
-    expect(within(section).getByText('What to ask for')).toBeInTheDocument()
-    expect(within(section).getByText('Created')).toBeInTheDocument()
-    expect(within(section).getByText('Response 201')).toBeInTheDocument()
-    expect(within(section).getAllByRole('button', { name: 'Copy' })).toHaveLength(2)
     expect(within(section).queryByText(labels.public)).toBeNull()
+    // Nothing of the details is in the page: they load when the toggle opens.
+    expect(within(section).queryByText('Seconds to wait')).toBeNull()
+    const details = within(section).getByText(labels.details).closest('details')
+    expect(details).toHaveAttribute('data-api-data', '/data.json')
+    expect(details).toHaveAttribute('data-api-key', 'requestgate')
+    expect(details?.querySelector('[data-api-body]')).toBeEmptyDOMElement()
   })
 
-  it('marks a public or deprecated endpoint and handles bodies without schema', () => {
-    const { rerender } = render(
-      <OperationView operation={operation('get-apiv1gates')} labels={labels} copyLabel="Copy" />,
-    )
+  it('marks a public or deprecated endpoint', () => {
+    render(<OperationSummary operation={operation('get-apiv1gates')} src="/data.json" labels={labels} />)
     expect(screen.getByText(labels.public)).toBeInTheDocument()
-    expect(screen.getAllByText(labels.deprecated)[0]).toHaveClass('badge--warning')
-    expect(screen.getByText('Redirect')).toBeInTheDocument()
-    rerender(<OperationView operation={operation('deletegate')} labels={labels} copyLabel="Copy" />)
-    expect(screen.getByText('application/octet-stream')).toBeInTheDocument()
-    rerender(<OperationView operation={operation('health')} labels={labels} copyLabel="Copy" />)
-    expect(screen.queryByRole('heading', { name: labels.parameters })).toBeNull()
-    expect(screen.getByText(labels.responses)).toBeInTheDocument()
+    expect(screen.getByText(labels.deprecated)).toHaveClass('badge--warning')
   })
 
   it('colours the method', () => {
@@ -139,13 +66,9 @@ describe('OperationView', () => {
     expect(screen.getByText('DELETE')).toHaveClass('api-method--delete')
   })
 
-  it('shows a response without description', () => {
-    const bare: ApiOperation = {
-      ...operation('health'),
-      responses: [{ status: '500', description: null, contentType: null, schema: null }],
-    }
-    render(<OperationView operation={bare} labels={labels} copyLabel="Copy" />)
-    expect(screen.getByText('500')).toHaveClass('api-status--5xx')
+  it('names the toggle', () => {
+    render(<ApiMore src="/x.json" id="y" summary="More" />)
+    expect(screen.getByText('More').closest('details')).toHaveClass('api-more')
   })
 })
 
@@ -175,6 +98,9 @@ describe('the API pages', () => {
     expect(screen.getByText('bearer', { selector: 'code' }).parentElement).toHaveTextContent('bearer · http bearer')
     expect(labels.baseUrlBody).toContain('coming soon')
     expect(screen.getByText('400')).toHaveClass('api-status--4xx')
+    // The error body's fields are on the overview itself.
+    expect(screen.getByText('The body of every refusal')).toBeInTheDocument()
+    expect(screen.getByText('error', { selector: 'code' })).toBeInTheDocument()
     expect(linkTarget(screen.getByRole('link', { name: 'Approvals' }))).toBe(linkTarget('/docs/api/approvals/'))
     expect(screen.getByText('3 endpoints')).toBeInTheDocument()
   })
@@ -192,15 +118,48 @@ describe('the API pages', () => {
     expect(container.querySelectorAll('.docs-code')).toHaveLength(1)
   })
 
-  it('list the operations of a tag, and every schema', () => {
-    const { rerender } = render(<ApiTagPage tag={gates} messages={en} />)
+  it('list the operations of a tag, with the tag data file', () => {
+    render(<ApiTagPage tag={gates} messages={en} />)
     expect(screen.getByRole('heading', { level: 1, name: 'Approvals' })).toBeInTheDocument()
     expect(screen.getByText('Ask for a yes.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Request a gate' })).toBeInTheDocument()
+    for (const details of document.querySelectorAll('details[data-api-data]'))
+      expect(details).toHaveAttribute('data-api-data', '/docs/api-data/approvals.json')
     expect(tagDescription(other, en)).toBe('The Other endpoints of the Ostrom API.')
-    rerender(<ApiSchemasPage api={api} messages={en} />)
+  })
+
+  it('list every schema by name, its fields behind a toggle when it has any', () => {
+    const bare: ApiReference = {
+      ...api,
+      schemas: [
+        ...api.schemas,
+        {
+          name: 'Bare',
+          anchor: 'schema-bare',
+          node: {
+            name: 'Bare',
+            description: null,
+            nullable: false,
+            kind: 'scalar',
+            type: 'string',
+            format: null,
+            values: [],
+            defaultValue: null,
+          },
+        },
+      ],
+    }
+    render(<ApiSchemasPage api={bare} messages={en} />)
     expect(screen.getByRole('heading', { level: 2, name: 'GateRequest' })).toHaveAttribute(
       'id',
       'schema-gaterequest',
     )
+    const status = screen.getByRole('region', { name: 'GateStatus' })
+    expect(within(status).getByText('Where the gate stands')).toBeInTheDocument()
+    expect(within(status).getByText(labels.schemaDetails).closest('details')).toHaveAttribute(
+      'data-api-data',
+      '/docs/api-data/schemas.json',
+    )
+    expect(within(screen.getByRole('region', { name: 'Bare' })).queryByText(labels.schemaDetails)).toBeNull()
   })
 })

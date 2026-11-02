@@ -146,6 +146,20 @@ test('the API reference says what the server serves', async ({ page }) => {
   await expectAccessible(page)
 })
 
+test('an API page loads the details of an operation when the reader opens them', async ({ page }) => {
+  await page.goto('/docs/api/sessions/')
+  const first = page.locator('details[data-api-data]').first()
+  await expect(first.locator('[data-api-body]')).toBeEmpty()
+  await first.locator('summary').click()
+  await expect(first.getByRole('heading', { level: 3 }).first()).toBeVisible()
+  await expectAccessible(page)
+})
+
+test('the old one-page API reference points at the API reference', async ({ page }) => {
+  await page.goto('/docs/reference/api/')
+  await expect(page).toHaveURL(/\/docs\/api\/$/)
+})
+
 test('an unknown docs page answers 404', async ({ page }) => {
   const response = await page.goto('/docs/does-not-exist/')
   expect(response?.status()).toBe(404)
