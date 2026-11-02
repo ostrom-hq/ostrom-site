@@ -138,11 +138,17 @@ export function referencedSchemas(spec, value, found = new Set()) {
     return found
 }
 
-/** True for an operation the server serves: the contract marks it `x-ostrom-server: implemented`. Any other value is a typo. */
+/**
+ * True for an operation the server serves. The contract marks it `x-ostrom-status: served` (or `planned`), checked by
+ * ostrom-core against what ostrom-server main serves; the older `x-ostrom-server: implemented` still counts. Any other
+ * value is a typo.
+ */
 export function isImplemented(operation, where) {
     const mark = operation["x-ostrom-server"]
     if (mark !== undefined && mark !== "implemented") throw new Error(`${where}: x-ostrom-server must be "implemented", not ${JSON.stringify(mark)}`)
-    return mark === "implemented"
+    const status = operation["x-ostrom-status"]
+    if (status !== undefined && status !== "served" && status !== "planned") throw new Error(`${where}: x-ostrom-status must be "served" or "planned", not ${JSON.stringify(status)}`)
+    return mark === "implemented" || status === "served"
 }
 
 /**
