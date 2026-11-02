@@ -125,16 +125,16 @@ links) before it is pushed.
 
 ## Repositories
 
-| Repository                                                  | What it is                                                                         | License       |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------- |
-| [ostrom-core](https://github.com/ostrom-hq/ostrom-core)     | Shared Kotlin Multiplatform library: API contract, workflow model, signed receipts | Apache-2.0    |
-| [ostrom-cli](https://github.com/ostrom-hq/ostrom-cli)       | The `ostrom` command line: runs coding agents under the team's rules               | Apache-2.0    |
-| [ostrom-server](https://github.com/ostrom-hq/ostrom-server) | The server: gates, receipts, policies, the API                                     | AGPL-3.0 + ee |
-| [ostrom-web](https://github.com/ostrom-hq/ostrom-web)       | The web console                                                                    | AGPL-3.0 + ee |
-| [ostrom-app](https://github.com/ostrom-hq/ostrom-app)       | The iOS and Android app                                                            | AGPL-3.0 + ee |
-| [ostrom-e2e](https://github.com/ostrom-hq/ostrom-e2e)       | Full-stack end-to-end and load tests                                               | Apache-2.0    |
-| **ostrom-site** (this one)                                  | ostrom.run: website, documentation, blog                                           | Apache-2.0    |
-| [ostrom-helm](https://github.com/ostrom-hq/ostrom-helm)     | Helm chart and Docker Compose for self-hosting                                     | AGPL-3.0      |
+| Repository                                                  | What it is                                                                         | License                     |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------- | --------------------------- |
+| [ostrom-core](https://github.com/ostrom-hq/ostrom-core)     | Shared Kotlin Multiplatform library: API contract, workflow model, signed receipts | Apache-2.0                  |
+| [ostrom-cli](https://github.com/ostrom-hq/ostrom-cli)       | The `ostrom` command line: runs coding agents under the team's rules               | Apache-2.0                  |
+| [ostrom-server](https://github.com/ostrom-hq/ostrom-server) | The server: gates, receipts, policies, the API                                     | AGPL-3.0 + ee               |
+| [ostrom-web](https://github.com/ostrom-hq/ostrom-web)       | The web console                                                                    | AGPL-3.0 + ee               |
+| [ostrom-app](https://github.com/ostrom-hq/ostrom-app)       | The iOS and Android app                                                            | AGPL-3.0 + ee               |
+| [ostrom-e2e](https://github.com/ostrom-hq/ostrom-e2e)       | Full-stack end-to-end and load tests                                               | Apache-2.0                  |
+| **ostrom-site** (this one)                                  | ostrom.run: website, documentation, blog                                           | Apache-2.0, texts CC BY 4.0 |
+| [ostrom-helm](https://github.com/ostrom-hq/ostrom-helm)     | Helm chart and Docker Compose for self-hosting                                     | AGPL-3.0                    |
 
 ## Contributing
 
@@ -145,3 +145,5 @@ go to [Discussions](https://github.com/ostrom-hq/ostrom-site/discussions); help 
 ## License
 
 Apache License 2.0, see [LICENSE](LICENSE) and [NOTICE](NOTICE). You can use it in any project, open source or not.
+
+The texts (documentation, blog, changelog, page copy) are under CC BY 4.0, see [LICENSE-CONTENT](LICENSE-CONTENT). The legal texts, the Ostrom name and the logo are not covered.

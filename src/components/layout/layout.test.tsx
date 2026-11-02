@@ -83,7 +83,7 @@ describe('SiteFooter', () => {
     const nav = screen.getByRole('navigation', { name: en.a11y.footerNav })
     expect(within(nav).getByRole('heading', { name: en.footer.columns.product })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'extra' })).toBeInTheDocument()
-    expect(screen.getByText(en.footer.copyright)).toBeInTheDocument()
+    expect(screen.getByText(`${en.footer.copyright} ${en.footer.contentLicense}`)).toBeInTheDocument()
   })
 })
 

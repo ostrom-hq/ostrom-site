@@ -42,7 +42,9 @@ export function SiteFooter({ messages, config, extra }: SiteFooterProps): React.
           </nav>
         </div>
         <div className="site-footer__bottom">
-          <p className="small muted">{messages.footer.copyright}</p>
+          <p className="small muted">
+            {messages.footer.copyright} {messages.footer.contentLicense}
+          </p>
           <div className="row">
             {extra}
             <ThemeSelect labels={messages.theme} />
