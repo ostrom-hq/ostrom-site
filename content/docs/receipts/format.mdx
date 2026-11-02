@@ -52,7 +52,7 @@ This receipt records a yes: `rev-b` approved a gate that `dev-a`'s agent asked f
 | `decisions` | array | every yes or no: `approvalId`, `by`, `at`, `result` (`approved` or `rejected`), and `selfApproved` when the person who asked was also the only approver |
 | `costUsd` | number, optional | the cost in US dollars, when known |
 | `package` | object, optional | the harness package in use: `version` and `digest` |
-| `nodes` | array, optional | for a workflow run, what each step did: `id`, `workflowId`, `kind`, `label`, `outcome`, and optionally `detail` and `ref` |
+| `nodes` | array, optional | for a workflow run, what each step did: `id`, `workflowId`, `kind`, `label`, `outcome`, and optionally `detail` and `ref`; a `check` node also has `attestation`, where the check ran: `workstation_declared` (declared by the developer's workstation: its own word, not a proof), `isolated_runner` (an Ostrom runner, in an isolated session) or `ci` (the Ostrom GitHub App's check run, verified by the server). A check node without it reads as declared. Coming soon: the server does not write check nodes yet |
 | `createdAt` | string | when the receipt was signed, ISO 8601 in UTC with milliseconds |
 | `signature` | string | the signature field, described below |
 
