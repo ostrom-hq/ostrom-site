@@ -194,6 +194,10 @@ test("a pipe in an enum value does not split the table row", () => {
 
 test("a misspelled mark is an error, not a silent omission", () => {
     assert.throws(() => generateApiReference({paths: {"/x": {post: {"x-ostrom-server": "Implemented"}}}}), /POST \/x: x-ostrom-server must be "implemented", not "Implemented"/)
+    assert.throws(() => generateApiReference({paths: {"/x": {post: {"x-ostrom-status": "Served"}}}}), /POST \/x: x-ostrom-status must be "served" or "planned", not "Served"/)
+    const marked = generateApiReference({paths: {"/a": {get: {"x-ostrom-status": "served"}}, "/b": {get: {"x-ostrom-status": "planned"}}}})
+    assert.equal(marked.page.includes("/a"), true)
+    assert.equal(marked.page.includes("/b"), false)
 })
 
 test("api-reference: unreadable file", () => {

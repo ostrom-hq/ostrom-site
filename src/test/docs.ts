@@ -10,6 +10,8 @@ export const FIXTURE_CONTENT = join(process.cwd(), 'src', 'test', 'fixtures', 'c
 
 /** A content folder that does not exist: a checkout before the DOCS content is merged. */
 export const MISSING_CONTENT = join(process.cwd(), 'src', 'test', 'fixtures', 'missing')
+/** A content directory whose contract plans every operation and serves none. */
+export const UNSERVED_CONTENT = join(process.cwd(), 'src', 'test', 'fixtures', 'unserved')
 
 /** The target of a link, without the trailing slash Next.js drops outside a build with `trailingSlash`. */
 export function linkTarget(target: Element | string): string {
