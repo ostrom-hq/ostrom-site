@@ -30,8 +30,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
+      # The ostrom-core commit the docs are checked against: its api/contract/served-routes.txt (what the server serves)
+      # and tools/docs-truth. Move it forward by pull request; the run warns when served-routes.txt moved on main.
+      CORE_REF: a3b28659103a8e425e8b248f3ce0a74c66ffcd32
       CORE_KEY_SET: ${{ secrets.DEPLOY_KEY_CORE != '' }}
-      CLI_KEYS_SET: ${{ secrets.DEPLOY_KEY_E2E != '' && secrets.DEPLOY_KEY_CLI != '' }}
+      SERVER_KEY_SET: ${{ secrets.DEPLOY_KEY_SERVER != '' }}
+      CLI_KEYS_SET: ${{ secrets.DEPLOY_KEY_E2E != '' && secrets.DEPLOY_KEY_CLI != '' && secrets.DEPLOY_KEY_CORE != '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -51,6 +55,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ostrom-hq/ostrom-core
+          ref: ${{ env.CORE_REF }}
+          fetch-depth: 0
           ssh-key: ${{ secrets.DEPLOY_KEY_CORE }}
           path: .ostrom/core
           persist-credentials: false
@@ -67,12 +73,11 @@ jobs:
           fi
       # A block marked requires="ostrom" runs against the real binary, built from ostrom-cli main by the bench's
       # action (cached by commit). Built only when a page needs it.
-      - name: Pages that need the real CLI
+      # The real binary is built for every run: docs-truth checks each `ostrom …` the pages cite against its help.
+      - name: The real CLI is needed
         id: needs
         run: |
-          if ! grep -rq 'requires="[^"]*ostrom' ../content/docs; then
-            echo "cli=false" >> "$GITHUB_OUTPUT"
-          elif [ "$CLI_KEYS_SET" = "true" ]; then
+          if [ "$CLI_KEYS_SET" = "true" ]; then
             echo "cli=true" >> "$GITHUB_OUTPUT"
           else
             # A fork's pull request gets no secrets: the blocks that need the binary are skipped here, and run on main.
@@ -80,6 +85,32 @@ jobs:
             echo "strict=false" >> "$GITHUB_OUTPUT"
             echo "::warning title=docs-test::no deploy keys: blocks that need the real ostrom are skipped"
           fi
+      # ostrom-cli main, built with ostrom-core from source at the commit of its gradle/ostrom-core.ref, as its own CI
+      # does: this repository's GITHUB_TOKEN cannot read ostrom-core's Maven packages (JOURNAL 05:50).
+      - name: Checkout ostrom-cli main (the binary the pages describe)
+        if: steps.needs.outputs.cli == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ostrom-hq/ostrom-cli
+          ssh-key: ${{ secrets.DEPLOY_KEY_CLI }}
+          path: .ostrom/cli
+          persist-credentials: false
+      - name: The ostrom-core commit ostrom-cli builds with
+        if: steps.needs.outputs.cli == 'true'
+        id: clicore
+        run: echo "ref=$(tr -d '[:space:]' < ../.ostrom/cli/gradle/ostrom-core.ref)" >> "$GITHUB_OUTPUT"
+      - name: Checkout that ostrom-core next to ostrom-cli
+        if: steps.needs.outputs.cli == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ostrom-hq/ostrom-core
+          ref: ${{ steps.clicore.outputs.ref }}
+          ssh-key: ${{ secrets.DEPLOY_KEY_CORE }}
+          path: .ostrom/ostrom-core
+          persist-credentials: false
+      - name: Build ostrom-cli against that checkout
+        if: steps.needs.outputs.cli == 'true'
+        run: mkdir -p ~/.gradle && echo "ostrom.core.local=true" >> ~/.gradle/gradle.properties
       - name: Checkout ostrom-e2e (the bench's CLI action)
         if: steps.needs.outputs.cli == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -93,7 +124,31 @@ jobs:
         id: cli
         uses: ./.ostrom/e2e/.github/actions/cli
         with:
-          deploy-key: ${{ secrets.DEPLOY_KEY_CLI }}
+          path: .ostrom/cli
+      - name: Checkout ostrom-server main (the variables it reads)
+        if: env.SERVER_KEY_SET == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ostrom-hq/ostrom-server
+          ssh-key: ${{ secrets.DEPLOY_KEY_SERVER }}
+          path: .ostrom/server
+          persist-credentials: false
+      # docs-truth (ostrom-core/tools/docs-truth): every route a page cites is served (the pinned served-routes.txt),
+      # every `ostrom …` command and option is in the binary's help, every OSTROM_ variable is read by the server, the
+      # CLI or core; anything else only under "Coming soon". The site's own text (blog, legal, strings) too.
+      - name: The docs and the site cite only what the product does (docs-truth)
+        if: env.CORE_KEY_SET == 'true'
+        working-directory: .
+        env:
+          OSTROM_BIN: ${{ steps.cli.outputs.bin }}
+        run: |
+          set -- --routes .ostrom/core/api/contract/served-routes.txt --source .ostrom/core/telemetry
+          if [ -n "$OSTROM_BIN" ]; then set -- "$@" --ostrom "$OSTROM_BIN" --source .ostrom/cli; fi
+          if [ -d .ostrom/server ]; then set -- "$@" --source .ostrom/server; fi
+          if ! git -C .ostrom/core diff --quiet "$CORE_REF" origin/main -- api/contract/served-routes.txt; then
+            echo "::warning title=docs-truth::served-routes.txt changed on ostrom-core main since CORE_REF: move CORE_REF forward"
+          fi
+          node .ostrom/core/tools/docs-truth/bin/docs-truth.mjs "$@" content/docs content/blog content/legal src/i18n/en.ts
       - name: Run every tested code block (strict, a missing binary or server fails)
         env:
           OSTROM_BIN: ${{ steps.cli.outputs.bin }}
