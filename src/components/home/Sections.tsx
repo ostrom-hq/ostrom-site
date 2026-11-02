@@ -128,6 +128,11 @@ export function HowItWorks({ copy }: SectionProps<'how'>): React.JSX.Element {
                 {String(index + 1).padStart(2, '0')}
               </span>
               <h3>{step.title}</h3>
+              {step.badge === '' ? null : (
+                <p>
+                  <span className="badge">{step.badge}</span>
+                </p>
+              )}
               <p className="muted">{step.body}</p>
             </li>
           ))}

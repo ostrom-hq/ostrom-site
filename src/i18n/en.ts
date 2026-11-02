@@ -128,18 +128,23 @@ export const en = {
         {
           title: 'Your rules, read from GitHub',
           body: 'Ostrom reads your GitHub and proposes the rules your team already follows.',
+          // Not on ostrom-server main yet (demo/PARCOURS.md 3.1): PB-W4, nothing described as available before it ships.
+          badge: 'Coming soon',
         },
         {
           title: 'Agents in the cloud, under those rules',
           body: 'Your agents run in the cloud under those rules. No laptop left open, no memory limit.',
+          badge: 'Coming soon',
         },
         {
           title: 'A yes where it matters',
           body: 'When one wants to ship something important, the right person gets a message in Slack, with the proof, and says yes or no.',
+          badge: 'Coming soon',
         },
         {
           title: 'A receipt for every change',
           body: 'Every change keeps a receipt: what the agent was told, the rules it followed, who said yes.',
+          badge: '',
         },
       ],
     },
@@ -581,7 +586,7 @@ export const en = {
         name: 'Cloud coding agents',
         examples: 'hosted agents that open pull requests for you',
         them: 'Agents that work in their cloud, end to end, with little setup.',
-        us: 'The agents your team already uses, in the cloud, under your team’s rules, with a person’s yes where it matters; open source and self-hostable.',
+        us: 'The agents your team already uses, in the cloud (coming soon), under your team’s rules, with a person’s yes where it matters; open source and self-hostable.',
         choose: 'You want one vendor’s agent to take tickets on its own, and its review flow is enough.',
       },
       {
@@ -602,7 +607,7 @@ export const en = {
         name: 'Doing it yourself',
         examples: 'AGENTS.md, CI checks, scripts',
         them: 'Free, flexible, and close to your code.',
-        us: 'The same rules enforced for every agent and every person, approvals in Slack, and a receipt for each change, without maintaining the glue.',
+        us: 'The same rules enforced for every agent and every person, approvals in Slack (coming soon), and a receipt for each change, without maintaining the glue.',
         choose: 'You have one repository, a few agents, and time to maintain the scripts.',
       },
     ],
