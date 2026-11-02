@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 import { cleanup, render, screen } from '@testing-library/react'
-import { join } from 'node:path'
 import { en } from '@/i18n/en'
 import { searchIndexSchema } from '@/lib/docs/search'
 import { OG_IMAGE } from '@/lib/seo'
-import { FIXTURE_CONTENT, MISSING_CONTENT, stubIntersectionObserver } from '@/test/docs'
+import { FIXTURE_CONTENT, MISSING_CONTENT, UNSERVED_CONTENT, stubIntersectionObserver } from '@/test/docs'
 import DocsLayout from './layout'
 import DocsPage, { dynamicParams, generateMetadata, generateStaticParams } from './[[...slug]]/page'
 import { GET, dynamic } from './search-index.json/route'
@@ -85,7 +84,7 @@ describe('the docs route', () => {
   })
 
   it('says no endpoint is live while the server serves none of the contract', async () => {
-    vi.stubEnv('OSTROM_CONTENT_DIR', join(process.cwd(), 'content'))
+    vi.stubEnv('OSTROM_CONTENT_DIR', UNSERVED_CONTENT)
     await page(['api'])
     expect(screen.getByText(en.docs.api.notServed)).toBeInTheDocument()
   })
@@ -119,7 +118,7 @@ describe('the docs metadata', () => {
       absolute: `${en.docs.home.title} · Ostrom Docs`,
     })
     expect((await generateMetadata(params(['api']))).description).toBe(en.docs.api.missing)
-    vi.stubEnv('OSTROM_CONTENT_DIR', join(process.cwd(), 'content'))
+    vi.stubEnv('OSTROM_CONTENT_DIR', UNSERVED_CONTENT)
     expect((await generateMetadata(params(['api']))).description).toBe(en.docs.api.notServed)
   })
 })
