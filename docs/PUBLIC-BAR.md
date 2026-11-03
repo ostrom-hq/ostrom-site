@@ -166,7 +166,8 @@ The Signal brand sets the faces; the best sites set the discipline.
 
 ### 2.6 Performance
 
-Budgets, checked by Lighthouse CI on the static build, on the throttled mobile profile and on the desktop profile:
+Budgets, on the throttled mobile profile and on the desktop profile (what Lighthouse CI already asserts and what is
+still to add: PB-P1 below):
 
 | Page | Lighthouse perf | LCP mobile (simulated) / desktop | CLS | JS shipped (gzip) | Total weight first load |
 |---|---|---|---|---|---|
@@ -174,7 +175,9 @@ Budgets, checked by Lighthouse CI on the static build, on the throttled mobile p
 | Docs page | ≥ 95 | ≤ 2.5 s / ≤ 1.5 s | ≤ 0.01 | ≤ 200 KB (search index lazy) | ≤ 450 KB |
 | Pricing, changelog, blog | ≥ 95 | ≤ 2.5 s / ≤ 1.8 s | ≤ 0.01 | ≤ 150 KB | ≤ 600 KB (video excluded, poster counted) |
 
-(2.5 s is the "good" threshold of Core Web Vitals under Lighthouse's simulated slow 4G.)
+(2.5 s is the "good" threshold of Core Web Vitals under Lighthouse's simulated slow 4G, DevTools' former "Fast 3G":
+150 ms round trip, 1.6 Mbit/s, CPU slowed four times. Desktop: 40 ms, 10 Mbit/s. Both profiles are pinned, not left to
+Lighthouse's defaults, in `scripts/lib/lighthouse.ts`.)
 
 Why these numbers: the React and Next.js runtime alone is about 100 KB gzip, so 150 KB leaves room for the page's
 own islands and nothing else. Measured on the 17 reference landings (mobile, cold cache, bytes on the wire,
