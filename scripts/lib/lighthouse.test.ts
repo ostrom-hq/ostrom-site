@@ -53,6 +53,13 @@ describe('lighthouseConfig, mobile', () => {
     expect(assertions['total-byte-weight']).toEqual(['error', { maxNumericValue: 600000 }])
   })
 
+  it('fails a page that ships more than 260 kB of JavaScript over the wire (gzip)', () => {
+    expect(ci.assert.assertions['resource-summary:script:size']).toEqual([
+      'error',
+      { maxNumericValue: 266240 },
+    ])
+  })
+
   it('writes its reports apart from the desktop ones', () => {
     expect(ci.upload).toEqual({ target: 'filesystem', outputDir: 'lighthouse-reports/mobile' })
   })
