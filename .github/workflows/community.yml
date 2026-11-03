@@ -101,8 +101,9 @@ jobs:
 
       # Every package the site image ships (the Dockerfile's runtime-base stage, no Next.js build): no HIGH or CRITICAL
       # vulnerability that has a fix. CI has one job on pull requests (org rule), and its own job runs Lighthouse.
+      # Not on a title or body edit: the image cannot have changed.
       - name: Image vulnerabilities
-        if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && github.event.action != 'edited' }}
         run: .github/scripts/run.sh image-scan .github/scripts/scan_image.sh
 
       - name: Workflow security

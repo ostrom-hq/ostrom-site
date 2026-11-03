@@ -1,8 +1,9 @@
 name: Image scan
 
-# Weekly and by hand only (org CI rule): a vulnerability is published without any commit. Same scan as the community
-# check of pull requests (.github/scripts/scan_image.sh). Red means Alpine has a fix the published image lacks: rebuild
-# main (the publish job has no cache, so it takes today's packages).
+# Weekly and by hand only (org CI rule): a vulnerability is published without any commit. Scans the image published
+# from main (`edge`), each architecture as pulled, with the same scanner as the community check of pull requests
+# (.github/scripts/scan_image.sh). Red means Alpine has a fix the published image lacks: rebuild main (the publish job
+# has no cache, so it takes today's packages).
 on:
   schedule:
     - cron: '41 6 * * 1'
@@ -10,18 +11,33 @@ on:
 
 permissions: {}
 
+# Never cancel a running scan: a cancelled scheduled run is not reported, the week's check would be lost.
 concurrency:
   group: image-scan-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   image-scan:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     permissions:
       contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [linux/amd64, linux/arm64]
+    env:
+      IMAGE: ghcr.io/ostrom-hq/ostrom-site:edge
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - run: .github/scripts/scan_image.sh
+      - name: Sign in to GHCR, read only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+      - name: Published image, ${{ matrix.platform }}
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: .github/scripts/run.sh image-scan .github/scripts/scan_image.sh "$IMAGE" "$PLATFORM"
