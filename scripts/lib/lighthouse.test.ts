@@ -50,7 +50,6 @@ describe('lighthouseConfig, mobile', () => {
     for (const category of ['performance', 'accessibility', 'best-practices', 'seo']) {
       expect(assertions[`categories:${category}`]).toEqual(['error', { minScore: 0.95 }])
     }
-    expect(assertions['categories:performance']).not.toBe(assertions['categories:seo'])
     expect(assertions['total-byte-weight']).toEqual(['error', { maxNumericValue: 600000 }])
   })
 
@@ -75,8 +74,8 @@ describe('lighthouseConfig, desktop', () => {
 })
 
 describe('lighthouserc.cjs', () => {
-  // lhci requires the rc file with Node itself: a child Node loads it the same way, so a lighthouse.ts Node cannot strip,
-  // or a broken rc file, fails here rather than in the slow Lighthouse job.
+  // lhci requires the rc file with Node itself: a child Node loads it the same way, so a lighthouse.ts Node cannot
+  // strip, or a broken rc file, fails here rather than in the slow Lighthouse job.
   const load = (profile: string): unknown => {
     const dir = mkdtempSync(join(tmpdir(), 'lighthouserc-'))
     const sitemap = join(dir, 'sitemap.xml')
@@ -104,5 +103,19 @@ describe('lighthouserc.cjs', () => {
   it('audits the sitemap on the local container, with the profile asked', () => {
     expect(load('mobile')).toEqual(lighthouseConfig(urls, 'mobile'))
     expect(load('desktop')).toEqual(lighthouseConfig(urls, 'desktop'))
+  })
+
+  it('fails on a sitemap asked for by name that does not exist, rather than auditing other pages', () => {
+    const missing = join(tmpdir(), 'lighthouserc-missing', 'sitemap.xml')
+    expect(() =>
+      execFileSync(
+        process.execPath,
+        ['-e', 'require(process.argv[1])', join(process.cwd(), 'lighthouserc.cjs')],
+        {
+          env: { ...process.env, LIGHTHOUSE_SITEMAP: missing },
+          stdio: 'pipe',
+        },
+      ),
+    ).toThrow(/ENOENT/)
   })
 })

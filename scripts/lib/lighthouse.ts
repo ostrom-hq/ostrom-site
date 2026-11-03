@@ -16,8 +16,8 @@ export interface LighthouseConfig {
 }
 
 /**
- * The measure, pinned rather than left to Lighthouse's defaults, which a Lighthouse or lhci upgrade could move under the
- * budgets without a word. The values are Lighthouse 12's own (`throttling.mobileSlow4G`, `desktopDense4G`): pinning
+ * The measure, pinned rather than left to Lighthouse's defaults, which a Lighthouse or lhci upgrade could move under
+ * the budgets without a word. The values are Lighthouse 12's own (`throttling.mobileSlow4G`, `desktopDense4G`): pinning
  * changes nothing measured today, it keeps the measure from changing.
  *
  * Mobile: "Slow 4G" for Lighthouse 12, "Fast 3G" in DevTools until 2024 — 150 ms round trip, 1.6 Mbit/s — and a CPU
@@ -50,10 +50,9 @@ export function profileOf(env: Record<string, string | undefined>): Profile {
   throw new Error(`LIGHTHOUSE_PROFILE=${value}: expected mobile or desktop.`)
 }
 
-const floor = (): Assertion => ['error', { minScore: 0.95 }]
-
 export function lighthouseConfig(urls: string[], profile: Profile): LighthouseConfig {
   const desktop = profile === 'desktop'
+  const floor: Assertion = ['error', { minScore: 0.95 }]
   return {
     ci: {
       collect: {
@@ -65,10 +64,10 @@ export function lighthouseConfig(urls: string[], profile: Profile): LighthouseCo
       },
       assert: {
         assertions: {
-          'categories:performance': floor(),
-          'categories:accessibility': floor(),
-          'categories:best-practices': floor(),
-          'categories:seo': floor(),
+          'categories:performance': floor,
+          'categories:accessibility': floor,
+          'categories:best-practices': floor,
+          'categories:seo': floor,
           // Budgets of the public bar (PB-P1): LCP 1.8 s on desktop, 2.5 s (Core Web Vitals "good") on the throttled
           // mobile profile; CLS 0.01, ten times under the "good" 0.1.
           'largest-contentful-paint': ['error', { maxNumericValue: desktop ? 1800 : 2500 }],

@@ -166,7 +166,8 @@ The Signal brand sets the faces; the best sites set the discipline.
 
 ### 2.6 Performance
 
-Budgets, checked by Lighthouse CI on the static build, on the throttled mobile profile and on the desktop profile:
+Budgets, on the throttled mobile profile and on the desktop profile (what Lighthouse CI already asserts and what is
+still to add: PB-P1 below):
 
 | Page | Lighthouse perf | LCP mobile (simulated) / desktop | CLS | JS shipped (gzip) | Total weight first load |
 |---|---|---|---|---|---|
