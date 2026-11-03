@@ -15,7 +15,7 @@ function scriptEnvironment(extra: Record<string, string>): NodeJS.ProcessEnv {
 function run(
   environment: Record<string, string>,
   connect = 'https://app.ostrom.run https://api.ostrom.run\n',
-) {
+): { config: unknown; header: string } {
   const dir = mkdtempSync(join(tmpdir(), 'site-config-'))
   const connectFile = join(dir, 'connect-src.txt')
   writeFileSync(connectFile, connect)
@@ -28,10 +28,8 @@ function run(
       }),
       stdio: 'pipe',
     })
-    return {
-      config: JSON.parse(readFileSync(join(dir, 'site-config.json'), 'utf8')) as unknown,
-      header: readFileSync(join(dir, 'ostrom-csp.conf'), 'utf8'),
-    }
+    const config: unknown = JSON.parse(readFileSync(join(dir, 'site-config.json'), 'utf8'))
+    return { config, header: readFileSync(join(dir, 'ostrom-csp.conf'), 'utf8') }
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }
