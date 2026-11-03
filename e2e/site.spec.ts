@@ -53,6 +53,10 @@ test('the container answers its health probe and sends the security headers', as
   expect(headers['strict-transport-security']).toContain('max-age=31536000')
   expect(headers['x-content-type-options']).toBe('nosniff')
   expect(headers['content-security-policy']).toContain("frame-ancestors 'none'")
+  // The pages connect to the site, the console, the API and the analytics host (EU cloud by default), nowhere else.
+  expect(headers['content-security-policy']).toContain(
+    "connect-src 'self' https://app.ostrom.run https://api.ostrom.run https://eu.i.posthog.com",
+  )
   // The image built without the launch switch tells every crawler to stay away, on every answer.
   expect(headers['x-robots-tag']).toBe('noindex, nofollow')
   expect((await request.get('/og.png')).headers()['x-robots-tag']).toBe('noindex, nofollow')
@@ -88,4 +92,40 @@ test('every script runs under the Content-Security-Policy, without a violation',
   await expect(page.locator('html')).toHaveAttribute('data-runtime', 'ready')
   await page.getByRole('button', { name: 'Approve and ship' }).click()
   expect(await violations()).toEqual([])
+})
+
+test('the installers lead to the latest ostrom-cli release', async ({ request }) => {
+  test.skip(
+    process.env['PLAYWRIGHT_BASE_URL'] === undefined,
+    'the redirects come from nginx, in the Docker image only',
+  )
+  for (const name of ['install.sh', 'install.ps1']) {
+    const response = await request.get(`/${name}`, { maxRedirects: 0 })
+    expect(response.status()).toBe(302)
+    expect(response.headers()['location']).toBe(
+      `https://github.com/ostrom-hq/ostrom-cli/releases/latest/download/${name}`,
+    )
+  }
+})
+
+test('a page cannot connect to a host outside its policy', async ({ page }) => {
+  test.skip(
+    process.env['PLAYWRIGHT_BASE_URL'] === undefined,
+    'connect-src is narrowed by nginx, in the Docker image only',
+  )
+  await page.goto('/')
+  await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveAttribute(
+    'content',
+    /^default-src 'self'; /,
+  )
+  const blocked = await page.evaluate(async () => {
+    const violation = new Promise<string>((resolve) => {
+      document.addEventListener('securitypolicyviolation', (event) => {
+        resolve(`${event.effectiveDirective} ${event.blockedURI}`)
+      })
+    })
+    await fetch('https://example.com/collect', { mode: 'no-cors' }).catch(() => undefined)
+    return violation
+  })
+  expect(blocked).toMatch(/^connect-src https:\/\/example\.com/)
 })

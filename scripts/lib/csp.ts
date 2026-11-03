@@ -21,9 +21,38 @@ export function sha256(text: string): string {
   return `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`
 }
 
+/**
+ * Everything from the site itself; scripts only by file or by exact hash, never inline or eval. Styles may be inline (a
+ * style attribute runs no code). `connect-src` allows any https host here because the analytics host is only known when
+ * the container starts: the header nginx adds (docker/site-config.sh) narrows it to the console, the API and that host,
+ * and the browser enforces both policies.
+ */
 export function policyFor(html: string): string {
   const hashes = [...new Set(inlineScripts(html).map(sha256))]
-  return [`script-src 'self' ${hashes.join(' ')}`.trim(), "object-src 'none'", "base-uri 'self'"].join('; ')
+  return [
+    "default-src 'self'",
+    `script-src 'self' ${hashes.join(' ')}`.trim(),
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:",
+    "connect-src 'self' https:",
+    "object-src 'none'",
+    "base-uri 'self'",
+  ].join('; ')
+}
+
+/** The build's public environment, as `readSiteConfig` (src/lib/site.ts) reads it. */
+export type BuildEnvironment = Readonly<Record<string, string | undefined>>
+
+/**
+ * The origins the pages connect to besides the site: the console and the API, which the status page probes. Same
+ * defaults as `readSiteConfig`; the image writes them at build for docker/site-config.sh.
+ */
+export function connectOrigins(environment: BuildEnvironment): string[] {
+  const urls = [
+    environment['NEXT_PUBLIC_APP_URL'] ?? 'https://app.ostrom.run',
+    environment['NEXT_PUBLIC_API_URL'] ?? 'https://api.ostrom.run',
+  ]
+  return [...new Set(urls.map((url) => new URL(url).origin))]
 }
 
 const CHARSET = /<meta charSet="utf-8"\/>|<meta charset="utf-8"\/?>/i

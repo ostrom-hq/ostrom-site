@@ -18,11 +18,14 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN if [ "$NEXT_PUBLIC_LAUNCHED" = "1" ]; then : > robots.inc; \
     else echo 'add_header X-Robots-Tag "noindex, nofollow" always;' > robots.inc; fi
 RUN pnpm build \
+  && node scripts/csp.ts --connect-src > connect-src.txt \
   && find out -type f \( -name '*.html' -o -name '*.js' -o -name '*.css' -o -name '*.svg' -o -name '*.json' -o -name '*.xml' -o -name '*.txt' \) -size +512c -exec gzip -9 -k {} \;
 
 FROM nginxinc/nginx-unprivileged:1.29-alpine
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/robots.inc /etc/nginx/ostrom-robots.inc
+# The console and API origins of this build, for the connect-src header written at start by site-config.sh.
+COPY --from=build /app/connect-src.txt /etc/nginx/ostrom-connect-src.txt
 # Analytics key at run time: OSTROM_POSTHOG_API_KEY (and OSTROM_POSTHOG_HOST, EU cloud by default). None, no analytics.
 COPY --chmod=755 docker/site-config.sh /docker-entrypoint.d/40-ostrom-site-config.sh
 COPY --from=build /app/out /usr/share/nginx/html

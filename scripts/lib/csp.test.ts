@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { createHash } from 'node:crypto'
-import { inlineScripts, policyFor, sha256, withPolicy } from './csp'
+import { connectOrigins, inlineScripts, policyFor, sha256, withPolicy } from './csp'
 import { deferRuntime, loader } from './defer'
+import { readSiteConfig } from '../../src/lib/site'
 
 const theme = "(function(){document.documentElement.dataset.theme='dark'})()"
 const page = [
@@ -25,13 +26,52 @@ describe('csp', () => {
     expect(sha256('alert(1)')).toBe(`'sha256-${expected}'`)
   })
 
+  const rest =
+    "style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https:; object-src 'none'; base-uri 'self'"
+
   it('allows the site itself and each inline script once', () => {
     expect(policyFor(page)).toBe(
-      `script-src 'self' ${sha256(theme)} ${sha256('self.__next_f.push([1,"a"])')}; object-src 'none'; base-uri 'self'`,
+      `default-src 'self'; script-src 'self' ${sha256(theme)} ${sha256('self.__next_f.push([1,"a"])')}; ${rest}`,
     )
-    expect(policyFor('<html><head></head></html>')).toBe(
-      "script-src 'self'; object-src 'none'; base-uri 'self'",
-    )
+    expect(policyFor('<html><head></head></html>')).toBe(`default-src 'self'; script-src 'self'; ${rest}`)
+  })
+
+  it('loads everything else from the site only, and connects nowhere but over https', () => {
+    const directives = policyFor(page).split('; ')
+    expect(directives[0]).toBe("default-src 'self'")
+    // nginx narrows `https:` to the console, the API and the analytics host (docker/site-config.sh).
+    expect(directives).toContain("connect-src 'self' https:")
+    expect(directives.some((directive) => directive.includes('unsafe-eval'))).toBe(false)
+    expect(directives.find((directive) => directive.startsWith('script-src'))).not.toContain('unsafe-inline')
+  })
+
+  it('names the origins the pages connect to: the console and the API the status page probes', () => {
+    expect(connectOrigins({})).toEqual(['https://app.ostrom.run', 'https://api.ostrom.run'])
+    expect(
+      connectOrigins({
+        NEXT_PUBLIC_APP_URL: 'https://console.example.test/app/',
+        NEXT_PUBLIC_API_URL: 'http://localhost:8080',
+      }),
+    ).toEqual(['https://console.example.test', 'http://localhost:8080'])
+    expect(
+      connectOrigins({
+        NEXT_PUBLIC_APP_URL: 'http://localhost:8080',
+        NEXT_PUBLIC_API_URL: 'http://localhost:8080',
+      }),
+    ).toEqual(['http://localhost:8080'])
+  })
+
+  it('reads the same origins as the site, defaults included', () => {
+    for (const environment of [
+      {},
+      { NEXT_PUBLIC_API_URL: 'https://api.example.test/' },
+      { NEXT_PUBLIC_APP_URL: 'http://localhost:8080', NEXT_PUBLIC_API_URL: 'http://localhost:8081' },
+    ]) {
+      const site = readSiteConfig(environment)
+      expect(connectOrigins(environment)).toEqual([
+        ...new Set([new URL(site.appUrl).origin, new URL(site.apiUrl).origin]),
+      ])
+    }
   })
 
   it('puts the policy right after the charset, before any script', () => {
