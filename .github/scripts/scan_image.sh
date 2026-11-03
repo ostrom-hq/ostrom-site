@@ -15,8 +15,9 @@ TRIVY='aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6f
 work="$(mktemp -d "${RUNNER_TEMP:-/tmp}/scan.XXXXXX")"
 trap 'rm -rf "$work"' EXIT
 mkdir "$work/cache"
-# The vulnerability database is downloaded once per run, then reused by a retry.
-docker_args=(--rm --volume "$work:/scan" --volume "$work/cache:/root/.cache/trivy")
+# As the calling user, so every file Trivy writes in $work can be removed on exit; its vulnerability database is
+# downloaded once per run into $work/cache, then reused by a retry.
+docker_args=(--rm --user "$(id -u):$(id -g)" --volume "$work:/scan" --env TRIVY_CACHE_DIR=/scan/cache)
 case "$#" in
   0)
     docker build --quiet --target runtime-base --tag ostrom-site:runtime-base .

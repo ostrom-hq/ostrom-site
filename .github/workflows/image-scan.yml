@@ -37,19 +37,27 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # `launched` is only published once the legal texts are validated: before that there is nothing to scan.
+      # `launched` is only published once the legal texts are validated: before that there is nothing to scan. `edge`
+      # must exist, and a failed API call fails the step (no scan skipped on an error).
       - name: Is the tag published?
         id: tag
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ matrix.tag }}
         run: |
-          published=$(gh api --paginate /orgs/ostrom-hq/packages/container/ostrom-site/versions \
-            --jq '.[].metadata.container.tags[]' | grep -cx "$TAG" || true)
-          echo "published=$published" >> "$GITHUB_OUTPUT"
-          [ "$published" -gt 0 ] || echo "::notice title=image-scan::$TAG is not published yet: nothing to scan."
+          tags=$(gh api --paginate /orgs/ostrom-hq/packages/container/ostrom-site/versions \
+            --jq '.[].metadata.container.tags[]')
+          if grep -qx "$TAG" <<<"$tags"; then
+            echo "published=1" >> "$GITHUB_OUTPUT"
+          elif [ "$TAG" = launched ]; then
+            echo "published=0" >> "$GITHUB_OUTPUT"
+            echo "::notice title=image-scan::launched is not published yet: nothing to scan."
+          else
+            echo "::error title=image-scan::$TAG is not published: the image to scan is missing."
+            exit 1
+          fi
       - name: Published image
-        if: steps.tag.outputs.published != '0'
+        if: steps.tag.outputs.published == '1'
         env:
           IMAGE: ghcr.io/ostrom-hq/ostrom-site:${{ matrix.tag }}
           PLATFORM: ${{ matrix.platform }}
