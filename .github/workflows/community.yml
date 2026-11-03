@@ -16,7 +16,8 @@ jobs:
   community:
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    # The image scan builds nginx's stage and pulls the scanner and its database: minutes on a cold runner.
+    timeout-minutes: 20
     permissions:
       contents: read
       pull-requests: read

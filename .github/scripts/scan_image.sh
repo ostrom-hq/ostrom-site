@@ -12,5 +12,13 @@ work="$(mktemp -d "${RUNNER_TEMP:-/tmp}/scan.XXXXXX")"
 trap 'rm -rf "$work"' EXIT
 docker build --quiet --target runtime-base --tag ostrom-site:runtime-base .
 docker save --output "$work/runtime-base.tar" ostrom-site:runtime-base
+# Exit code 2 means findings; any other failure is the scanner's (its database download, a registry), said apart so a
+# network error is not read as a vulnerability.
+status=0
 docker run --rm --volume "$work:/scan:ro" "$TRIVY" image --quiet --input /scan/runtime-base.tar \
-  --scanners vuln --pkg-types os --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1
+  --scanners vuln --pkg-types os --severity HIGH,CRITICAL --ignore-unfixed --exit-code 2 || status=$?
+case "$status" in
+  0) ;;
+  2) echo "The image ships a HIGH or CRITICAL vulnerability that has a fix (list above)." >&2; exit 1 ;;
+  *) echo "The scanner itself failed (exit $status): no verdict on the image, run it again." >&2; exit "$status" ;;
+esac

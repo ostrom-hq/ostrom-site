@@ -1,0 +1,27 @@
+name: Image scan
+
+# Weekly and by hand only (org CI rule): a vulnerability is published without any commit. Same scan as the community
+# check of pull requests (.github/scripts/scan_image.sh). Red means Alpine has a fix the published image lacks: rebuild
+# main (the publish job has no cache, so it takes today's packages).
+on:
+  schedule:
+    - cron: '41 6 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: image-scan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image-scan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: .github/scripts/scan_image.sh
