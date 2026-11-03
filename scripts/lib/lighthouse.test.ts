@@ -53,7 +53,7 @@ describe('lighthouseConfig, mobile', () => {
     expect(assertions['total-byte-weight']).toEqual(['error', { maxNumericValue: 600000 }])
   })
 
-  it('fails a page that ships more than 260 kB of JavaScript over the wire (gzip)', () => {
+  it('fails a page that ships more than 260 KiB of JavaScript over the wire (gzip)', () => {
     expect(ci.assert.assertions['resource-summary:script:size']).toEqual([
       'error',
       { maxNumericValue: 266240 },
@@ -68,7 +68,7 @@ describe('lighthouseConfig, mobile', () => {
 describe('lighthouseConfig, desktop', () => {
   const { ci } = lighthouseConfig(urls, 'desktop')
 
-  it('pins the desktop preset at 40 ms, 10 Mbit/s, CPU as is, one run, and an LCP of 1.8 s', () => {
+  it('pins the desktop preset at 40 ms, 10 Mbit/s, CPU as is, one run, an LCP of 1.8 s, the same script budget', () => {
     expect(ci.collect.numberOfRuns).toBe(1)
     expect(ci.collect.settings).toEqual({
       preset: 'desktop',
@@ -76,6 +76,10 @@ describe('lighthouseConfig, desktop', () => {
       throttling: { rttMs: 40, throughputKbps: 10240, cpuSlowdownMultiplier: 1 },
     })
     expect(ci.assert.assertions['largest-contentful-paint']).toEqual(['error', { maxNumericValue: 1800 }])
+    expect(ci.assert.assertions['resource-summary:script:size']).toEqual([
+      'error',
+      { maxNumericValue: 266240 },
+    ])
     expect(ci.upload.outputDir).toBe('lighthouse-reports/desktop')
   })
 })

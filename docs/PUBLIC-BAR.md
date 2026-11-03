@@ -179,23 +179,28 @@ still to add: PB-P1 below):
 150 ms round trip, 1.6 Mbit/s, CPU slowed four times. Desktop: 40 ms, 10 Mbit/s. Both profiles are pinned, not left to
 Lighthouse's defaults, in `scripts/lib/lighthouse.ts`.)
 
-Why these numbers: the bar for JavaScript was first 150 KB on the landing and 200 KB on docs pages, on the estimate
-that the React and Next.js runtime alone is about 100 KB gzip. Measured on 2026-11-03 (Lighthouse CI, every page of
-the sitemap), the site ships 236 KB on the landing and 242 KB at most: the runtime is more than twice the estimate,
-and the site's own islands weigh little. The bar became that measure plus 10 %, **260 KB on every page**, checked in
-CI so it cannot drift. The pages meet their real budgets with room to spare (LCP 1.65 s at most on throttled mobile
-for 2.5 s, total blocking time 132 ms at most, CLS 0), and taking weight out of the framework before the launch is not
-worth the risk. Measured on the 17 reference landings (mobile, cold cache, bytes on the wire,
-appendix): JavaScript from almost none to 3.9 MB, total weight from 0.3 to 7.4 MB. Linear, Stripe and Vercel ship
-1.2 to 1.4 MB of JavaScript each. The lightest are Biome (built with Astro: almost no JavaScript, 0.3 MB in total),
-Bun (0.4 MB of JavaScript, 0.7 MB in total) and Fumadocs (0.6 MB, 1.3 MB). Those are the models: a static site has
-no reason to come near the others, and being several times lighter is an easy, visible lead.
+Why these numbers: measured on the 17 reference landings (mobile, cold cache, bytes on the wire, appendix):
+JavaScript from almost none to 3.9 MB, total weight from 0.3 to 7.4 MB. Linear, Stripe and Vercel ship 1.2 to 1.4 MB
+of JavaScript each. The lightest are Biome (built with Astro: almost no JavaScript, 0.3 MB in total), Bun (0.4 MB of
+JavaScript, 0.7 MB in total) and Fumadocs (0.6 MB, 1.3 MB). Those are the models: a static site has no reason to come
+near the others, and being several times lighter is an easy, visible lead.
+
+The JavaScript bar was first 150 KB on the landing and 200 KB on docs pages, on the estimate that the React and
+Next.js runtime alone is about 100 KB gzip. Measured on 2026-11-03 (Lighthouse CI, every page of the sitemap, bytes on
+the wire), the site ships 236 KB on the landing and 242 KB at most (KB here are KiB, 1,024 bytes): the runtime is more
+than twice the estimate, and the site's own islands weigh little. The bar became that measure plus 10 %, **260 KB
+(266,240 bytes) on every page**, checked in CI so it cannot drift. The pages meet the budgets that matter to a reader
+with room to spare (LCP 1.65 s at most on throttled mobile for 2.5 s, total blocking time 132 ms at most, CLS 0), and
+taking weight out of the framework before the launch is not worth the risk. It is a ratchet: when the runtime gets
+lighter, the bar comes down with it. Still several times lighter than Linear, Stripe or Vercel; not yet near Bun or
+Biome.
 
 - **PB-P1.** The pages above meet their budget, and a pull request that crosses one fails CI. `lhci` already
   asserts the four category scores (≥ 0.95), `largest-contentful-paint`, `cumulative-layout-shift` and
-  `total-byte-weight` (600 KB for every page) and `resource-summary:script:size` (260 KB for every page). Still to
-  add: accessibility, best practices and SEO at 1, and the docs budgets through an `assertMatrix` entry matching
-  `/docs/`.
+  `total-byte-weight` (600 KB for every page) and `resource-summary:script:size` (260 KB for every page, scripts
+  loaded during the page load: a search index loaded later is not counted). Still to add: accessibility, best
+  practices and SEO at 1, and the docs page's own LCP (1.5 s desktop) and weight (450 KB) through an `assertMatrix`
+  entry matching `/docs/`.
 - **PB-P2.** Images: AVIF or WebP with a PNG/JPEG fallback only where needed, explicit `width` and `height`,
   `loading="lazy"` below the first screen, `fetchpriority="high"` on the LCP image. The static export sets
   `images.unoptimized`, which turns Next.js's image optimisation off: a build step (a `sharp` script run before
