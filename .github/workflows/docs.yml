@@ -37,7 +37,10 @@ jobs:
       SERVER_KEY_SET: ${{ secrets.DEPLOY_KEY_SERVER != '' }}
       CLI_KEYS_SET: ${{ secrets.DEPLOY_KEY_E2E != '' && secrets.DEPLOY_KEY_CLI != '' && secrets.DEPLOY_KEY_CORE != '' }}
     steps:
+      # Nothing here pushes: the token stays out of .git/config while npm runs (AUDIT-SECU-PUBLIC P6).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
