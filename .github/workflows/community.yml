@@ -88,6 +88,16 @@ jobs:
         run: |
           python3 .github/scripts/check_spdx.py --base "$BASE"
 
+      # The repository is public: no private path, internal name, secret or private e-mail in the tree, and every
+      # commit of the pull request carries a GitHub noreply address (a personal one stays in the history for good).
+      - name: Leak guard
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 .github/scripts/check_leaks.py --self-test
+          python3 .github/scripts/check_leaks.py --base "$BASE"
+
       - name: Workflow security
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
         uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0

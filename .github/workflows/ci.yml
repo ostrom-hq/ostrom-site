@@ -33,6 +33,9 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, package-manager-cache: false }
       - run: pnpm install --frozen-lockfile
+      # What ships is the static export, but a vulnerable runtime dependency (react, next, shiki, posthog-js...) is
+      # known the day it is published: the production tree is audited at every run. Dev tools (lhci, eslint) are not.
+      - run: .github/scripts/run.sh audit pnpm audit --prod --audit-level high
       - run: .github/scripts/run.sh typecheck pnpm typecheck
       - run: .github/scripts/run.sh lint pnpm lint
       - run: .github/scripts/run.sh format pnpm format:check
