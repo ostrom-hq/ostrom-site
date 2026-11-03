@@ -1,0 +1,67 @@
+name: Image scan
+
+# Weekly and by hand only (org CI rule): a vulnerability is published without any commit. Scans the images published
+# from main, as the registry serves them for each architecture, with the same scanner as the community check of pull
+# requests (.github/scripts/scan_image.sh): `edge` (amd64 and arm64), and `launched` (amd64), the tag DEPLOY moves to
+# at the launch, once it exists. Red means Alpine has a fix a published image lacks: rebuild main (the publish job has
+# no cache, so it takes today's packages).
+on:
+  schedule:
+    - cron: '41 6 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+# A running scan is never cancelled by a new one (a cancelled scheduled run is not reported). GitHub still keeps a
+# single pending run per group: two runs queued behind a running one make one scan, which is enough.
+concurrency:
+  group: image-scan-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  image-scan:
+    name: image-scan (${{ matrix.tag }}, ${{ matrix.platform }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { tag: edge, platform: linux/amd64 }
+          - { tag: edge, platform: linux/arm64 }
+          - { tag: launched, platform: linux/amd64 }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # `launched` is only published once the legal texts are validated: before that there is nothing to scan. `edge`
+      # must exist, and a failed API call fails the step (no scan skipped on an error).
+      - name: Is the tag published?
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ matrix.tag }}
+        run: |
+          tags=$(gh api --paginate /orgs/ostrom-hq/packages/container/ostrom-site/versions \
+            --jq '.[].metadata.container.tags[]')
+          if grep -qx "$TAG" <<<"$tags"; then
+            echo "published=1" >> "$GITHUB_OUTPUT"
+          elif [ "$TAG" = launched ]; then
+            echo "published=0" >> "$GITHUB_OUTPUT"
+            echo "::notice title=image-scan::launched is not published yet: nothing to scan."
+          else
+            echo "::error title=image-scan::$TAG is not published: the image to scan is missing."
+            exit 1
+          fi
+      - name: Published image
+        if: steps.tag.outputs.published == '1'
+        env:
+          IMAGE: ghcr.io/ostrom-hq/ostrom-site:${{ matrix.tag }}
+          PLATFORM: ${{ matrix.platform }}
+          TITLE: image-scan-${{ matrix.tag }}-${{ matrix.platform }}
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ github.token }}
+        run: .github/scripts/run.sh "$TITLE" .github/scripts/scan_image.sh "$IMAGE" "$PLATFORM"
