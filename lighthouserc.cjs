@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
-// Lighthouse CI: every page of the sitemap, against the container on localhost:8080. 95 is the floor in each
-// category; LIGHTHOUSE_PROFILE=desktop audits the desktop profile, mobile otherwise. The audited image is built with
-// NEXT_PUBLIC_LAUNCHED=1: Lighthouse checks the site as it will be once launched (indexable).
+// Lighthouse CI: every page of the sitemap, against the container on localhost:8080. The profile and the budgets are in
+// scripts/lib/lighthouse.ts (tested): mobile at "Fast 3G" with a CPU slowed four times, LIGHTHOUSE_PROFILE=desktop for
+// the desktop one. The audited image is built with NEXT_PUBLIC_LAUNCHED=1: Lighthouse checks the site as it will be
+// once launched (indexable).
 const { readFileSync, existsSync } = require('node:fs')
 const { execSync } = require('node:child_process')
+const { lighthouseConfig, profileOf } = require('./scripts/lib/lighthouse.ts')
 
 function sitemapUrls() {
   const xml = existsSync('out/sitemap.xml')
@@ -14,31 +16,4 @@ function sitemapUrls() {
   )
 }
 
-const desktop = process.env.LIGHTHOUSE_PROFILE === 'desktop'
-const floor = ['error', { minScore: 0.95 }]
-
-module.exports = {
-  ci: {
-    collect: {
-      url: sitemapUrls(),
-      // Mobile: the median of three runs, a single run on a shared CI runner swings by several points. Desktop has
-      // the margin for one.
-      numberOfRuns: desktop ? 1 : 3,
-      settings: desktop ? { preset: 'desktop' } : {},
-    },
-    assert: {
-      assertions: {
-        'categories:performance': floor,
-        'categories:accessibility': floor,
-        'categories:best-practices': floor,
-        'categories:seo': floor,
-        // Budgets of the public bar (PB-P1): LCP 1.8 s on desktop, 2.5 s (Core Web Vitals "good") on the throttled
-        // mobile profile.
-        'largest-contentful-paint': ['error', { maxNumericValue: desktop ? 1800 : 2500 }],
-        'cumulative-layout-shift': ['error', { maxNumericValue: 0.01 }],
-        'total-byte-weight': ['error', { maxNumericValue: 600000 }],
-      },
-    },
-    upload: { target: 'filesystem', outputDir: `lighthouse-reports/${desktop ? 'desktop' : 'mobile'}` },
-  },
-}
+module.exports = lighthouseConfig(sitemapUrls(), profileOf(process.env))
