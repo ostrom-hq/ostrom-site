@@ -7,6 +7,11 @@ import { join } from 'node:path'
 
 const script = join(process.cwd(), 'docker/site-config.sh')
 
+/** The test's environment, without any analytics setting the machine running it may have. */
+function scriptEnvironment(extra: Record<string, string>): NodeJS.ProcessEnv {
+  return { ...process.env, OSTROM_POSTHOG_API_KEY: '', OSTROM_POSTHOG_HOST: '', ...extra }
+}
+
 function run(
   environment: Record<string, string>,
   connect = 'https://app.ostrom.run https://api.ostrom.run\n',
@@ -16,12 +21,11 @@ function run(
   writeFileSync(connectFile, connect)
   try {
     execFileSync('sh', [script], {
-      env: {
-        PATH: process.env['PATH'] ?? '',
+      env: scriptEnvironment({
         OSTROM_SITE_CONFIG_DIR: dir,
         OSTROM_CONNECT_SRC_FILE: connectFile,
         ...environment,
-      },
+      }),
       stdio: 'pipe',
     })
     return {
@@ -83,11 +87,7 @@ describe('site-config.sh', () => {
     try {
       expect(() =>
         execFileSync('sh', [script], {
-          env: {
-            PATH: process.env['PATH'] ?? '',
-            OSTROM_SITE_CONFIG_DIR: dir,
-            OSTROM_CONNECT_SRC_FILE: join(dir, 'none'),
-          },
+          env: scriptEnvironment({ OSTROM_SITE_CONFIG_DIR: dir, OSTROM_CONNECT_SRC_FILE: join(dir, 'none') }),
           stdio: 'pipe',
         }),
       ).toThrow()
