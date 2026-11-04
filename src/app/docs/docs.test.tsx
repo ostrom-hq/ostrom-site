@@ -6,6 +6,12 @@ import { OG_IMAGE } from '@/lib/seo'
 import { FIXTURE_CONTENT, MISSING_CONTENT, UNSERVED_CONTENT, stubIntersectionObserver } from '@/test/docs'
 import DocsLayout from './layout'
 import DocsPage, { dynamicParams, generateMetadata, generateStaticParams } from './[[...slug]]/page'
+import {
+  GET as apiData,
+  dynamic as apiDataDynamic,
+  dynamicParams as apiDataParams,
+  generateStaticParams as apiDataFiles,
+} from './api-data/[file]/route'
 import { GET, dynamic } from './search-index.json/route'
 
 vi.mock('next/navigation', () => ({
@@ -133,5 +139,19 @@ describe('the docs layout and search index', () => {
     expect(dynamic).toBe('force-static')
     const body: unknown = await GET().json()
     expect(searchIndexSchema.parse(body).entries.some((entry) => entry.href === '/docs/')).toBe(true)
+  })
+})
+
+describe('the API data files', () => {
+  it('are written once by the export: one per tag and one for the schemas, each a map of HTML', async () => {
+    expect(apiDataDynamic).toBe('force-static')
+    expect(apiDataParams).toBe(false)
+    expect(apiDataFiles()).toContainEqual({ file: 'approvals.json' })
+    expect(apiDataFiles()).toContainEqual({ file: 'schemas.json' })
+    const response = await apiData(new Request('http://localhost/docs/api-data/approvals.json'), {
+      params: Promise.resolve({ file: 'approvals.json' }),
+    })
+    const body: unknown = await response.json()
+    expect(body).toHaveProperty('requestgate', expect.stringContaining('Seconds to wait'))
   })
 })

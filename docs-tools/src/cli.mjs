@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 import {spawnSync} from "node:child_process"
 import {existsSync, readFileSync, statSync, writeFileSync} from "node:fs"
-import {parse} from "yaml"
-import {generateApiReference} from "./apireference.mjs"
+import {checkSnapshot} from "./apisnapshot.mjs"
 import {generateCliReference} from "./clireference.mjs"
 import {runTree} from "./doctest.mjs"
 import {lintTree} from "./lint.mjs"
 
-export const USAGE = "usage: docs-tools lint <docs-dir> | docs-tools run <docs-dir> [--strict] | docs-tools cli-reference <ostrom-binary> <page.mdx> | docs-tools api-reference <openapi.yaml> <page.mdx>"
+export const USAGE = "usage: docs-tools lint <docs-dir> | docs-tools run <docs-dir> [--strict] | docs-tools cli-reference <ostrom-binary> <page.mdx> | docs-tools api-snapshot <contract.yaml> <snapshot.yaml>"
 
 /** `ostrom <path> --help` through the real binary; throws with the cause when it fails. */
 function helpOf(binary, env) {
@@ -22,26 +21,26 @@ function helpOf(binary, env) {
 /** Runs a command; returns the exit code. `out` and `err` receive whole lines. */
 export function main(argv, {out, err, env}) {
     const [command, ...rest] = argv
-    if (command === "cli-reference" || command === "api-reference") {
+    if (command === "cli-reference" || command === "api-snapshot") {
         if (rest.length !== 2) {
             err(USAGE)
             return 2
         }
-        const [source, page] = rest
+        const [source, target] = rest
         try {
             if (command === "cli-reference") {
-                writeFileSync(page, generateCliReference(helpOf(source, env)))
-                out(`${command}: wrote ${page}`)
-            } else {
-                const {page: text, listed, total} = generateApiReference(parse(readFileSync(source, "utf8")))
-                writeFileSync(page, text)
-                out(`${command}: wrote ${page} (${listed} of ${total} operations marked implemented)`)
+                writeFileSync(target, generateCliReference(helpOf(source, env)))
+                out(`${command}: wrote ${target}`)
+                return 0
             }
+            const {problems, served, total} = checkSnapshot(readFileSync(source, "utf8"), readFileSync(target, "utf8"))
+            for (const problem of problems) err(`${command}: ${problem}`)
+            out(`${command}: ${served} of ${total} operations served`)
+            return problems.length === 0 ? 0 : 1
         } catch (error) {
             err(`${command}: ${error.message}`)
             return 1
         }
-        return 0
     }
     const flags = rest.filter((arg) => arg.startsWith("-"))
     const [root, ...extra] = rest.filter((arg) => !arg.startsWith("-"))

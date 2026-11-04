@@ -82,12 +82,13 @@ test("code block problems", () => {
 })
 
 test("prose problems: JSX characters, import or export, dead links", () => {
-    const body = ["Use ostrom <agent>.", "import x from 'y'", "{oops}", "[gone](/docs/gone)", "an escaped backslash then a brace \\\\{x}"].join("\n")
+    const body = ["Use ostrom <agent>.", "import x from 'y'", "{oops}", "[gone](/docs/gone)", "[API](/docs/api/) and [a tag](/docs/api/sessions/#start), not [this](/docs/apis)", "an escaped backslash then a brace \\\\{x}"].join("\n")
     assert.deepEqual(messages(lintPage(page(body), new Set())), [
         "prose holds < { or }: put it in `code` (MDX would read it as JSX)",
         "no import or export: pages are plain Markdown",
         "prose holds < { or }: put it in `code` (MDX would read it as JSX)",
         "link to a page that does not exist: /docs/gone",
+        "link to a page that does not exist: /docs/apis",
         "prose holds < { or }: put it in `code` (MDX would read it as JSX)",
     ])
 })

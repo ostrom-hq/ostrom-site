@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { Fragment } from 'react'
 import { captured } from '@/lib/docs/text'
 
 /** Text from the OpenAPI description, with its `code` spans shown as code. */
@@ -10,7 +11,8 @@ export function InlineText({ text }: { readonly text: string }): React.JSX.Eleme
         position % 2 === 1 ? (
           <code key={position}>{part}</code>
         ) : part === '' ? null : (
-          <span key={position}>{part}</span>
+          // plain text stays a text node: an element per piece weighs on a page of 240 schemas
+          <Fragment key={position}>{part}</Fragment>
         ),
       )}
     </>
