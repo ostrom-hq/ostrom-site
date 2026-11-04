@@ -757,7 +757,9 @@ a.docs-nav__heading[aria-current='page'] {
     border-radius: var(--radius-sm);
     background: var(--surface-sunken);
     color: var(--text);
-    font: 700 var(--fs-12) / 1 var(--font-mono);
+    /* The system monospace, not Azeret: the web font loads late and its swap changes the badge's width, so the route
+       beside it wraps differently and pushes the toggle below (layout shift). */
+    font: 700 var(--fs-12) / 1 ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
     letter-spacing: 0.04em;
 }
 .api-method--get {
