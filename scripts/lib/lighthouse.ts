@@ -73,6 +73,10 @@ export function lighthouseConfig(urls: string[], profile: Profile): LighthouseCo
           'largest-contentful-paint': ['error', { maxNumericValue: desktop ? 1800 : 2500 }],
           'cumulative-layout-shift': ['error', { maxNumericValue: 0.01 }],
           'total-byte-weight': ['error', { maxNumericValue: 600000 }],
+          // JavaScript over the wire (transfer size, gzip), every page: 260 KiB, the measure of 2026-11-03 (236 KiB on
+          // /, 242 KiB at most) plus 10 %. It is React's and Next.js's runtime; the bar keeps it from growing
+          // (PUBLIC-BAR.md, PB-P1).
+          'resource-summary:script:size': ['error', { maxNumericValue: 260 * 1024 }],
         },
       },
       upload: { target: 'filesystem', outputDir: `lighthouse-reports/${profile}` },
