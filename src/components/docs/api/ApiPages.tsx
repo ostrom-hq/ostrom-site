@@ -5,10 +5,18 @@ import { codeBlockHtml } from '@/lib/docs/code'
 import type { TocItem } from '@/lib/docs/markdown'
 import { apiTagHref } from '@/lib/docs/site'
 import { fill } from '@/lib/docs/text'
-import { isPublished, type ApiReference, type ApiTag } from '@/lib/openapi/reference'
+import {
+  SCHEMAS_DATA,
+  apiDataHref,
+  schemaDetails,
+  schemaDetailsHtml,
+  tagDataFile,
+  type ApiLabels,
+} from '@/lib/openapi/html'
+import { isPublished, type ApiOperation, type ApiReference, type ApiTag } from '@/lib/openapi/reference'
 import { DocArticle } from '../DocArticle'
-import { OperationView } from './Operation'
-import { SchemaDetails } from './SchemaView'
+import { ApiDataListener } from './ApiDataListener'
+import { InlineText, splitSummary } from './InlineText'
 
 /** The sections of the overview, for its table of contents (their ids are the h2 ids below). */
 export function overviewToc(labels: Messages['docs']['api']): TocItem[] {
@@ -106,7 +114,7 @@ export function ApiOverview({
           />
         )}
         {api.error.schema === null ? null : (
-          <SchemaDetails node={api.error.schema} labels={text} folded={false} />
+          <div dangerouslySetInnerHTML={{ __html: schemaDetailsHtml(api.error.schema, text) }} />
         )}
         <h2 id="resources">
           <a href="#resources">{text.resources}</a>
@@ -133,6 +141,66 @@ export function tagDescription(tag: ApiTag, messages: Messages): string {
   return tag.description ?? fill(messages.docs.api.tagDescription, { tag: tag.title })
 }
 
+/** The HTTP method, coloured by what it does (read, create, change, delete). */
+export function MethodBadge({ method }: { readonly method: string }): React.JSX.Element {
+  return <span className={`api-method api-method--${method}`}>{method.toUpperCase()}</span>
+}
+
+/** A toggle whose content loads when it opens: the HTML of `id` in the data file `src` (ApiDataListener). */
+export function ApiMore({
+  src,
+  id,
+  summary,
+}: {
+  readonly src: string
+  readonly id: string
+  readonly summary: string
+}): React.JSX.Element {
+  return (
+    <details className="api-more" data-api-data={src} data-api-key={id}>
+      <summary>{summary}</summary>
+    </details>
+  )
+}
+
+function listenerLabels(text: ApiLabels): { readonly loading: string; readonly failed: string } {
+  return { loading: text.loading, failed: text.loadFailed }
+}
+
+/** One endpoint by name: its route and what it does; parameters, body, responses and examples open on demand. */
+export function OperationSummary({
+  operation,
+  src,
+  labels,
+}: {
+  readonly operation: ApiOperation
+  readonly src: string
+  readonly labels: ApiLabels
+}): React.JSX.Element {
+  const { title, rest } = splitSummary(operation.summary)
+  return (
+    <section className="api-op" aria-labelledby={operation.anchor}>
+      <h2 id={operation.anchor}>
+        <a href={`#${operation.anchor}`}>{title}</a>
+      </h2>
+      <p className="api-op__route">
+        <MethodBadge method={operation.method} />
+        <code className="api-op__path">{operation.path}</code>
+        {operation.authenticated ? null : <span className="badge">{labels.public}</span>}
+        {operation.deprecated ? <span className="badge badge--warning">{labels.deprecated}</span> : null}
+      </p>
+      {[rest, operation.description].map((paragraph, position) =>
+        paragraph === null ? null : (
+          <p key={position}>
+            <InlineText text={paragraph} />
+          </p>
+        ),
+      )}
+      <ApiMore src={src} id={operation.anchor} summary={labels.details} />
+    </section>
+  )
+}
+
 /** `/docs/api/<tag>/`: every operation of one resource. */
 export function ApiTagPage({
   tag,
@@ -141,6 +209,8 @@ export function ApiTagPage({
   readonly tag: ApiTag
   readonly messages: Messages
 }): React.JSX.Element {
+  const text = messages.docs.api
+  const src = apiDataHref(tagDataFile(tag))
   return (
     <DocArticle
       title={tag.title}
@@ -149,18 +219,14 @@ export function ApiTagPage({
       labels={messages.docs.status}
     >
       {tag.operations.map((operation) => (
-        <OperationView
-          key={operation.anchor}
-          operation={operation}
-          labels={messages.docs.api}
-          copyLabel={messages.docs.code.copy}
-        />
+        <OperationSummary key={operation.anchor} operation={operation} src={src} labels={text} />
       ))}
+      <ApiDataListener labels={listenerLabels(text)} />
     </DocArticle>
   )
 }
 
-/** `/docs/api/schemas/`: every component schema, with its fields; nested named schemas link to their own entry. */
+/** `/docs/api/schemas/`: every component schema by name; its fields open on demand. */
 export function ApiSchemasPage({
   api,
   messages,
@@ -169,6 +235,7 @@ export function ApiSchemasPage({
   readonly messages: Messages
 }): React.JSX.Element {
   const text = messages.docs.api
+  const src = apiDataHref(SCHEMAS_DATA)
   return (
     <DocArticle
       title={text.schemas}
@@ -181,9 +248,17 @@ export function ApiSchemasPage({
           <h2 id={schema.anchor}>
             <a href={`#${schema.anchor}`}>{schema.name}</a>
           </h2>
-          <SchemaDetails node={schema.node} labels={text} folded={false} />
+          {schema.node.description === null ? null : (
+            <p className="api-field__description">
+              <InlineText text={schema.node.description} />
+            </p>
+          )}
+          {schemaDetails({ ...schema.node, description: null }, text, false).length === 0 ? null : (
+            <ApiMore src={src} id={schema.anchor} summary={text.schemaDetails} />
+          )}
         </section>
       ))}
+      <ApiDataListener labels={listenerLabels(text)} />
     </DocArticle>
   )
 }

@@ -742,6 +742,10 @@ export const en = {
       children: 'Show {count} fields',
       request: 'curl',
       response: 'Response {status}',
+      details: 'Parameters, body, responses and example',
+      schemaDetails: 'Fields and values',
+      loading: 'Loading…',
+      loadFailed: 'This part did not load. Close it and open it again to try once more.',
     },
   },
 } as const satisfies MessageTree

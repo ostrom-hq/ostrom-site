@@ -85,15 +85,19 @@ that does not exist:
 
 ```sh notest="needs the binary and ostrom-core"
 node bin/docs-tools.mjs cli-reference path/to/ostrom ../content/docs/reference/cli.mdx
-node bin/docs-tools.mjs api-reference ../../ostrom-core/api/openapi.yaml ../content/docs/reference/api.mdx
+node bin/docs-tools.mjs api-snapshot ../../ostrom-core/api/openapi.yaml ../content/api/openapi.yaml
 ```
 
 The CLI reference puts each `ostrom ... --help` in a `requires="ostrom"` test block followed by its output, so
 `docs-test` reruns it against the real binary.
 
-CI (the `ci` job of `.github/workflows/docs.yml`) keeps both pages true. It regenerates the API page from `ostrom-core`'s `main` and fails on any
-difference once the page is generated (before that, it warns when the contract marks an operation implemented).
-It builds the real `ostrom` from `ostrom-cli`'s `main` whenever a page has a `requires="ostrom"` block, runs
+The API reference is the site's own pages under `/docs/api/` (one per resource, and the schemas), built from
+`content/api/openapi.yaml`, a snapshot of `ostrom-core`'s contract written by `scripts/sync-openapi.ts`. They list only
+the operations the contract marks `x-ostrom-status: served`. `api-snapshot` checks that the snapshot is the contract
+byte for byte, and says how many operations are served. Links to `/docs/api/` and its pages are allowed in the docs.
+
+CI (the `ci` job of `.github/workflows/docs.yml`) keeps both true. It fails when the snapshot is not the contract at
+`CORE_REF`. It builds the real `ostrom` from `ostrom-cli`'s `main` whenever a page has a `requires="ostrom"` block, runs
 those blocks against it, and regenerates the CLI page and fails on any difference.
 
 ## Check locally

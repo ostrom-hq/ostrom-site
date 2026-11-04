@@ -14,6 +14,8 @@ export const ALERTS = ["NOTE", "WARNING", "CAUTION"]
 /** A sidebar group heading in `meta.json`, Fumadocs style: `"---Concepts---"`. */
 const SEPARATOR = /^---[^-].*---$/
 const REQUIREMENT_NAMES = ["ostrom", "server"]
+/** The API reference: pages the site generates from the contract (`/docs/api/`, a tag, the schemas), not written here. */
+const GENERATED = /^\/docs\/api(\/|$)/
 
 /** Lists the folders, pages (`.mdx`) and navigation files (`meta.json`) under a root, sorted. */
 export function walk(root) {
@@ -73,7 +75,7 @@ export function lintPage(text, slugs) {
         if (/^(import|export)\s/.test(prose)) add(line, "no import or export: pages are plain Markdown")
         for (const link of prose.matchAll(/\]\((\/docs[^)\s#]*)(#[^)]*)?\)/g)) {
             const target = link[1].replace(/\/$/, "")
-            if (!slugs.has(target)) add(line, `link to a page that does not exist: ${link[1]}`)
+            if (!slugs.has(target) && !GENERATED.test(target)) add(line, `link to a page that does not exist: ${link[1]}`)
         }
     }
     return problems
