@@ -747,6 +747,11 @@ a.docs-nav__heading[aria-current='page'] {
     font-size: var(--fs-14);
     overflow-wrap: anywhere;
 }
+/* The badges of the route (public, deprecated) use the system monospace too: Azeret's late swap would change their width
+   and the route would wrap differently (layout shift of the toggle below). */
+.api-op__route .badge {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+}
 .api-method {
     display: inline-flex;
     align-items: center;
