@@ -67,6 +67,8 @@ jobs:
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Never from the cache: its `apk upgrade` must give the packages of today, as the publish job (no cache) does.
+          no-cache-filters: runtime-base
       - name: Lighthouse image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
@@ -79,6 +81,7 @@ jobs:
             NEXT_PUBLIC_API_URL=http://localhost:8080
             NEXT_PUBLIC_LAUNCHED=1
           cache-from: type=gha
+          no-cache-filters: runtime-base
 
       - name: Start the production image
         run: |

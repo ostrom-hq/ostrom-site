@@ -1,7 +1,7 @@
 name: Community
 
-# Pull request title, DCO, SPDX headers and workflow security (zizmor), in one job named `community`, on pull
-# requests only and never on drafts (org CI rule). Links are checked weekly by links.yml.
+# Pull request title, DCO, SPDX headers, leak guard, image vulnerabilities and workflow security (zizmor), in one job
+# named `community`, on pull requests only and never on drafts (org CI rule). Links are checked weekly by links.yml.
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened, ready_for_review]
@@ -16,7 +16,8 @@ jobs:
   community:
     if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    # The image scan builds nginx's stage and pulls the scanner and its database: minutes on a cold runner.
+    timeout-minutes: 20
     permissions:
       contents: read
       pull-requests: read
@@ -97,6 +98,12 @@ jobs:
         run: |
           python3 .github/scripts/check_leaks.py --self-test
           python3 .github/scripts/check_leaks.py --base "$BASE"
+
+      # Every package the site image ships (the Dockerfile's runtime-base stage, no Next.js build): no HIGH or CRITICAL
+      # vulnerability that has a fix. CI has one job on pull requests (org rule), and its own job runs Lighthouse.
+      - name: Image vulnerabilities
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
+        run: .github/scripts/run.sh image-scan .github/scripts/scan_image.sh
 
       - name: Workflow security
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
