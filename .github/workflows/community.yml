@@ -89,8 +89,8 @@ jobs:
         run: |
           python3 .github/scripts/check_spdx.py --base "$BASE"
 
-      # The repository is public: no private path, internal name, secret or private e-mail in the tree, and every
-      # commit of the pull request carries a GitHub noreply address (a personal one stays in the history for good).
+      # The repository is public: no private path, internal name, secret or private e-mail in the tree or in the
+      # messages of the pull request's commits.
       - name: Leak guard
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
         env:

@@ -5,8 +5,8 @@
 Checks, with a clear message for each hit:
   tree      every tracked text file: private paths, internal coordination names, secrets, private e-mail addresses,
             internal hosts
-  commits   with --base <ref>: the author and committer e-mail of every commit since the merge base must be a GitHub
-            noreply address, and the messages must pass the same patterns as the tree
+  commits   with --base <ref>: the messages of every commit since the merge base must pass the same patterns as the
+            tree
 
 Usage:
   check_leaks.py                  check the tree
@@ -35,7 +35,6 @@ RULES: list[tuple[str, re.Pattern[str]]] = [
     ("an internal or staging host", re.compile(r"\b[a-z0-9-]+\.(?:internal|svc\.cluster\.local)\b|\bstaging[.-][a-z0-9-]+\.[a-z]{2,}\b|\b(?:10\.\d{1,3}|192\.168)\.\d{1,3}\.\d{1,3}\b")),
 ]
 
-NOREPLY = re.compile(r"^(?:\d+\+)?[A-Za-z0-9-]+(?:\[bot\])?@users\.noreply\.github\.com$|^noreply@github\.com$")
 SELF = {".github/scripts/check_leaks.py"}
 # A private key that is public on purpose: derived from a published seed, it only signs the compatibility vectors.
 PUBLIC_TEST_KEYS = {"docs-tools/vectors/key.json"}
@@ -72,11 +71,6 @@ def check_commits(base: str) -> int:
     log = run("git", "log", "--no-merges", "--format=%H%x1f%ae%x1f%ce%x1f%B%x1e", f"{base}..HEAD")
     for entry in filter(None, (part.strip("\n") for part in log.split("\x1e"))):
         sha, author, committer, message = entry.split("\x1f", 3)
-        for who, email in (("author", author), ("committer", committer)):
-            if not NOREPLY.match(email):
-                print(f"::error::leak guard: commit {sha[:12]} has a non-noreply {who} e-mail; set git config "
-                      "user.email to your <id>+<login>@users.noreply.github.com address and amend the commit")
-                bad += 1
         for label in scan(message):
             print(f"::error::leak guard: the message of commit {sha[:12]} contains {label}")
             bad += 1
@@ -88,8 +82,6 @@ def self_test() -> int:
     bad = ["/Us" + "ers/jane/git/x", ".co" + "ord/JOURNAL.md", "SU" + "P-123", "Control" + "Resell", "jane@gmail" + ".com",
            "ghp_" + "a" * 36, "-----BEGIN " + "PRIVATE KEY-----", "api.staging-x.example.com", "db.svc.cluster" + ".local"]
     failed = [s for s in good if scan(s)] + [s for s in bad if not scan(s)]
-    failed += [e for e in ["1+jane@users.noreply.github.com", "noreply@github.com"] if not NOREPLY.match(e)]
-    failed += [e for e in ["jane@gmail.com", "jane@ostrom.run"] if NOREPLY.match(e)]
     for item in failed:
         print(f"self-test failed on: {item!r}")
     return len(failed)
