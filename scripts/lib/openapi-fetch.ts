@@ -45,7 +45,7 @@ export function packArguments(version: string, dir: string, userconfig: string):
     dir,
     '--userconfig',
     userconfig,
-    '--silent',
+    '--loglevel=error',
   ]
 }
 
