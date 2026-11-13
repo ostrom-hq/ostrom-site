@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 import {spawnSync} from "node:child_process"
-import {existsSync, readFileSync, statSync, writeFileSync} from "node:fs"
-import {checkSnapshot} from "./apisnapshot.mjs"
+import {existsSync, statSync, writeFileSync} from "node:fs"
 import {generateCliReference} from "./clireference.mjs"
 import {runTree} from "./doctest.mjs"
 import {lintTree} from "./lint.mjs"
 
-export const USAGE = "usage: docs-tools lint <docs-dir> | docs-tools run <docs-dir> [--strict] | docs-tools cli-reference <ostrom-binary> <page.mdx> | docs-tools api-snapshot <contract.yaml> <snapshot.yaml>"
+export const USAGE = "usage: docs-tools lint <docs-dir> | docs-tools run <docs-dir> [--strict] | docs-tools cli-reference <ostrom-binary> <page.mdx>"
 
 /** `ostrom <path> --help` through the real binary; throws with the cause when it fails. */
 function helpOf(binary, env) {
@@ -21,22 +20,16 @@ function helpOf(binary, env) {
 /** Runs a command; returns the exit code. `out` and `err` receive whole lines. */
 export function main(argv, {out, err, env}) {
     const [command, ...rest] = argv
-    if (command === "cli-reference" || command === "api-snapshot") {
+    if (command === "cli-reference") {
         if (rest.length !== 2) {
             err(USAGE)
             return 2
         }
         const [source, target] = rest
         try {
-            if (command === "cli-reference") {
-                writeFileSync(target, generateCliReference(helpOf(source, env)))
-                out(`${command}: wrote ${target}`)
-                return 0
-            }
-            const {problems, served, total} = checkSnapshot(readFileSync(source, "utf8"), readFileSync(target, "utf8"))
-            for (const problem of problems) err(`${command}: ${problem}`)
-            out(`${command}: ${served} of ${total} operations served`)
-            return problems.length === 0 ? 0 : 1
+            writeFileSync(target, generateCliReference(helpOf(source, env)))
+            out(`${command}: wrote ${target}`)
+            return 0
         } catch (error) {
             err(`${command}: ${error.message}`)
             return 1

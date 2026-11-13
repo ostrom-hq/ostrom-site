@@ -19,7 +19,7 @@ import { curlCommand, exampleValue } from './example'
 import { lookup, refTarget, resolveSchema, type SchemaContext, type SchemaNode } from './schema'
 
 // The API reference model: the OpenAPI description turned into tag pages of operations, every schema resolved. Built
-// once at build time from content/api/openapi.yaml, the snapshot synced from ostrom-core by scripts/sync-openapi.ts.
+// once at build time from content/api/openapi.json, fetched from @ostrom-hq/openapi by scripts/fetch-openapi.ts.
 
 export interface ApiParameter {
   readonly name: string

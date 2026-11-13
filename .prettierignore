@@ -5,7 +5,7 @@ playwright-report
 test-results
 .lighthouseci
 pnpm-lock.yaml
-content/api/openapi.yaml
+content/api/openapi.json
 content/changelog/releases.json
 content/docs
 docs-tools

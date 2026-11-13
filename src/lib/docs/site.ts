@@ -88,7 +88,7 @@ export function readDocsSite(dir: string, apiUrl: string = site.apiUrl): DocsSit
   return {
     versions: [latest, ...archived],
     latest,
-    api: readApiReference(join(dir, 'api', 'openapi.yaml'), apiUrl),
+    api: readApiReference(join(dir, 'api', 'openapi.json'), apiUrl),
   }
 }
 
