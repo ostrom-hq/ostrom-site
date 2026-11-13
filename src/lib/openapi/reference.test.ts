@@ -255,7 +255,9 @@ describe('the schema groups', () => {
     const groups = schemaGroups(api?.schemas ?? [])
     expect(groups.map(({ group }) => group)).toEqual([...new Set(groups.map(({ group }) => group))].sort())
     expect(groups.length).toBeGreaterThan(1)
-    const other = { ...(api?.schemas[0] as NonNullable<typeof api>['schemas'][number]), name: '_x' }
+    const first = api?.schemas[0]
+    if (first === undefined) throw new Error('the fixture has schemas')
+    const other = { ...first, name: '_x' }
     expect(schemaGroups([other, ...(api?.schemas ?? [])]).at(-1)).toEqual({ group: 'other', count: 1 })
     expect(schemaGroups([other, other, ...(api?.schemas ?? [])]).at(-1)?.count).toBe(2)
   })
