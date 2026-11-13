@@ -130,7 +130,9 @@ export function schemaGroup(name: string): string {
 }
 
 /** The groups the schemas fall in, in order (`other` last), with how many schemas each holds. */
-export function schemaGroups(schemas: readonly ApiSchema[]): { readonly group: string; readonly count: number }[] {
+export function schemaGroups(
+  schemas: readonly ApiSchema[],
+): { readonly group: string; readonly count: number }[] {
   const counts = new Map<string, number>()
   for (const schema of schemas) {
     const group = schemaGroup(schema.name)
