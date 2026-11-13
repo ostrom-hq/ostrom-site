@@ -105,9 +105,10 @@ function apiToc(route: DocsRoute, docs: DocsSite, messages: Messages): TocItem[]
       depth: 2 as const,
     }))
   }
-  if (route.kind === 'api-schemas' && route.group !== null && docs.api !== null) {
+  if (route.kind === 'api-schemas' && docs.api !== null) {
+    // The index lists the groups in its body: it has no sections of its own.
     return docs.api.schemas
-      .filter((schema) => schemaGroup(schema.name) === route.group)
+      .filter((schema) => route.group !== null && schemaGroup(schema.name) === route.group)
       .map((schema) => ({ id: schema.anchor, text: schema.name, depth: 2 as const }))
   }
   return docs.api !== null && isPublished(docs.api) ? overviewToc(messages.docs.api) : []
