@@ -2,7 +2,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { z } from '@/lib/zod'
-import { readApiReference, type ApiReference, type ApiTag } from '@/lib/openapi/reference'
+import { readApiReference, schemaGroups, type ApiReference, type ApiTag } from '@/lib/openapi/reference'
 import { site } from '@/lib/site'
 import { readContent, type DocFolder, type DocPage } from './content'
 
@@ -47,7 +47,8 @@ export type DocsRoute =
   | { readonly kind: 'home'; readonly version: DocsVersion }
   | { readonly kind: 'api-overview' }
   | { readonly kind: 'api-tag'; readonly tag: ApiTag }
-  | { readonly kind: 'api-schemas' }
+  /** The Schemas section: its index (`group` null) or the page of one initial. */
+  | { readonly kind: 'api-schemas'; readonly group: string | null }
 
 /** Where the content lives: `content/` of the repository, or OSTROM_CONTENT_DIR (the tests' fixtures). */
 export function contentDir(): string {
@@ -116,6 +117,10 @@ export function apiTagHref(tag: ApiTag): string {
 
 export const API_SCHEMAS_HREF = `${API_BASE}/schemas/`
 
+export function schemasGroupHref(group: string): string {
+  return `${API_SCHEMAS_HREF}${group}/`
+}
+
 /** Every page of a folder, in reading order: the folder's index first, then its children, depth first. */
 export function pagesOf(folder: DocFolder): DocPage[] {
   const pages = folder.index === null ? [] : [folder.index]
@@ -147,11 +152,15 @@ export function docsRoutes(
   routes.push({ slug: ['api'], route: { kind: 'api-overview' } })
   if (docs.api !== null) {
     for (const tag of docs.api.tags) {
-      if (tag.slug === 'schemas')
-        throw new Error('an API tag named "schemas" would shadow /docs/api/schemas/')
+      if (tag.slug.startsWith('schemas'))
+        throw new Error('an API tag named "schemas…" would shadow /docs/api/schemas/ or its data files')
       routes.push({ slug: ['api', tag.slug], route: { kind: 'api-tag', tag } })
     }
-    if (docs.api.schemas.length > 0) routes.push({ slug: ['api', 'schemas'], route: { kind: 'api-schemas' } })
+    if (docs.api.schemas.length > 0) {
+      routes.push({ slug: ['api', 'schemas'], route: { kind: 'api-schemas', group: null } })
+      for (const { group } of schemaGroups(docs.api.schemas))
+        routes.push({ slug: ['api', 'schemas', group], route: { kind: 'api-schemas', group } })
+    }
   }
   return routes
 }

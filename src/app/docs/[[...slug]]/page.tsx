@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import {
   ApiOverview,
+  ApiSchemasIndex,
   ApiSchemasPage,
   ApiTagPage,
   overviewToc,
@@ -17,7 +18,7 @@ import type { TocItem } from '@/lib/docs/markdown'
 import { markdownLabels, renderPage } from '@/lib/docs/render'
 import { docsRoutes, findRoute, getDocsSite, type DocsRoute, type DocsSite } from '@/lib/docs/site'
 import { docsPath } from '@/lib/docs/sitemap'
-import { isPublished } from '@/lib/openapi/reference'
+import { isPublished, schemaGroup } from '@/lib/openapi/reference'
 import { OG_IMAGE } from '@/lib/seo'
 
 // Every page under /docs/ (guides of every version, and the generated API reference) is one route rendered at build
@@ -104,8 +105,10 @@ function apiToc(route: DocsRoute, docs: DocsSite, messages: Messages): TocItem[]
       depth: 2 as const,
     }))
   }
-  if (route.kind === 'api-schemas' && docs.api !== null) {
-    return docs.api.schemas.map((schema) => ({ id: schema.anchor, text: schema.name, depth: 2 as const }))
+  if (route.kind === 'api-schemas' && route.group !== null && docs.api !== null) {
+    return docs.api.schemas
+      .filter((schema) => schemaGroup(schema.name) === route.group)
+      .map((schema) => ({ id: schema.anchor, text: schema.name, depth: 2 as const }))
   }
   return docs.api !== null && isPublished(docs.api) ? overviewToc(messages.docs.api) : []
 }
@@ -149,7 +152,11 @@ export default async function DocsPage({ params }: DocsPageProps): Promise<React
       {route.kind === 'api-tag' ? (
         <ApiTagPage tag={route.tag} messages={messages} />
       ) : route.kind === 'api-schemas' && docs.api !== null ? (
-        <ApiSchemasPage api={docs.api} messages={messages} />
+        route.group === null ? (
+          <ApiSchemasIndex api={docs.api} messages={messages} />
+        ) : (
+          <ApiSchemasPage api={docs.api} group={route.group} messages={messages} />
+        )
       ) : (
         <ApiOverview api={docs.api} messages={messages} />
       )}

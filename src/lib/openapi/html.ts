@@ -6,6 +6,8 @@ import { codeBlock } from '@/lib/docs/code'
 import { fill } from '@/lib/docs/text'
 import {
   schemaAnchor,
+  schemaGroup,
+  schemaGroups,
   type ApiOperation,
   type ApiReference,
   type ApiResponse,
@@ -21,8 +23,18 @@ export type ApiLabels = Messages['docs']['api']
 
 export const API_DATA_BASE = '/docs/api-data'
 /** The data file of the Schemas page; a tag cannot be named "schemas" (site.ts), so no tag file shares its name. */
-export const SCHEMAS_DATA = 'schemas.json'
+export const SCHEMAS_DATA_PREFIX = 'schemas-'
 const SCHEMAS_HREF = '/docs/api/schemas/'
+
+/** The data file of one group of the Schemas section; no tag slug starts with `schemas` (site.ts). */
+export function schemasDataFile(group: string): string {
+  return `${SCHEMAS_DATA_PREFIX}${group}.json`
+}
+
+/** Where a schema is listed: its group's page, at its anchor. */
+export function schemaHref(name: string): string {
+  return `${SCHEMAS_HREF}${schemaGroup(name)}/#${schemaAnchor(name)}`
+}
 
 type Child = ElementContent
 
@@ -52,7 +64,7 @@ export function typeText(node: SchemaNode): Child[] {
   }
   const name = node.kind === 'link' ? node.target : node.name
   if (name === null) return [text(typeLabel(node))]
-  return [h('a', { href: `${SCHEMAS_HREF}#${schemaAnchor(name)}` }, [text(name)])]
+  return [h('a', { href: schemaHref(name) }, [text(name)])]
 }
 
 const flag = (label: string, required = false): Element =>
@@ -249,9 +261,12 @@ export function apiDataHref(file: string): string {
   return `${API_DATA_BASE}/${file}`
 }
 
-/** Every data file the static export writes: one per tag, and the Schemas page's (never none, for the export). */
+/** Every data file the static export writes: one per tag and one per group of schemas. */
 export function apiDataFiles(api: ApiReference | null): string[] {
-  return [...(api?.tags ?? []).map(tagDataFile), SCHEMAS_DATA]
+  return [
+    ...(api?.tags ?? []).map(tagDataFile),
+    ...schemaGroups(api?.schemas ?? []).map(({ group }) => schemasDataFile(group)),
+  ]
 }
 
 /** The content of one data file: the HTML of each operation of a tag, or of each schema, by its anchor. */
@@ -263,8 +278,8 @@ export function apiData(
 ): Record<string, string> {
   const data: Record<string, string> = {}
   if (api === null) return data
-  if (file === SCHEMAS_DATA) {
-    for (const schema of api.schemas) {
+  if (file.startsWith(SCHEMAS_DATA_PREFIX)) {
+    for (const schema of api.schemas.filter(({ name }) => schemasDataFile(schemaGroup(name)) === file)) {
       data[schema.anchor] = schemaDetailsHtml({ ...schema.node, description: null }, labels)
     }
     return data

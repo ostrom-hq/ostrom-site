@@ -714,6 +714,7 @@ export const en = {
         'This reference lists only the endpoints the Ostrom server already answers. None is live yet: each one appears here the day it ships.',
       overview: 'Overview',
       schemas: 'Schemas',
+      schemasOther: 'Other',
       schemasDescription: 'Every object the Ostrom API sends or receives, with its fields.',
       tagDescription: 'The {tag} endpoints of the Ostrom API.',
       version: 'Version {version}',

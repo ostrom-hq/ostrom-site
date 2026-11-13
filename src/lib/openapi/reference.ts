@@ -120,7 +120,28 @@ export function tagTitle(name: string): string {
   return TAG_TITLES[name] ?? `${name.charAt(0).toUpperCase()}${name.slice(1)}`.replace(/[-_]+/g, ' ')
 }
 
-/** The anchor of a component schema on the Schemas page, which every link to that schema targets. */
+/**
+ * The Schemas section is one page per initial, so no page carries thousands of elements: `Gate` → `g`, a name that does
+ * not start with a letter → `other`.
+ */
+export function schemaGroup(name: string): string {
+  const initial = name.charAt(0).toLowerCase()
+  return /^[a-z]$/.test(initial) ? initial : 'other'
+}
+
+/** The groups the schemas fall in, in order (`other` last), with how many schemas each holds. */
+export function schemaGroups(schemas: readonly ApiSchema[]): { readonly group: string; readonly count: number }[] {
+  const counts = new Map<string, number>()
+  for (const schema of schemas) {
+    const group = schemaGroup(schema.name)
+    counts.set(group, (counts.get(group) ?? 0) + 1)
+  }
+  return [...counts]
+    .map(([group, count]) => ({ group, count }))
+    .sort((a, b) => (a.group === 'other' ? 1 : b.group === 'other' ? -1 : a.group.localeCompare(b.group)))
+}
+
+/** The anchor of a component schema on its Schemas page, which every link to that schema targets. */
 export function schemaAnchor(name: string): string {
   return `schema-${new GithubSlugger().slug(name)}`
 }

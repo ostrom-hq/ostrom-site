@@ -87,6 +87,10 @@ describe('routes', () => {
       ['api/approvals', 'api-tag'],
       ['api/other', 'api-tag'],
       ['api/schemas', 'api-schemas'],
+      ['api/schemas/a', 'api-schemas'],
+      ['api/schemas/g', 'api-schemas'],
+      ['api/schemas/n', 'api-schemas'],
+      ['api/schemas/s', 'api-schemas'],
     ])
   })
 
@@ -112,7 +116,7 @@ describe('routes', () => {
       TEST_API_URL,
     )
     const shadowed: DocsSite = { ...readDocsSite(MISSING_CONTENT), api }
-    expect(() => docsRoutes(shadowed)).toThrow('"schemas"')
+    expect(() => docsRoutes(shadowed)).toThrow('"schemas…"')
   })
 
   it('builds page URLs and lists the pages of a folder in reading order', () => {

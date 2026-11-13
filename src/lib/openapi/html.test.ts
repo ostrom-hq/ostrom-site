@@ -17,7 +17,7 @@ import {
   tagDataFile,
   typeText,
 } from './html'
-import type { ApiOperation } from './reference'
+import { schemaGroups, type ApiOperation } from './reference'
 import { resolveSchema, type SchemaNode } from './schema'
 
 const labels = en.docs.api
@@ -65,8 +65,8 @@ describe('typeText', () => {
       ...typeText({ kind: 'link', target: 'Node', name: null, description: null, nullable: false }),
     ])
     expect(container).toHaveTextContent('array of stringstring or integerGateNode')
-    expect(link('Gate')).toBe('/docs/api/schemas/#schema-gate')
-    expect(link('Node')).toBe('/docs/api/schemas/#schema-node')
+    expect(link('Gate')).toBe('/docs/api/schemas/g/#schema-gate')
+    expect(link('Node')).toBe('/docs/api/schemas/n/#schema-node')
   })
 })
 
@@ -174,8 +174,11 @@ describe('the data files', () => {
     if (gates === undefined) throw new Error('the fixture has a tag')
     expect(tagDataFile(gates)).toBe('approvals.json')
     expect(apiDataHref('approvals.json')).toBe('/docs/api-data/approvals.json')
-    expect(apiDataFiles(api)).toEqual([...api.tags.map((tag) => `${tag.slug}.json`), 'schemas.json'])
-    expect(apiDataFiles(null)).toEqual(['schemas.json'])
+    expect(apiDataFiles(api)).toEqual([
+      ...api.tags.map((tag) => `${tag.slug}.json`),
+      ...schemaGroups(api.schemas).map(({ group }) => `schemas-${group}.json`),
+    ])
+    expect(apiDataFiles(null)).toEqual([])
   })
 
   it('hold the HTML of each operation of a tag, and of each schema, by anchor', () => {
@@ -183,13 +186,15 @@ describe('the data files', () => {
     expect(Object.keys(tag)).toEqual(api.tags[0]?.operations.map((entry) => entry.anchor))
     show(tag['requestgate'] ?? '')
     expect(screen.getByText('Seconds to wait')).toBeInTheDocument()
-    const schemas = apiData(api, 'schemas.json', labels, 'Copy')
-    expect(Object.keys(schemas)).toEqual(api.schemas.map((schema) => schema.anchor))
+    const schemas = apiData(api, 'schemas-g.json', labels, 'Copy')
+    expect(Object.keys(schemas)).toEqual(
+      api.schemas.filter((schema) => schema.name.startsWith('G')).map((schema) => schema.anchor),
+    )
     show(schemas['schema-gatestatus'] ?? '')
     // The description is on the page, above the toggle: only the values are in the data.
     expect(screen.queryByText('Where the gate stands')).toBeNull()
     expect(screen.getByText('pending', { selector: 'code' })).toBeInTheDocument()
     expect(apiData(api, 'nope.json', labels, 'Copy')).toEqual({})
-    expect(apiData(null, 'schemas.json', labels, 'Copy')).toEqual({})
+    expect(apiData(null, 'schemas-g.json', labels, 'Copy')).toEqual({})
   })
 })

@@ -73,6 +73,9 @@ describe('the docs route', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Request a gate' })).toBeInTheDocument()
     cleanup()
     await page(['api', 'schemas'])
+    expect(screen.getByRole('link', { name: 'N' })).toHaveAttribute('href', '/docs/api/schemas/n/')
+    cleanup()
+    await page(['api', 'schemas', 'n'])
     expect(screen.getByRole('heading', { level: 2, name: 'Node' })).toBeInTheDocument()
   })
 
@@ -143,11 +146,11 @@ describe('the docs layout and search index', () => {
 })
 
 describe('the API data files', () => {
-  it('are written once by the export: one per tag and one for the schemas, each a map of HTML', async () => {
+  it('are written once by the export: one per tag and one per group of schemas, each a map of HTML', async () => {
     expect(apiDataDynamic).toBe('force-static')
     expect(apiDataParams).toBe(false)
     expect(apiDataFiles()).toContainEqual({ file: 'approvals.json' })
-    expect(apiDataFiles()).toContainEqual({ file: 'schemas.json' })
+    expect(apiDataFiles()).toContainEqual({ file: 'schemas-g.json' })
     const response = await apiData(new Request('http://localhost/docs/api-data/approvals.json'), {
       params: Promise.resolve({ file: 'approvals.json' }),
     })

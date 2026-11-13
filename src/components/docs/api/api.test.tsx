@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-import { render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { en } from '@/i18n/en'
 import { buildApiReference, type ApiOperation, type ApiReference } from '@/lib/openapi/reference'
 import { TEST_API_URL, fixtureSite, linkTarget } from '@/test/docs'
 import {
   ApiMore,
   ApiOverview,
+  ApiSchemasIndex,
   ApiSchemasPage,
   ApiTagPage,
   MethodBadge,
@@ -25,6 +26,12 @@ function operation(anchor: string): ApiOperation {
   const found = api?.tags.flatMap((tag) => tag.operations).find((candidate) => candidate.anchor === anchor)
   if (found === undefined) throw new Error(`no operation ${anchor}`)
   return found
+}
+
+function oddSchema(from: ApiReference): ApiReference['schemas'][number] {
+  const first = from.schemas[0]
+  if (first === undefined) throw new Error('the fixture has schemas')
+  return first
 }
 
 describe('InlineText', () => {
@@ -150,7 +157,13 @@ describe('the API pages', () => {
         },
       ],
     }
-    render(<ApiSchemasPage api={bare} messages={en} />)
+    render(<ApiSchemasPage api={bare} group="g" messages={en} />)
+    cleanup()
+    render(<ApiSchemasPage api={{ ...bare, schemas: [{ ...oddSchema(bare), name: '_x', anchor: 'schema-x' }] }} group="other" messages={en} />)
+    expect(screen.getByRole('heading', { level: 1, name: 'Schemas: Other' })).toBeInTheDocument()
+    cleanup()
+    render(<ApiSchemasPage api={bare} group="g" messages={en} />)
+    expect(screen.queryByRole('heading', { level: 2, name: 'Node' })).toBeNull()
     expect(screen.getByRole('heading', { level: 2, name: 'GateRequest' })).toHaveAttribute(
       'id',
       'schema-gaterequest',
@@ -159,8 +172,18 @@ describe('the API pages', () => {
     expect(within(status).getByText('Where the gate stands')).toBeInTheDocument()
     expect(within(status).getByText(labels.schemaDetails).closest('details')).toHaveAttribute(
       'data-api-data',
-      '/docs/api-data/schemas.json',
+      '/docs/api-data/schemas-g.json',
     )
     expect(within(screen.getByRole('region', { name: 'Bare' })).queryByText(labels.schemaDetails)).toBeNull()
+  })
+
+  it('index the schemas by initial, with how many each page holds', () => {
+    const odd: ApiReference = { ...api, schemas: [...api.schemas, { ...oddSchema(api), name: '_x', anchor: 'schema-x' }] }
+    render(<ApiSchemasIndex api={odd} messages={en} />)
+    expect(screen.getByRole('link', { name: 'G' })).toHaveAttribute('href', '/docs/api/schemas/g/')
+    expect(screen.getByRole('link', { name: en.docs.api.schemasOther })).toHaveAttribute(
+      'href',
+      '/docs/api/schemas/other/',
+    )
   })
 })

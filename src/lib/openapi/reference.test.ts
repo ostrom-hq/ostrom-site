@@ -9,6 +9,8 @@ import {
   isServed,
   readApiReference,
   schemaAnchor,
+  schemaGroup,
+  schemaGroups,
   serverUrl,
   tagTitle,
   type ApiOperation,
@@ -243,5 +245,18 @@ describe('names', () => {
     expect(reference.tags.flatMap((tag) => tag.operations)).toHaveLength(
       served.filter((operation) => isServed(operation)).length,
     )
+  })
+})
+
+describe('the schema groups', () => {
+  it('group a schema by its initial, or as other', () => {
+    expect(schemaGroup('GateRequest')).toBe('g')
+    expect(schemaGroup('_Internal')).toBe('other')
+    const groups = schemaGroups(api?.schemas ?? [])
+    expect(groups.map(({ group }) => group)).toEqual([...new Set(groups.map(({ group }) => group))].sort())
+    expect(groups.length).toBeGreaterThan(1)
+    const other = { ...(api?.schemas[0] as NonNullable<typeof api>['schemas'][number]), name: '_x' }
+    expect(schemaGroups([other, ...(api?.schemas ?? [])]).at(-1)).toEqual({ group: 'other', count: 1 })
+    expect(schemaGroups([other, other, ...(api?.schemas ?? [])]).at(-1)?.count).toBe(2)
   })
 })
