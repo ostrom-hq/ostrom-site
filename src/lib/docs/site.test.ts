@@ -90,7 +90,6 @@ describe('routes', () => {
       ['api/schemas/a', 'api-schemas'],
       ['api/schemas/g', 'api-schemas'],
       ['api/schemas/n', 'api-schemas'],
-      ['api/schemas/s', 'api-schemas'],
     ])
   })
 

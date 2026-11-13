@@ -142,10 +142,10 @@ describe('the API pages', () => {
       schemas: [
         ...api.schemas,
         {
-          name: 'Bare',
-          anchor: 'schema-bare',
+          name: 'GateBare',
+          anchor: 'schema-gatebare',
           node: {
-            name: 'Bare',
+            name: 'GateBare',
             description: null,
             nullable: false,
             kind: 'scalar',
@@ -174,7 +174,7 @@ describe('the API pages', () => {
       'data-api-data',
       '/docs/api-data/schemas-g.json',
     )
-    expect(within(screen.getByRole('region', { name: 'Bare' })).queryByText(labels.schemaDetails)).toBeNull()
+    expect(within(screen.getByRole('region', { name: 'GateBare' })).queryByText(labels.schemaDetails)).toBeNull()
   })
 
   it('index the schemas by initial, with how many each page holds', () => {
