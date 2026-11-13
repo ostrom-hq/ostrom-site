@@ -571,7 +571,7 @@ quickstart shifts its layout while loading (CLS 0.199), a rare miss.
 
 **Ostrom rules**
 
-- **PB-OS1.** Lists every repository with its licence (Apache-2.0 for core and CLI, AGPL-3.0 with `ee/` under the
+- **PB-OS1.** Lists every repository with its licence (Apache-2.0 everywhere, with `ee/` under the
   Ostrom Enterprise License for server, web, app), what it is, and the link. Uses the money and open source sentence
   word for word.
 - **PB-OS2.** Says what the enterprise key unlocks, in one table, so nobody discovers it after installing.
