@@ -519,7 +519,7 @@ export const en = {
   openSource: {
     metaTitle: 'Open source',
     metaDescription:
-      'Ostrom is open source: the core and the CLI under Apache 2.0, the server, console and app under the AGPL, enterprise features behind a key.',
+      'Ostrom is open source: everything under Apache 2.0, except the enterprise features behind a key.',
     eyebrow: 'Open source',
     title: 'Every line of code is public.',
     lead: 'Ostrom is open source, and every line of code is public. Companies pay per active person for our cloud, the enterprise features (unlocked by a key) and support. We never charge for the AI itself.',
@@ -537,24 +537,20 @@ export const en = {
       {
         name: 'ostrom-server',
         what: 'The server: sessions, approvals, receipts, organizations, billing.',
-        license: 'AGPL 3.0, ee/ commercial',
+        license: 'Apache 2.0, ee/ commercial',
       },
-      { name: 'ostrom-web', what: 'The console in the browser.', license: 'AGPL 3.0, ee/ commercial' },
+      { name: 'ostrom-web', what: 'The console in the browser.', license: 'Apache 2.0, ee/ commercial' },
       {
         name: 'ostrom-app',
         what: 'The mobile app, to approve from anywhere.',
-        license: 'AGPL 3.0, ee/ commercial',
+        license: 'Apache 2.0, ee/ commercial',
       },
     ],
     modelTitle: 'How the licenses work',
     model: [
       {
-        title: 'Apache 2.0 for what you embed',
-        body: 'The core and the CLI can go anywhere, inside your own tools too, with no obligation beyond the notice.',
-      },
-      {
-        title: 'AGPL for what runs as a service',
-        body: 'Run the server, console and app for your company as much as you like. If you offer a modified version to others over a network, share your changes.',
+        title: 'Apache 2.0 for everything else',
+        body: 'The core, the CLI, the server, the console, the app and the Helm chart can go anywhere: run them for your company, embed them in your own tools, modify them, with no obligation beyond the notice.',
       },
       {
         title: 'ee/ for the enterprise features',
