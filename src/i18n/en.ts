@@ -243,7 +243,7 @@ export const en = {
         cta: 'Start free',
         features: [
           'Up to 5 people',
-          '5 cloud agents at a time',
+          'Unlimited cloud agents at a time',
           '300 agent hours a month',
           'Rules, approvals and signed receipts',
         ],
@@ -255,7 +255,6 @@ export const en = {
         features: [
           'Everything in Free, plus…',
           'As many people as you need',
-          '5 cloud agents per paid person',
           '100 agent hours per paid person, pooled',
         ],
       },
@@ -277,7 +276,7 @@ export const en = {
         features: [
           'Everything in Business, plus…',
           'Self-hosted, unlocked by an enterprise key',
-          'No limit on agents or hours',
+          'No limit on hours',
           'Contract, invoicing and support on your terms',
         ],
       },
@@ -302,7 +301,7 @@ export const en = {
             {
               label: 'Cloud agents at a time',
               detail: 'Agents your team runs in the cloud at the same time.',
-              values: ['5', '5 per paid person', '5 per paid person, 10 minimum', 'Unlimited'],
+              values: ['Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
             },
             {
               label: 'Agent hours a month',
