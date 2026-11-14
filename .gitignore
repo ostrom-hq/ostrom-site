@@ -11,3 +11,5 @@ next-env.d.ts
 .env*.local
 .metadata_never_index
 lighthouse-reports
+# The API document, fetched from @ostrom-hq/openapi by `pnpm fetch:openapi`
+content/api/openapi.json

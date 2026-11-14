@@ -9,12 +9,14 @@ import {
   isServed,
   readApiReference,
   schemaAnchor,
+  schemaGroup,
+  schemaGroups,
   serverUrl,
   tagTitle,
   type ApiOperation,
 } from './reference'
 
-const file = join(FIXTURE_CONTENT, 'api', 'openapi.yaml')
+const file = join(FIXTURE_CONTENT, 'api', 'openapi.json')
 const api = readApiReference(file, TEST_API_URL)
 
 function operation(id: string): ApiOperation {
@@ -220,7 +222,7 @@ describe('a minimal description', () => {
   })
 
   it('is absent when the snapshot is not there', () => {
-    expect(readApiReference(join(MISSING_CONTENT, 'openapi.yaml'), TEST_API_URL)).toBeNull()
+    expect(readApiReference(join(MISSING_CONTENT, 'openapi.json'), TEST_API_URL)).toBeNull()
   })
 })
 
@@ -233,8 +235,8 @@ describe('names', () => {
     expect(serverUrl({ url: 'https://{a}' })).toBe('https://{a}')
   })
 
-  it('parses the snapshot of the real contract, and lists only what the server serves', () => {
-    const real = parseOpenApi(readFileSync(join(process.cwd(), 'content', 'api', 'openapi.yaml'), 'utf8'))
+  it('parses the real API document, and lists only what the server serves', () => {
+    const real = parseOpenApi(readFileSync(join(process.cwd(), 'content', 'api', 'openapi.json'), 'utf8'))
     expect(real.openapi).toMatch(/^3\.1\./)
     const served = Object.values(real.paths).flatMap((item) =>
       httpMethods.flatMap((method) => (item[method] === undefined ? [] : [item[method]])),
@@ -243,5 +245,20 @@ describe('names', () => {
     expect(reference.tags.flatMap((tag) => tag.operations)).toHaveLength(
       served.filter((operation) => isServed(operation)).length,
     )
+  })
+})
+
+describe('the schema groups', () => {
+  it('group a schema by its initial, or as other', () => {
+    expect(schemaGroup('GateRequest')).toBe('g')
+    expect(schemaGroup('_Internal')).toBe('other')
+    const groups = schemaGroups(api?.schemas ?? [])
+    expect(groups.map(({ group }) => group)).toEqual([...new Set(groups.map(({ group }) => group))].sort())
+    expect(groups.length).toBeGreaterThan(1)
+    const first = api?.schemas[0]
+    if (first === undefined) throw new Error('the fixture has schemas')
+    const other = { ...first, name: '_x' }
+    expect(schemaGroups([other, ...(api?.schemas ?? [])]).at(-1)).toEqual({ group: 'other', count: 1 })
+    expect(schemaGroups([other, other, ...(api?.schemas ?? [])]).at(-1)?.count).toBe(2)
   })
 })

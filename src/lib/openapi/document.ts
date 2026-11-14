@@ -173,7 +173,7 @@ export function parseOpenApi(text: string): OpenApiDocument {
   const parsed = openApiDocument.safeParse(parseYaml(text))
   if (!parsed.success)
     throw new Error(
-      `api/openapi.yaml is not a description the reference can render:\n${z.prettifyError(parsed.error)}`,
+      `api/openapi.json is not a description the reference can render:\n${z.prettifyError(parsed.error)}`,
     )
   return parsed.data
 }

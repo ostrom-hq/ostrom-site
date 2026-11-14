@@ -24,6 +24,9 @@ jobs:
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: read # @ostrom-hq/openapi, the API document
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { persist-credentials: false }
@@ -33,6 +36,12 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version-file: .nvmrc, package-manager-cache: false }
       - run: pnpm install --frozen-lockfile
+      # The API document the reference (/docs/api/) is built from: @ostrom-hq/openapi at the version package.json pins,
+      # from GitHub Packages (ostrom-core docs/decisions/0001). Never committed; the image build copies it.
+      - name: The API document (@ostrom-hq/openapi)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/fetch-openapi.ts
       # What ships is the static export, but a vulnerable runtime dependency (react, next, shiki, posthog-js...) is
       # known the day it is published: the production tree is audited at every run. Dev tools (lhci, eslint) are not.
       - run: .github/scripts/run.sh audit pnpm audit --prod --audit-level high
@@ -123,7 +132,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-      packages: write
+      packages: write # the image, and reading @ostrom-hq/openapi
     env:
       IMAGE: ghcr.io/ostrom-hq/ostrom-site
     steps:
@@ -131,6 +140,14 @@ jobs:
       # only the nginx layer differs). No cache in this job: it publishes and signs (zizmor cache-poisoning).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version-file: .nvmrc, package-manager-cache: false }
+      # The API document the reference (/docs/api/) is built from: @ostrom-hq/openapi at the version package.json pins,
+      # from GitHub Packages (ostrom-core docs/decisions/0001). Never committed; the image build copies it.
+      - name: The API document (@ostrom-hq/openapi)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/fetch-openapi.ts
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
         with: { cache-image: false }
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1

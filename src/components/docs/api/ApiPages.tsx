@@ -3,17 +3,17 @@ import Link from 'next/link'
 import type { Messages } from '@/i18n'
 import { codeBlockHtml } from '@/lib/docs/code'
 import type { TocItem } from '@/lib/docs/markdown'
-import { apiTagHref } from '@/lib/docs/site'
+import { apiTagHref, schemasGroupHref } from '@/lib/docs/site'
 import { fill } from '@/lib/docs/text'
 import {
-  SCHEMAS_DATA,
+  schemasDataFile,
   apiDataHref,
   schemaDetails,
   schemaDetailsHtml,
   tagDataFile,
   type ApiLabels,
 } from '@/lib/openapi/html'
-import { isPublished, type ApiOperation, type ApiReference, type ApiTag } from '@/lib/openapi/reference'
+import { isPublished, schemaGroup, schemaGroups, type ApiOperation, type ApiReference, type ApiTag } from '@/lib/openapi/reference'
 import { DocArticle } from '../DocArticle'
 import { ApiDataListener } from './ApiDataListener'
 import { InlineText, splitSummary } from './InlineText'
@@ -226,8 +226,8 @@ export function ApiTagPage({
   )
 }
 
-/** `/docs/api/schemas/`: every component schema by name; its fields open on demand. */
-export function ApiSchemasPage({
+/** `/docs/api/schemas/`: the groups of schemas, one page per initial. */
+export function ApiSchemasIndex({
   api,
   messages,
 }: {
@@ -235,7 +235,6 @@ export function ApiSchemasPage({
   readonly messages: Messages
 }): React.JSX.Element {
   const text = messages.docs.api
-  const src = apiDataHref(SCHEMAS_DATA)
   return (
     <DocArticle
       title={text.schemas}
@@ -243,21 +242,52 @@ export function ApiSchemasPage({
       status="available"
       labels={messages.docs.status}
     >
-      {api.schemas.map((schema) => (
-        <section key={schema.name} className="api-schema" aria-labelledby={schema.anchor}>
-          <h2 id={schema.anchor}>
-            <a href={`#${schema.anchor}`}>{schema.name}</a>
-          </h2>
-          {schema.node.description === null ? null : (
-            <p className="api-field__description">
-              <InlineText text={schema.node.description} />
-            </p>
-          )}
-          {schemaDetails({ ...schema.node, description: null }, text, false).length === 0 ? null : (
-            <ApiMore src={src} id={schema.anchor} summary={text.schemaDetails} />
-          )}
-        </section>
-      ))}
+      <ul>
+        {schemaGroups(api.schemas).map(({ group, count }) => (
+          <li key={group}>
+            <Link href={schemasGroupHref(group)} prefetch={false}>
+              {group === 'other' ? text.schemasOther : group.toUpperCase()}
+            </Link>{' '}
+            ({count})
+          </li>
+        ))}
+      </ul>
+    </DocArticle>
+  )
+}
+
+/** `/docs/api/schemas/<initial>/`: the component schemas of one initial by name; their fields open on demand. */
+export function ApiSchemasPage({
+  api,
+  group,
+  messages,
+}: {
+  readonly api: ApiReference
+  readonly group: string
+  readonly messages: Messages
+}): React.JSX.Element {
+  const text = messages.docs.api
+  const src = apiDataHref(schemasDataFile(group))
+  const title = `${text.schemas}: ${group === 'other' ? text.schemasOther : group.toUpperCase()}`
+  return (
+    <DocArticle title={title} description={text.schemasDescription} status="available" labels={messages.docs.status}>
+      {api.schemas
+        .filter((schema) => schemaGroup(schema.name) === group)
+        .map((schema) => (
+          <section key={schema.name} className="api-schema" aria-labelledby={schema.anchor}>
+            <h2 id={schema.anchor}>
+              <a href={`#${schema.anchor}`}>{schema.name}</a>
+            </h2>
+            {schema.node.description === null ? null : (
+              <p className="api-field__description">
+                <InlineText text={schema.node.description} />
+              </p>
+            )}
+            {schemaDetails({ ...schema.node, description: null }, text, false).length === 0 ? null : (
+              <ApiMore src={src} id={schema.anchor} summary={text.schemaDetails} />
+            )}
+          </section>
+        ))}
       <ApiDataListener labels={listenerLabels(text)} />
     </DocArticle>
   )

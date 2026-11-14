@@ -51,10 +51,9 @@ jobs:
         run: npm test
       - name: Frontmatter, code blocks, MDX-safe prose, links, navigation
         run: npm run lint:docs
-      # The API reference (/docs/api/) is built from content/api/openapi.yaml: it must be the contract at CORE_REF byte for
-      # byte (scripts/sync-openapi.ts --ref CORE_REF). Until ostrom-core is public, reading it needs the org's read-only
-      # deploy key, which pull requests from forks do not get.
-      - name: Checkout ostrom-core (the API contract)
+      # ostrom-core at CORE_REF, for docs-truth below (tools/docs-truth, served-routes.txt, telemetry). Reading it needs
+      # the org's read-only deploy key, which pull requests from forks do not get.
+      - name: Checkout ostrom-core (docs-truth)
         if: env.CORE_KEY_SET == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -64,9 +63,6 @@ jobs:
           ssh-key: ${{ secrets.DEPLOY_KEY_CORE }}
           path: .ostrom/core
           persist-credentials: false
-      - name: The API reference is the contract at CORE_REF
-        if: env.CORE_KEY_SET == 'true'
-        run: node bin/docs-tools.mjs api-snapshot ../.ostrom/core/api/openapi.yaml ../content/api/openapi.yaml
       # A block marked requires="ostrom" runs against the real binary, built from ostrom-cli main by the bench's
       # action (cached by commit). Built only when a page needs it.
       # The real binary is built for every run: docs-truth checks each `ostrom …` the pages cite against its help.

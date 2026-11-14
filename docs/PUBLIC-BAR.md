@@ -497,7 +497,7 @@ quickstart shifts its layout while loading (CLS 0.199), a rare miss.
 
 **Ostrom rules**
 
-- **PB-R1.** The API reference is generated from `ostrom-core/api/openapi.yaml` (fumadocs-openapi), never written by
+- **PB-R1.** The API reference is generated from the server's OpenAPI document (`@ostrom-hq/openapi`), never written by
   hand. One page per operation: method and path, authentication and scope, parameters with types, request sample in
   curl, TypeScript and Kotlin, response sample, error codes with their meaning.
 - **PB-R2.** The CLI reference is generated from the CLI's own command definitions (a `--help` dump or a JSON
