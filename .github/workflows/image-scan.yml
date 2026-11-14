@@ -25,7 +25,6 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-      packages: read
     strategy:
       fail-fast: false
       matrix:
@@ -42,13 +41,15 @@ jobs:
       - name: Is the tag published?
         id: tag
         env:
-          GH_TOKEN: ${{ github.token }}
           TAG: ${{ matrix.tag }}
         run: |
-          tags=$(gh api --paginate /orgs/ostrom-hq/packages/container/ostrom-site/versions \
-            --jq '.[].metadata.container.tags[]')
-          if grep -qx "$TAG" <<<"$tags"; then
+          # Docker Hub's public API: 200 when the tag exists, 404 when it does not; anything else fails the step.
+          code=$(curl -sS -o /dev/null -w '%{http_code}' "https://hub.docker.com/v2/repositories/ostromhq/ostrom-site/tags/${TAG}")
+          if [ "$code" = 200 ]; then
             echo "published=1" >> "$GITHUB_OUTPUT"
+          elif [ "$code" != 404 ]; then
+            echo "::error title=image-scan::Docker Hub answered $code for the tag $TAG."
+            exit 1
           elif [ "$TAG" = launched ]; then
             echo "published=0" >> "$GITHUB_OUTPUT"
             echo "::notice title=image-scan::launched is not published yet: nothing to scan."
@@ -59,9 +60,7 @@ jobs:
       - name: Published image
         if: steps.tag.outputs.published == '1'
         env:
-          IMAGE: ghcr.io/ostrom-hq/ostrom-site:${{ matrix.tag }}
+          IMAGE: docker.io/ostromhq/ostrom-site:${{ matrix.tag }}
           PLATFORM: ${{ matrix.platform }}
           TITLE: image-scan-${{ matrix.tag }}-${{ matrix.platform }}
-          TRIVY_USERNAME: ${{ github.actor }}
-          TRIVY_PASSWORD: ${{ github.token }}
         run: .github/scripts/run.sh "$TITLE" .github/scripts/scan_image.sh "$IMAGE" "$PLATFORM"
