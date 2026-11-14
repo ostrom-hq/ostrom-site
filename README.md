@@ -87,7 +87,7 @@ pnpm exec lhci autorun --config=lighthouserc.cjs   # every page of the sitemap, 
 ```sh
 pnpm dev                 # http://localhost:3000, with hot reload
 pnpm build && pnpm serve # the static export, served like nginx does
-docker run -p 8080:8080 ghcr.io/ostrom-hq/ostrom-site:main
+docker run -p 8080:8080 docker.io/ostromhq/ostrom-site:main
 ```
 
 Build-time configuration (public URLs only, no secret): `NEXT_PUBLIC_SITE_URL` (default `https://ostrom.run`),
@@ -108,7 +108,7 @@ mark (`e2e/test.ts`).
 
 ## Image
 
-`main` publishes `ghcr.io/ostrom-hq/ostrom-site:<sha>` and `:main`: the exact image Playwright and Lighthouse tested.
+`main` publishes `docker.io/ostromhq/ostrom-site:<sha>` and `:main`: the exact image Playwright and Lighthouse tested.
 It listens on port 8080 as an unprivileged user and answers `GET /healthz`. The same source built with
 `NEXT_PUBLIC_LAUNCHED=1` is published as `:launched-<sha>` and `:launched`, for the day of the launch: Lighthouse
 audits that build (on localhost URLs), and the published one passes a smoke test (health, indexable, repository
