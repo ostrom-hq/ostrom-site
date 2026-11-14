@@ -1,9 +1,45 @@
 ---
 title: Install the CLI
-description: "Install the ostrom command on macOS, Linux and Windows."
-status: coming-soon
+description: "Install the ostrom command on macOS, Linux and Windows, check its signature, and keep it up to date."
+status: partial
 ---
 
-Coming soon. The `ostrom` command is a single native binary for macOS (Apple silicon), Linux (x64 and arm64) and Windows (x64). Install steps appear here with the first release.
+The `ostrom` command is a single native binary for macOS (Apple silicon), Linux (x64 and arm64) and Windows (x64). It needs no runtime and no administrator rights. The first public release is coming soon: the commands below work once it is out.
 
-This page is written from the code that ships, never ahead of it. Until then, the [introduction](/docs#what-works-today) lists what you can use today.
+## Install
+
+```sh notest="installs software on your machine"
+curl -fsSL https://ostrom.run/install.sh | sh           # Linux, macOS (Apple silicon)
+irm https://ostrom.run/install.ps1 | iex                # Windows (PowerShell)
+brew install ostrom-hq/tap/ostrom                       # Homebrew
+scoop bucket add ostrom https://github.com/ostrom-hq/scoop-bucket; scoop install ostrom
+```
+
+The scripts put the binary in `~/.ostrom/bin` (`%USERPROFILE%\.ostrom\bin` on Windows) and add it to your `PATH`. Set `OSTROM_VERSION` to install a given version, `OSTROM_INSTALL_DIR` to choose the folder, `OSTROM_NO_MODIFY_PATH=1` to leave your shell profile alone.
+
+## The installer checks the signature, always
+
+Before it unpacks anything, the installer checks the signature of the release's `SHA256SUMS` against a key pinned in the script (with `cosign` when it is installed, else with `openssl` on Linux and macOS, or .NET on Windows), then the SHA-256 of the archive. With neither `cosign` nor `openssl`, `install.sh` installs nothing and tells you to install one. **There is no setting that skips the check.**
+
+## Update
+
+```sh notest="changes the installed binary"
+ostrom update --check      # is there a newer release? (--json prints one line of data)
+ostrom update              # install it
+ostrom update --rollback   # go back to the version kept by the last update
+```
+
+`ostrom update` reads the release's `latest.json`, checks its Ed25519 signature against the keys compiled into the binary, then the archive's size and SHA-256 against that signed manifest, and only then swaps the binary. It never goes below the release's published version floor, never runs inside an agent's session, and leaves a Homebrew or Scoop install to its package manager.
+
+After a command, `ostrom` tells you once a day on stderr when a newer release exists. Turn that off for this device with `ostrom update --notifications off` (`on` and `status` too), or in one process, such as a CI job, with any non-empty `OSTROM_DISABLE_AUTOUPDATE`.
+
+## Check a release by hand
+
+A release downloaded by hand can be verified offline, with no login and no server:
+
+```sh notest="needs files downloaded from a release"
+ostrom verify-release --manifest latest.json --signature latest.json.sig \
+  --archive ostrom-1.0.0-linux-x64.tar.gz --target linux-x64
+```
+
+It names the key that signed the manifest. Several keys can be trusted at once, so the signing key can be rotated without stranding anyone. The full procedure, the public keys and `cosign` commands are in [the release notes of the repository](https://github.com/ostrom-hq/ostrom-cli/blob/main/docs/RELEASES.md).
