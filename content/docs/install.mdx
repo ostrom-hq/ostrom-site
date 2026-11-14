@@ -8,7 +8,7 @@ The `ostrom` command is a single native binary for macOS (Apple silicon), Linux 
 
 ## Install
 
-```sh
+```sh notest="installs software on your machine"
 curl -fsSL https://ostrom.run/install.sh | sh           # Linux, macOS (Apple silicon)
 irm https://ostrom.run/install.ps1 | iex                # Windows (PowerShell)
 brew install ostrom-hq/tap/ostrom                       # Homebrew
@@ -23,7 +23,7 @@ Before it unpacks anything, the installer checks the signature of the release's 
 
 ## Update
 
-```sh
+```sh notest="changes the installed binary"
 ostrom update --check      # is there a newer release? (--json prints one line of data)
 ostrom update              # install it
 ostrom update --rollback   # go back to the version kept by the last update
@@ -37,7 +37,7 @@ After a command, `ostrom` tells you once a day on stderr when a newer release ex
 
 A release downloaded by hand can be verified offline, with no login and no server:
 
-```sh
+```sh notest="needs files downloaded from a release"
 ostrom verify-release --manifest latest.json --signature latest.json.sig \
   --archive ostrom-1.0.0-linux-x64.tar.gz --target linux-x64
 ```
