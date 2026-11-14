@@ -245,7 +245,7 @@ export function ApiSchemasIndex({
       <ul>
         {schemaGroups(api.schemas).map(({ group, count }) => (
           <li key={group}>
-            <Link href={schemasGroupHref(group)}>{group === 'other' ? text.schemasOther : group.toUpperCase()}</Link> (
+            <Link href={schemasGroupHref(group)} prefetch={false}>{group === 'other' ? text.schemasOther : group.toUpperCase()}</Link> (
             {count})
           </li>
         ))}
