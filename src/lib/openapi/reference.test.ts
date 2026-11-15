@@ -208,7 +208,12 @@ describe('a minimal description', () => {
         openapi: '3.1.0',
         info: { title: 'Min', version: '0' },
         paths: {
-          '/x': { get: { responses: { '200': { $ref: '#/components/responses/Error' } }, 'x-ostrom-status': 'pending' } },
+          '/x': {
+            get: {
+              responses: { '200': { $ref: '#/components/responses/Error' } },
+              'x-ostrom-status': 'pending',
+            },
+          },
         },
         components: {
           responses: {
@@ -232,9 +237,12 @@ describe('a minimal description', () => {
     } as const
     expect(isGenerated(generated)).toBe(true)
     expect(buildApiReference(generated, TEST_API_URL).tags.flatMap((tag) => tag.operations)).toHaveLength(2)
-    expect(isGenerated({ ...generated, paths: { '/x': { get: { responses: {}, 'x-ostrom-server': 'planned' } } } })).toBe(
-      false,
-    )
+    expect(
+      isGenerated({
+        ...generated,
+        paths: { '/x': { get: { responses: {}, 'x-ostrom-server': 'planned' } } },
+      }),
+    ).toBe(false)
   })
 
   it('is absent when the snapshot is not there', () => {
