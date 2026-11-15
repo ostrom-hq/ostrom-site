@@ -23,9 +23,9 @@ The scripts make a managed installation for your user, through `ostrom install`,
 | macOS | `~/Library/Application Support/Ostrom` (or `$XDG_DATA_HOME/Ostrom`) |
 | Windows | `%LOCALAPPDATA%\Ostrom` |
 
-It holds a launcher, `bin/ostrom`, that never changes, and one folder per installed version; an update adds a folder and switches to it in one step, so an interrupted update leaves the previous version in place. The launcher is linked as `~/.local/bin/ostrom` on Linux and macOS (if that folder is not on your `PATH`, the installer prints the line to add to your shell profile; it never edits one), or its folder is added to your user `PATH` on Windows. Nothing needs `sudo` or administrator rights.
+It holds a launcher, `bin/ostrom`, that never changes, and one folder per installed version; an update adds a folder and switches to it in one step, so an interrupted update leaves the previous version in place. The launcher is linked as `~/.local/bin/ostrom` on Linux and macOS (if that folder is not on your `PATH`, the installer prints the line to add to your shell profile; the managed installation never edits one), or its folder is added to your user `PATH` on Windows. Nothing needs `sudo` or administrator rights.
 
-Set `OSTROM_VERSION` to install a given version, `OSTROM_INSTALL_ROOT` to choose the installation's folder (an absolute path), `OSTROM_NO_MODIFY_PATH=1` to leave `PATH` alone. `OSTROM_INSTALL_DIR` installs the single binary in that folder instead (and adds it to your shell profile unless `OSTROM_NO_MODIFY_PATH=1`).
+Set `OSTROM_VERSION` to install a given version, `OSTROM_INSTALL_ROOT` to choose the installation's folder (an absolute path), `OSTROM_NO_MODIFY_PATH=1` to leave `PATH` alone (no `~/.local/bin/ostrom` link, no user `PATH` change; run the launcher by its full path). `OSTROM_INSTALL_DIR` installs the single binary in that folder instead (and adds it to your shell profile unless `OSTROM_NO_MODIFY_PATH=1`), without versioned folders. A binary left in `~/.ostrom/bin` by an earlier installer is not removed: the installer names it, remove it and its `PATH` line so that `ostrom` runs the managed installation.
 
 ## The installer checks the signature, always
 
