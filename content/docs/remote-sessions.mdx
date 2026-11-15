@@ -59,7 +59,8 @@ ostrom remote resume SESSION --detach
 - `ostrom remote list` lists the remote sessions this device hosts: id, state, name, agent, online or offline, and the
   directory's full path from this device's record. `--all-devices` adds the ones of your other devices, `--json`
   prints them as JSON. Records of terminated sessions are dropped.
-- `ostrom remote stop SESSION` pauses a remote session from any of your devices. The agent finishes its turn, the host
+- `ostrom remote stop SESSION` pauses a remote session from any of your devices (`ostrom remote list --all-devices`
+  finds its id there). The agent finishes its turn, the host
   checkpoints and exits, and the directory is untouched.
 - `ostrom remote resume SESSION` hosts a session of this device again: paused, woken by a message, or left by a lost
   connection. It does nothing for a session already online. A session the daemon started goes back to the daemon
@@ -76,7 +77,8 @@ configuration, never on the server.
   its host hosts it again.
 - **A lost host.** A host silent for 90 seconds is lost: the session is paused with the failure `host_offline`, and
   resumes from its last checkpoint.
-- **Idle pause.** It follows the organization's remote idle timeout setting.
+- **Idle pause.** It follows the organization's cloud setting `remoteIdleTimeoutMinutes`: 60 minutes by default, 0
+  to 1440.
 - **No transfer, no deletion of files.** A remote session is never transferred to another member, and its directory
   is never deleted: deleting the session ends its host and keeps the files. Removing the device from your account
   ends its remote sessions.
@@ -125,8 +127,8 @@ account of `ostrom login`, never a separate identity), and the server sees the d
   agent, model and first message come from the session.
 - **Supervision.** A host that exits while its session should still run is started again. A host that stops answering
   without exiting is checked on the server every 30 seconds: once the server paused its session as `host_offline`, the
-  daemon resumes it. Both count towards at most three starts in ten minutes; after that the session is left paused, or
-  refused (`host_failed`) when it is still waiting for a host.
+  daemon resumes it. Both count towards at most three starts of that session in ten minutes; after that the session is
+  left paused, or refused (`host_failed`) when it is still waiting for a host.
 - **Stop and restart.** On stop, the daemon stops polling, asks the server to pause every session it hosts (each agent
   finishes its turn, then its host checkpoints and exits), waits up to nine minutes, then says it is offline.
   `daemon-sessions.json` remembers the sessions it hosted and the ones it paused: the next daemon resumes them by
@@ -152,12 +154,13 @@ ostrom remote start ~/git/app --resume CONVERSATION_ID
 ```
 
 - `ostrom remote resumable [DIRECTORY]` prints the same list, read on this device with the daemon's code (nothing is
-  sent to the server), the most recent first. `--limit N` and `--before` (an ISO 8601 time, the next page's start) page through it, `--json` prints the page.
-  When this device cannot continue one, it says why: the server does not support it, the daemon is offline or too
-  old, or the platform hosts no remote session.
-- `ostrom remote start DIRECTORY --resume ID` (Claude Code only) checks the id against the folder, then always hands
-  the session to the daemon. The host starts Claude Code with `--resume ID --fork-session` the first time only, so the
-  device's conversation stays as it was and the session continues its own copy.
+  sent to the server), the most recent first. `--limit N` and `--before` (an ISO 8601 time, the next page's start) page
+  through it, `--json` prints the page. When this device cannot continue one, it says why: the server does not support
+  it, the daemon is offline or too old, or the platform hosts no remote session.
+- `ostrom remote start DIRECTORY --resume ID` (Claude Code only) checks the id against the folder, then always hands the
+  session to the daemon: with the daemon offline, too old or on a platform that hosts no remote session, it refuses with
+  the reason instead of hosting the session itself. The host starts Claude Code with `--resume ID --fork-session` the
+  first time only, so the device's conversation stays as it was and the session continues its own copy.
 
 ## Local sessions
 
