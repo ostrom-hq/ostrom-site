@@ -1,0 +1,37 @@
+---
+title: Install the desktop app
+description: "Open Ostrom Desktop from the command line with ostrom ui, or download its installer for macOS, Windows and Linux."
+status: partial
+---
+
+Ostrom Desktop follows your team's agent sessions and drives them from a window. It runs on macOS (Apple silicon), Windows (x64) and Linux (x64 and arm64), and installs for your user alone, with no administrator rights. The first public release is coming soon: the commands and links below work once it is out.
+
+## From the command line
+
+```sh notest="installs software on your machine"
+ostrom ui              # open the app, installing the version of this CLI first if needed
+ostrom ui --yes        # install or update without asking
+ostrom ui --no-launch  # install or update, without opening it
+```
+
+`ostrom ui` installs the desktop app of the same version as your CLI. It downloads the release's `desktop-manifest.json`, checks its Ed25519 signature against the keys compiled into the CLI (the keys `ostrom verify-release` uses), then downloads the package of your system and checks its exact length and SHA-256 before anything opens it. On macOS it also checks that the app carries Ostrom's Developer ID signature. A failed check leaves the app you already have in place. An app of your CLI's version or newer is opened as it is; an older one is updated after a question (or with `--yes`).
+
+| System | Where the app goes |
+| --- | --- |
+| macOS | `~/Applications/Ostrom.app` |
+| Windows | `%LOCALAPPDATA%\Ostrom App` |
+| Linux | `~/.local/share/ostrom-desktop` (or `$XDG_DATA_HOME/ostrom-desktop`), with a menu entry |
+
+`ostrom ui --bundle DIR` installs from a folder that holds `desktop-manifest.json`, `desktop-manifest.json.sig` and the package, for a machine with no network.
+
+## Download an installer
+
+Every [release of the app](https://github.com/ostrom-hq/ostrom-app/releases/latest) lists its files; their names carry the version and the system.
+
+| System | Files (`ostrom-desktop-<version>-<system>.*`) |
+| --- | --- |
+| macOS (Apple silicon) | `.dmg` disk image, `.zip` |
+| Windows (x64) | `.msi`, installed for your user |
+| Linux (x64, arm64) | `.deb`, `.rpm`, `.tar.gz` |
+
+The macOS app is signed with a Developer ID and notarized. The Windows installer is not signed by a paid service, so SmartScreen warns on first launch (**More info**, then **Run anyway**). Each release lists the SHA-256 of every file in `SHA256SUMS-desktop`.
