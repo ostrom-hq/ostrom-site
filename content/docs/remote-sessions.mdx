@@ -1,0 +1,170 @@
+---
+title: Remote sessions and the device daemon
+description: "Run an agent session on your own computer, and start it from any of your devices."
+status: available
+---
+
+A remote session is a session that runs on one of your own devices instead of in a cloud pod. It uses the same runner
+as a cloud session (registration, heartbeats, drain and checkpoint, the agent's transcript, messages from the console
+and the app), under your own sign-in, in a directory of that device. Your organization follows it and talks to it
+like any other session, and the files never leave the device.
+
+You start one in two ways:
+
+- **From the device itself**, with `ostrom remote start`.
+- **From any other client** (the console, the app, another computer), on a device whose daemon is online. The daemon
+  is part of the local service (`ostrom service`): it hosts the session in one of the folders you allowed with
+  `ostrom folders`.
+
+The server announces remote sessions with the capability `runners.cloud.remote.v1`, sessions started through a
+device's daemon with `runners.cloud.remote.daemon.v1`, and continuing a conversation of the device with
+`runners.cloud.remote.resume.v1`.
+
+## Start a remote session on this device
+
+```sh notest="needs a signed-in device and an agent"
+ostrom remote start ~/git/app
+```
+
+`ostrom remote start [DIRECTORY]` creates the session in DIRECTORY (the current one by default) and hosts it. The file
+system's root, your home directory and system directories are refused. Options:
+
+- `--agent claude|codex` (Claude Code by default), `--name`, `--model`, `--effort`, `--message` for the first
+  message.
+- `--bypass-permissions` lets the agent act without asking: Claude Code skips its permission checks and Codex leaves
+  its sandbox. Without it, Claude Code's permission requests come to your organization's clients, and Codex only
+  writes inside the directory. The choice is made once, when the session is created.
+- `--detach` starts the host in the background and returns once it is online. The host is
+  `ostrom remote host SESSION` in a session of its own, so closing the terminal or pressing Ctrl-C there never reaches
+  it. Its output, which never holds a prompt, an answer or a credential, goes to `remote/SESSION.log` beside the CLI's
+  configuration (emptied past 1 MiB).
+- `--json` prints the created session.
+- `--org` and `--server` choose the organization and the server, as for the other commands.
+
+In the foreground (the default), Ctrl-C pauses the session: the agent finishes its turn, the host checkpoints and
+exits.
+
+When this device's daemon is online, `ostrom remote start` goes through it: the directory becomes one of the device's
+folders under the same rules, and the daemon hosts the session. Without an online daemon, the command hosts the session
+itself.
+
+## Follow, pause and resume
+
+```sh notest="needs a signed-in device with remote sessions"
+ostrom remote list
+ostrom remote stop SESSION
+ostrom remote resume SESSION --detach
+```
+
+- `ostrom remote list` lists the remote sessions this device hosts: id, state, name, agent, online or offline, and the
+  directory's full path from this device's record. `--all-devices` adds the ones of your other devices, `--json`
+  prints them as JSON. Records of terminated sessions are dropped.
+- `ostrom remote stop SESSION` pauses a remote session from any of your devices (`ostrom remote list --all-devices`
+  finds its id there). The agent finishes its turn, the host
+  checkpoints and exits, and the directory is untouched.
+- `ostrom remote resume SESSION` hosts a session of this device again: paused, woken by a message, or left by a lost
+  connection. It does nothing for a session already online. A session the daemon started goes back to the daemon
+  when it is online. `--detach` runs the host in the background.
+- `ostrom remote host SESSION` is the host itself, in the foreground.
+
+A remote session runs only on the device it was started on: resuming it from another device is refused. The
+directory's full path, the agent's conversation id and the host's log stay in `remote/` beside the CLI's
+configuration, never on the server.
+
+### What changes without a pod
+
+- **Pause.** A pause drains the turn and checkpoints as in a pod, then the host exits; the session stays paused until
+  its host hosts it again.
+- **A lost host.** A host silent for 90 seconds is lost: the session is paused with the failure `host_offline`, and
+  resumes from its last checkpoint.
+- **Idle pause.** It follows the organization's cloud setting `remoteIdleTimeoutMinutes`: 60 minutes by default, 0
+  to 1440.
+- **No transfer, no deletion of files.** A remote session is never transferred to another member, and its directory
+  is never deleted: deleting the session ends its host and keeps the files. Removing the device from your account
+  ends its remote sessions.
+
+## Allow folders for the daemon
+
+```sh notest="writes the device's folders"
+ostrom folders add ~/git/app
+ostrom folders list
+ostrom folders remove ID_OR_PATH
+```
+
+The folders are where your other devices and apps may start sessions on this device. They are kept in
+`folders.json` beside the CLI's configuration, private to you, each with a stable random id.
+
+- `ostrom folders add PATH` resolves `..` and symbolic links first, and refuses the file system's root, your home
+  directory, a directory that contains it and system directories. It also saves the terminal's `PATH` for the agents:
+  a service manager starts the daemon with a minimal one, so the daemon's hosts search the saved `PATH`, the
+  service's, then the usual install places of `claude` and `codex` (`~/.local/bin`, `~/.claude/local`,
+  `~/.npm-global/bin`, `~/.bun/bin`, `~/.volta/bin`, `/opt/homebrew/bin`, `/usr/local/bin`) when they exist.
+- `ostrom folders list` prints each folder's id and path, and says when a path no longer exists.
+- `ostrom folders remove` takes the folder's id or its path.
+
+The daemon publishes the folders (id, last segment, and a `~/...` label: never a path the server relies on) when it
+starts and whenever the file changes; `add` and `remove` also publish at once when you are signed in. Only you see
+them: another member, an administrator included, cannot list them.
+
+`ostrom remote folders [--limit N] [--json]` lists the folders this device already knows, newest first: the
+directories of its remote sessions, then the folders its daemon offers, each once, only the ones that still exist and
+are allowed. It reads this device's files and never calls the server.
+
+## The device daemon
+
+The local service (`ostrom service`) is also the device's daemon. It is signed in with the CLI's own login (the
+account of `ostrom login`, never a separate identity), and the server sees the device online while the daemon polls.
+
+- **One per device.** The service holds `daemon.lock` beside the CLI's configuration for its whole run. A second one
+  for the same configuration exits at once, before writing anything: two daemons on one queue would each accept the
+  same session.
+- **Orders.** The daemon waits for sessions started on this device. It checks each one against its own
+  `folders.json` and refuses, with the reason, a folder no longer listed (`folder_not_configured`), gone
+  (`folder_missing`), now resolving elsewhere through a symbolic link (`folder_moved`), refused by the rules above
+  (`folder_refused`), with another name (`folder_mismatch`), or an agent this version does not run
+  (`agent_unsupported`). Otherwise it accepts the session, writes its record in `remote/` as `ostrom remote start`
+  does, and starts `ostrom remote host SESSION` in the background from the service's executable. The permission mode,
+  agent, model and first message come from the session.
+- **Supervision.** A host that exits while its session should still run is started again. A host that stops answering
+  without exiting is checked on the server every 30 seconds: once the server paused its session as `host_offline`, the
+  daemon resumes it. Both count towards at most three starts of that session in ten minutes; after that the session is
+  left paused, or refused (`host_failed`) when it is still waiting for a host.
+- **Stop and restart.** On stop, the daemon stops polling, asks the server to pause every session it hosts (each agent
+  finishes its turn, then its host checkpoints and exits), waits up to nine minutes, then says it is offline.
+  `daemon-sessions.json` remembers the sessions it hosted and the ones it paused: the next daemon resumes them by
+  itself. A session you paused yourself is never resumed.
+- **Where it does not run.** In a cloud session's pod the daemon never starts. A service registered for another
+  configuration than the CLI's hosts nothing. This version hosts remote sessions on macOS and Linux; on Windows the
+  daemon stays offline.
+
+Starting a session through the daemon from another client needs the daemon online when you start it: nothing is
+queued for a device that is offline. A session waiting for a host when the device goes offline starts when the daemon
+polls again.
+
+## Continue a conversation of the device
+
+A session started through the daemon can continue one of a folder's Claude Code conversations on the device. The
+server never reads nor keeps a transcript: it asks the daemon, which reads the folder's transcripts on the device
+(`~/.claude/projects`, or `CLAUDE_CONFIG_DIR`, only the ones that started in that folder) and answers with each
+conversation's id, a short title, its last activity and its number of messages. Only the device's owner lists them.
+
+```sh notest="needs Claude Code conversations on this device"
+ostrom remote resumable ~/git/app
+ostrom remote start ~/git/app --resume CONVERSATION_ID
+```
+
+- `ostrom remote resumable [DIRECTORY]` prints the same list, read on this device with the daemon's code (nothing is
+  sent to the server), the most recent first. `--limit N` and `--before` (an ISO 8601 time, the next page's start) page
+  through it, `--json` prints the page. When this device cannot continue one, it says why: the server does not support
+  it, the daemon is offline or too old, or the platform hosts no remote session.
+- `ostrom remote start DIRECTORY --resume ID` (Claude Code only) checks the id against the folder, then always hands the
+  session to the daemon: with the daemon offline, too old or on a platform that hosts no remote session, it refuses with
+  the reason instead of hosting the session itself. The host starts Claude Code with `--resume ID --fork-session` the
+  first time only, so the device's conversation stays as it was and the session continues its own copy.
+
+## Local sessions
+
+`ostrom run claude` and the other agent launches also open a local session for their launch, when the server announces
+`runners.cloud.local.v1`. It lists the launch in the console and the app beside the cloud and remote sessions. It runs
+in your terminal: it takes no message, and it cannot be paused, resumed or transferred. It lives as long as the launch,
+and is paused as `host_offline` when the launch stops answering.
