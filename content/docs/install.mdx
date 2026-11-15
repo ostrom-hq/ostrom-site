@@ -15,11 +15,21 @@ brew install ostrom-hq/tap/ostrom                       # Homebrew
 scoop bucket add ostrom https://github.com/ostrom-hq/scoop-bucket; scoop install ostrom
 ```
 
-The scripts put the binary in `~/.ostrom/bin` (`%USERPROFILE%\.ostrom\bin` on Windows) and add it to your `PATH`. Set `OSTROM_VERSION` to install a given version, `OSTROM_INSTALL_DIR` to choose the folder, `OSTROM_NO_MODIFY_PATH=1` to leave your shell profile alone.
+The scripts make a managed installation for your user, through `ostrom install`, which you can also run yourself:
+
+| System | Folder |
+| --- | --- |
+| Linux | `~/.local/share/ostrom` (or `$XDG_DATA_HOME/ostrom`) |
+| macOS | `~/Library/Application Support/Ostrom` (or `$XDG_DATA_HOME/Ostrom`) |
+| Windows | `%LOCALAPPDATA%\Ostrom` |
+
+It holds a launcher, `bin/ostrom`, that never changes, and one folder per installed version; an update adds a folder and switches to it in one step, so an interrupted update leaves the previous version in place. The launcher is linked as `~/.local/bin/ostrom` on Linux and macOS (if that folder is not on your `PATH`, the installer prints the line to add to your shell profile; it never edits one), or its folder is added to your user `PATH` on Windows. Nothing needs `sudo` or administrator rights.
+
+Set `OSTROM_VERSION` to install a given version, `OSTROM_INSTALL_ROOT` to choose the installation's folder (an absolute path), `OSTROM_NO_MODIFY_PATH=1` to leave `PATH` alone. `OSTROM_INSTALL_DIR` installs the single binary in that folder instead (and adds it to your shell profile unless `OSTROM_NO_MODIFY_PATH=1`).
 
 ## The installer checks the signature, always
 
-Before it unpacks anything, the installer checks the signature of the release's `SHA256SUMS` against a key pinned in the script (with `cosign` when it is installed, else with `openssl` on Linux and macOS, or .NET on Windows), then the SHA-256 of the archive. With neither `cosign` nor `openssl`, `install.sh` installs nothing and tells you to install one. **There is no setting that skips the check.**
+Before it unpacks anything, the installer checks the signature of the release's `SHA256SUMS` against a key pinned in the script (with `cosign` when it is installed, else with `openssl` on Linux and macOS, or .NET on Windows), then the SHA-256 of the archive. With neither `cosign` nor `openssl`, `install.sh` installs nothing and tells you to install one. **There is no setting that skips the check.** The binary it unpacked then checks the release's Ed25519-signed `latest.json` again before it installs itself.
 
 ## Update
 
@@ -29,7 +39,7 @@ ostrom update              # install it
 ostrom update --rollback   # go back to the version kept by the last update
 ```
 
-`ostrom update` reads the release's `latest.json`, checks its Ed25519 signature against the keys compiled into the binary, then the archive's size and SHA-256 against that signed manifest, and only then swaps the binary. It never goes below the release's published version floor, never runs inside an agent's session, and leaves a Homebrew or Scoop install to its package manager.
+`ostrom update` reads the release's `latest.json`, checks its Ed25519 signature against the keys compiled into the binary, then the archive's size and SHA-256 against that signed manifest, and only then switches to the new version (or swaps the binary, for a single binary installed with `OSTROM_INSTALL_DIR`). It never goes below the release's published version floor, never runs inside an agent's session, and leaves a Homebrew or Scoop install to its package manager.
 
 After a command, `ostrom` tells you once a day on stderr when a newer release exists. Turn that off for this device with `ostrom update --notifications off` (`on` and `status` too), or in one process, such as a CI job, with any non-empty `OSTROM_DISABLE_AUTOUPDATE`.
 
