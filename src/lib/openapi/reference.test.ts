@@ -6,6 +6,7 @@ import { httpMethods, parseOpenApi } from './document'
 import {
   buildApiReference,
   displayTag,
+  isGenerated,
   isServed,
   readApiReference,
   schemaAnchor,
@@ -206,7 +207,9 @@ describe('a minimal description', () => {
       {
         openapi: '3.1.0',
         info: { title: 'Min', version: '0' },
-        paths: { '/x': { get: { responses: { '200': { $ref: '#/components/responses/Error' } } } } },
+        paths: {
+          '/x': { get: { responses: { '200': { $ref: '#/components/responses/Error' } }, 'x-ostrom-status': 'pending' } },
+        },
         components: {
           responses: {
             Error: { content: { 'application/json': { schema: { $ref: '#/components/schemas/E' } } } },
@@ -219,6 +222,19 @@ describe('a minimal description', () => {
     expect(unserved.tags).toEqual([])
     expect(unserved.schemas).toEqual([])
     expect(unserved.statuses).toEqual([])
+  })
+
+  it('documents every operation of the generated document, which marks none', () => {
+    const generated = {
+      openapi: '3.1.0',
+      info: { title: 'Gen', version: '1' },
+      paths: { '/x': { get: { responses: {} } }, '/y': { post: { responses: {} } } },
+    } as const
+    expect(isGenerated(generated)).toBe(true)
+    expect(buildApiReference(generated, TEST_API_URL).tags.flatMap((tag) => tag.operations)).toHaveLength(2)
+    expect(isGenerated({ ...generated, paths: { '/x': { get: { responses: {}, 'x-ostrom-server': 'planned' } } } })).toBe(
+      false,
+    )
   })
 
   it('is absent when the snapshot is not there', () => {
@@ -243,7 +259,7 @@ describe('names', () => {
     )
     const reference = buildApiReference(real, TEST_API_URL)
     expect(reference.tags.flatMap((tag) => tag.operations)).toHaveLength(
-      served.filter((operation) => isServed(operation)).length,
+      served.filter((operation) => isGenerated(real) || isServed(operation)).length,
     )
   })
 })
