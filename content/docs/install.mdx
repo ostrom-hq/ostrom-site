@@ -27,6 +27,8 @@ It holds a launcher, `bin/ostrom`, that never changes, and one folder per instal
 
 Set `OSTROM_VERSION` to install a given version, `OSTROM_INSTALL_ROOT` to choose the installation's folder (an absolute path), `OSTROM_NO_MODIFY_PATH=1` to leave `PATH` alone (no `~/.local/bin/ostrom` link, no user `PATH` change; run the launcher by its full path). `OSTROM_INSTALL_DIR` installs the single binary in that folder instead (and adds it to your shell profile unless `OSTROM_NO_MODIFY_PATH=1`), without versioned folders. A binary left in `~/.ostrom/bin` by an earlier installer is not removed: the installer names it, remove it and its `PATH` line so that `ostrom` runs the managed installation.
 
+The desktop app installs the same way, with `ostrom ui`: see [Install the desktop app](/docs/desktop).
+
 ## The installer checks the signature, always
 
 Before it unpacks anything, the installer checks the signature of the release's `SHA256SUMS` against a key pinned in the script (with `cosign` when it is installed, else with `openssl` on Linux and macOS, or .NET on Windows), then the SHA-256 of the archive. With neither `cosign` nor `openssl`, `install.sh` installs nothing and tells you to install one. **There is no setting that skips the check.** The binary it unpacked then checks the release's Ed25519-signed `latest.json` again before it installs itself.
