@@ -7,7 +7,6 @@ import {
   buildApiReference,
   displayTag,
   isGenerated,
-  isServed,
   readApiReference,
   schemaAnchor,
   schemaGroup,
@@ -259,16 +258,15 @@ describe('names', () => {
     expect(serverUrl({ url: 'https://{a}' })).toBe('https://{a}')
   })
 
-  it('parses the real API document, and lists only what the server serves', () => {
+  it('parses the real API document, the generated one, and lists every operation it describes', () => {
     const real = parseOpenApi(readFileSync(join(process.cwd(), 'content', 'api', 'openapi.json'), 'utf8'))
     expect(real.openapi).toMatch(/^3\.1\./)
     const served = Object.values(real.paths).flatMap((item) =>
       httpMethods.flatMap((method) => (item[method] === undefined ? [] : [item[method]])),
     )
+    expect(isGenerated(real)).toBe(true)
     const reference = buildApiReference(real, TEST_API_URL)
-    expect(reference.tags.flatMap((tag) => tag.operations)).toHaveLength(
-      served.filter((operation) => isGenerated(real) || isServed(operation)).length,
-    )
+    expect(reference.tags.flatMap((tag) => tag.operations)).toHaveLength(served.length)
   })
 })
 

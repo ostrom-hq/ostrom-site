@@ -174,9 +174,10 @@ function firstMedia(content: MediaTypes | undefined): Media | null {
 }
 
 /**
- * The contract describes routes before the server serves them. The public reference shows an operation only once the
- * server's pull request marks it served (`x-ostrom-server: implemented`, or `x-ostrom-status: served`): it never
- * documents an endpoint that answers 404 (decision of 30/10/2026, QUESTIONS [DOCS 04:20]).
+ * The hand-written contract described routes before the server served them. In such a document the public reference
+ * shows an operation only once the server's pull request marks it served (`x-ostrom-server: implemented`, or
+ * `x-ostrom-status: served`): it never documents an endpoint that answers 404 (decision of 30/10/2026, QUESTIONS
+ * [DOCS 04:20]). The generated document ([isGenerated]) carries no mark and describes only served routes.
  */
 export function isServed(operation: Operation): boolean {
   return operation['x-ostrom-server'] === 'implemented' || operation['x-ostrom-status'] === 'served'
