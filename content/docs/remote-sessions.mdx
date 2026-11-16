@@ -98,7 +98,8 @@ The folders are where your other devices and apps may start sessions on this dev
   directory, a directory that contains it and system directories. It also saves the terminal's `PATH` for the agents:
   a service manager starts the daemon with a minimal one, so the daemon's hosts search the saved `PATH`, the
   service's, then the usual install places of `claude` and `codex` (`~/.local/bin`, `~/.claude/local`,
-  `~/.npm-global/bin`, `~/.bun/bin`, `~/.volta/bin`, `/opt/homebrew/bin`, `/usr/local/bin`) when they exist.
+  `~/.npm-global/bin`, `~/.bun/bin`, `~/.volta/bin`, `/opt/homebrew/bin`, `/usr/local/bin`; on Windows npm's folder
+  under `%APPDATA%` and Volta's under `%LOCALAPPDATA%`) when they exist.
 - `ostrom folders list` prints each folder's id and path, and says when a path no longer exists.
 - `ostrom folders remove` takes the folder's id or its path.
 
@@ -133,10 +134,11 @@ account of `ostrom login`, never a separate identity), and the server sees the d
   finishes its turn, then its host checkpoints and exits), waits up to nine minutes, then says it is offline.
   `daemon-sessions.json` remembers the sessions it hosted and the ones it paused: the next daemon resumes them by
   itself. A session you paused yourself is never resumed.
+- **On Windows** the daemon hosts sessions as elsewhere: its hosts are background processes without a console window,
+  and each starts the agent as a child with piped input and output, inside a private job object that ends the agent
+  and everything it started with the session.
 - **Where it does not run.** In a cloud session's pod the daemon never starts. A service registered for another
-  configuration than the CLI's hosts nothing. On Windows the daemon hosts sessions as elsewhere: its hosts are
-  background processes without a console window, and each starts the agent as a child with piped input and output,
-  inside a private job object that ends the agent and everything it started with the session.
+  configuration than the CLI's hosts nothing.
 
 Starting a session through the daemon from another client needs the daemon online when you start it: nothing is
 queued for a device that is offline. A session waiting for a host when the device goes offline starts when the daemon
