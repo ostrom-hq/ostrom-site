@@ -14,6 +14,8 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
     css: false,
+    // The tests that read the server's generated API document build every operation it serves: seconds under coverage.
+    testTimeout: 30_000,
     // As in next.config.ts (trailingSlash): next/link keeps the final slash of an href only when this is set.
     env: { __NEXT_TRAILING_SLASH: 'true' },
     coverage: {

@@ -174,12 +174,27 @@ function firstMedia(content: MediaTypes | undefined): Media | null {
 }
 
 /**
- * The contract describes routes before the server serves them. The public reference shows an operation only once the
- * server's pull request marks it served (`x-ostrom-server: implemented`, or `x-ostrom-status: served`): it never
- * documents an endpoint that answers 404 (decision of 30/10/2026, QUESTIONS [DOCS 04:20]).
+ * The hand-written contract described routes before the server served them. In such a document the public reference
+ * shows an operation only once the server's pull request marks it served (`x-ostrom-server: implemented`, or
+ * `x-ostrom-status: served`): it never documents an endpoint that answers 404 (decision of 30/10/2026, QUESTIONS
+ * [DOCS 04:20]). The generated document ([isGenerated]) carries no mark and describes only served routes.
  */
 export function isServed(operation: Operation): boolean {
   return operation['x-ostrom-server'] === 'implemented' || operation['x-ostrom-status'] === 'served'
+}
+
+/**
+ * Whether the document is the one the server generates from its routes (`@ostrom-hq/openapi` since the generated
+ * contract): no operation carries a status mark, because the server only describes the routes it serves. Every one
+ * of its operations is served.
+ */
+export function isGenerated(document: OpenApiDocument): boolean {
+  return Object.values(document.paths).every((item) =>
+    httpMethods.every((method) => {
+      const operation = item[method]
+      return operation?.['x-ostrom-server'] === undefined && operation?.['x-ostrom-status'] === undefined
+    }),
+  )
 }
 
 /** Every `$ref` string anywhere in a value of the description. */
@@ -358,11 +373,12 @@ function buildTags(builder: Builder): BuiltTags {
   const sluggers = new Map<string, GithubSlugger>()
   const statuses = new Set<string>()
   const roots: unknown[] = []
+  const generated = isGenerated(builder.document)
   for (const [path, item] of Object.entries(builder.document.paths)) {
     const shared = (item.parameters ?? []).map((value) => parameterOf(builder, value))
     for (const method of httpMethods) {
       const operation = item[method]
-      if (operation === undefined || !isServed(operation)) continue
+      if (operation === undefined || !(generated || isServed(operation))) continue
       roots.push(operation, item.parameters)
       const tag = displayTag(operation.tags?.[0] ?? UNTAGGED)
       const slugger = sluggers.get(tag) ?? new GithubSlugger()

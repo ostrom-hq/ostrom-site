@@ -25,14 +25,18 @@ defaults:
 jobs:
   ci:
     name: ci
+    permissions:
+      contents: read
+      packages: read # @ostrom-hq/openapi, the API document docs-truth reads
     # A draft pull request runs no CI: mark it ready when you want it.
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
-      # The ostrom-core commit the docs are checked against: its api/contract/served-routes.txt (what the server serves)
-      # and tools/docs-truth. Move it forward by pull request; the run warns when served-routes.txt moved on main.
-      CORE_REF: d24c6120fa3c88a68da36fa6981882feecd2b225
+      # The ostrom-core commit of tools/docs-truth (and the telemetry sources it reads). Move it forward by pull request.
+      # What the server serves comes from its generated OpenAPI document, @ostrom-hq/openapi at the version
+      # package.json pins (ostrom-core docs/decisions/0001).
+      CORE_REF: 7abc0289cd1b64d00287d250c3c95e7c3cb04a7b
       CORE_KEY_SET: ${{ secrets.DEPLOY_KEY_CORE != '' }}
       SERVER_KEY_SET: ${{ secrets.DEPLOY_KEY_SERVER != '' }}
       CLI_KEYS_SET: ${{ secrets.DEPLOY_KEY_E2E != '' && secrets.DEPLOY_KEY_CLI != '' && secrets.DEPLOY_KEY_CORE != '' }}
@@ -51,7 +55,7 @@ jobs:
         run: npm test
       - name: Frontmatter, code blocks, MDX-safe prose, links, navigation
         run: npm run lint:docs
-      # ostrom-core at CORE_REF, for docs-truth below (tools/docs-truth, served-routes.txt, telemetry). Reading it needs
+      # ostrom-core at CORE_REF, for docs-truth below (tools/docs-truth, telemetry). Reading it needs
       # the org's read-only deploy key, which pull requests from forks do not get.
       - name: Checkout ostrom-core (docs-truth)
         if: env.CORE_KEY_SET == 'true'
@@ -125,7 +129,23 @@ jobs:
           ssh-key: ${{ secrets.DEPLOY_KEY_SERVER }}
           path: .ostrom/server
           persist-credentials: false
-      # docs-truth (ostrom-core/tools/docs-truth): every route a page cites is served (the pinned served-routes.txt),
+      # The API document docs-truth checks routes against: the @ostrom-hq/openapi version package.json pins
+      # (ostrom.openapi), the one ci.yml builds the API reference from.
+      - name: The API document (@ostrom-hq/openapi)
+        if: env.CORE_KEY_SET == 'true'
+        working-directory: .
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="$(node -p "require('./package.json').ostrom.openapi")"
+          dir="$RUNNER_TEMP/openapi"
+          mkdir -p "$dir"
+          printf '@ostrom-hq:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}\n' \
+            > "$dir/.npmrc"
+          (cd "$dir" && npm pack --userconfig "$dir/.npmrc" "@ostrom-hq/openapi@$version" \
+            && tar -xzf "ostrom-hq-openapi-$version.tgz")
+          test -s "$dir/package/openapi.json"
+      # docs-truth (ostrom-core/tools/docs-truth): every route a page cites is served (the server's generated document),
       # every `ostrom …` command and option is in the binary's help, every OSTROM_ variable is read by the server, the
       # CLI or core; anything else only under "Coming soon". The site's own text (blog, legal, strings) too.
       - name: The docs and the site cite only what the product does (docs-truth)
@@ -134,12 +154,9 @@ jobs:
         env:
           OSTROM_BIN: ${{ steps.cli.outputs.bin }}
         run: |
-          set -- --routes .ostrom/core/api/contract/served-routes.txt --source .ostrom/core/telemetry
+          set -- --openapi "$RUNNER_TEMP/openapi/package/openapi.json" --source .ostrom/core/telemetry
           if [ -n "$OSTROM_BIN" ]; then set -- "$@" --ostrom "$OSTROM_BIN" --source .ostrom/cli; fi
           if [ -d .ostrom/server ]; then set -- "$@" --source .ostrom/server; fi
-          if ! git -C .ostrom/core diff --quiet "$CORE_REF" origin/main -- api/contract/served-routes.txt; then
-            echo "::warning title=docs-truth::served-routes.txt changed on ostrom-core main since CORE_REF: move CORE_REF forward"
-          fi
           node .ostrom/core/tools/docs-truth/bin/docs-truth.mjs "$@" content/docs content/blog content/legal src/i18n/en.ts
       - name: Run every tested code block (strict, a missing binary or server fails)
         env:

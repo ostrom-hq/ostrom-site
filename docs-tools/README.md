@@ -9,8 +9,8 @@ A page documents only what is in the released code of the `ostrom-*` repositorie
 a page with `status: coming-soon` that says "Coming soon", or nothing at all.
 
 CI checks it with docs-truth (`ostrom-core/tools/docs-truth`), on every page and on the site's own text (`content/blog`,
-`content/legal`, `src/i18n/en.ts`): each API route cited must be served by ostrom-server `main` (ostrom-core's
-`api/contract/served-routes.txt`, at the commit `CORE_REF` of `.github/workflows/docs.yml`), each `ostrom …` command and
+`content/legal`, `src/i18n/en.ts`): each API route cited must be an operation of the server's generated OpenAPI
+document (`@ostrom-hq/openapi` at the version `package.json` pins in `ostrom.openapi`), each `ostrom …` command and
 option must be in the help of the binary built from ostrom-cli `main`, and each `OSTROM_` variable must be read by the
 server, the CLI or ostrom-core. Anything else is allowed only where its paragraph, list item, table row or a heading
 above it says "Coming soon", or on a `status: coming-soon` page. A page whose status is `partial` or `coming-soon`
